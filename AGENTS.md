@@ -28,3 +28,18 @@ Plain `swift build` / `swift test --filter <name>` work too.
 - Use Swift Testing (`@Test`, `#expect`), not XCTest. Keep hardware (camera, speech) behind protocols so logic is testable with fakes.
 - Don't fabricate test fixtures (screenshots, videos). If they're missing, tests should skip with a clear message.
 - Before calling work done, `mise run verify` passes and its summary is in the hand-off.
+
+## Commit messages
+
+Follow [the seven rules](https://cbea.ms/git-commit/), which match [Git's own guidance](https://git-scm.com/docs/SubmittingPatches#describe-changes):
+
+- Subject: imperative mood, capitalized, no trailing period, about 50 characters (72 at most). It should complete "If applied, this commit will …".
+- Skip the body for small, obvious changes. Otherwise add a blank line, then a body wrapped at 72 columns that says what changed and why, not how. The diff shows how.
+- One logical change per commit. If the subject needs "and", consider splitting.
+
+```
+Add settle detector for typewriter text
+
+OCR on a half-drawn box produced truncated lines. Wait until the
+text crop is stable for three samples before running OCR.
+```
