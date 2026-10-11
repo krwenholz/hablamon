@@ -1,0 +1,42 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved.bak
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+
+# Build products
+/Hablamon.app
+/dist/
+
+# Generated verification reports
+/reports/
+
+# Large or personal test fixtures (videos); screenshots and golden transcripts are committed
+Tests/Fixtures/**/*.mov
+Tests/Fixtures/**/*.mp4
+
+# Local voice models and generated voice clips
+/models/
+/voices/
+
+# Python helper environments (if a Qwen3-TTS helper process is added)
+.venv/
+__pycache__/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# Local agent settings
+.claude/settings.local.json
