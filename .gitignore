@@ -1,42 +1,25 @@
-# Swift Package Manager
-.build/
-.swiftpm/
-Package.resolved.bak
-*.xcodeproj
-*.xcworkspace
+# SwiftPM: what `swift package init` (Swift 6.4) generates
+.DS_Store
+/.build
+/Packages
 xcuserdata/
 DerivedData/
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
 
-# Build products
-/Hablamon.app
-/dist/
+# github/gitignore Swift.gitignore: debug symbols from release builds
+*.dSYM
+*.dSYM.zip
 
-# Generated verification reports
-/reports/
-
-# Large or personal test fixtures (videos); screenshots and golden transcripts are committed
-Tests/Fixtures/**/*.mov
-Tests/Fixtures/**/*.mp4
-
-# Local voice models and generated voice clips
-/models/
-/voices/
-
-# Python helper environments (if a Qwen3-TTS helper process is added)
-.venv/
-__pycache__/
-
-# macOS
-.DS_Store
+# github/gitignore Global/macOS.gitignore: Finder metadata
+._*
 .AppleDouble
 .LSOverride
 
-# Editors
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-.idea/
-*.swp
+# Hablamon: generated test reports (scripts/verify.sh)
+/reports/
 
-# Local agent settings
-.claude/settings.local.json
+# Hablamon: phone videos are large; keep them out of git (Git LFS later if needed)
+Tests/Fixtures/**/*.mov
+Tests/Fixtures/**/*.mp4

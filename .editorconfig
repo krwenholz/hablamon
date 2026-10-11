@@ -1,3 +1,4 @@
+# Matches .swift-format (4-space indent, 120 columns).
 root = true
 
 [*]
@@ -8,7 +9,10 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
-[*.{json,yml,yaml}]
+[*.swift]
+max_line_length = 120
+
+[*.{json,yml,yaml,toml}]
 indent_size = 2
 
 [*.md]
