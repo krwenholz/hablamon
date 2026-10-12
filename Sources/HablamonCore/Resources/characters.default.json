@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "characters": {
+    "narrator": {
+      "gender": "neutral",
+      "role": "Item pickups and system messages (no name tag)",
+      "description": "clear, even, unhurried"
+    },
+    "Clavel": {
+      "englishName": "Clavell",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Director of the academy",
+      "description": "theatrical and pompous, fond of rhymes and alliteration; warm underneath",
+      "aliases": [
+        "Cael"
+      ]
+    },
+    "Mencía": {
+      "englishName": "Nemona",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Rival; champion-ranked student",
+      "description": "bubbly and fast-talking, obsessed with battling"
+    },
+    "Damián": {
+      "englishName": "Arven",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Student searching for the Herba Mystica",
+      "description": "gruff and guarded at first, softens over time"
+    },
+    "Noa": {
+      "englishName": "Penny",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Reclusive student hacker",
+      "description": "quiet, mumbling, dry"
+    },
+    "Casiopea": {
+      "englishName": "Penny",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Team Star's anonymous boss, heard by phone",
+      "description": "mysterious and distorted; keep distinct from Noa so the reveal isn't spoiled"
+    },
+    "Cinio": {
+      "englishName": "Jacq",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Biology teacher and the player's homeroom tutor",
+      "description": "friendly, relaxed, a little goofy"
+    },
+    "Hesperio": {
+      "englishName": "Hassel",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Art teacher; Elite Four (Dragon)",
+      "description": "dramatic and emotional, moved to tears by beauty"
+    },
+    "Cloe": {
+      "englishName": "Raifort",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "History teacher",
+      "description": "energetic, theatrical storyteller"
+    },
+    "Silvio": {
+      "englishName": "Salvatore",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Languages teacher",
+      "description": "warm, flowery, effusive"
+    },
+    "Hugo": {
+      "englishName": "Saguaro",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Home economics teacher",
+      "description": "calm, gentle, soft-spoken"
+    },
+    "Mila": {
+      "englishName": "Tyme",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Math teacher; former gym leader",
+      "description": "precise and upbeat"
+    },
+    "Kendra": {
+      "englishName": "Dendra",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Battle studies teacher",
+      "description": "loud, athletic, enthusiastic"
+    },
+    "Mimí": {
+      "englishName": "Miriam",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "School nurse",
+      "description": "gentle and hesitant"
+    },
+    "Ságita": {
+      "englishName": "Geeta",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Top Champion and chairwoman of the Pokémon League",
+      "description": "composed, formal, authoritative"
+    },
+    "Cayena": {
+      "englishName": "Rika",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Elite Four (Ground)",
+      "description": "relaxed and teasing"
+    },
+    "Pola": {
+      "englishName": "Poppy",
+      "gender": "female",
+      "ageGroup": "child",
+      "role": "Elite Four (Steel)",
+      "description": "young, cheerful, childlike"
+    },
+    "Laureano": {
+      "englishName": "Larry",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Gym leader (Normal) and Elite Four (Flying); office worker",
+      "description": "flat, weary, deadpan"
+    },
+    "Albora": {
+      "englishName": "Professor Sada",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Pokémon Professor",
+      "description": "brusque, intense researcher",
+      "version": "scarlet"
+    },
+    "Turo": {
+      "englishName": "Professor Turo",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Pokémon Professor",
+      "description": "calm, detached researcher",
+      "version": "violet"
+    },
+    "Araceli": {
+      "englishName": "Katy",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Gym leader (Bug); pastry chef",
+      "description": "sweet and motherly"
+    },
+    "Brais": {
+      "englishName": "Brassius",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Gym leader (Grass); artist",
+      "description": "flamboyant and avant-garde"
+    },
+    "e-Nigma": {
+      "englishName": "Iono",
+      "gender": "female",
+      "role": "Gym leader (Electric); streamer",
+      "description": "hyper, bubbly influencer"
+    },
+    "Fuco": {
+      "englishName": "Kofu",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Gym leader (Water); chef",
+      "description": "boisterous and booming"
+    },
+    "Lima": {
+      "englishName": "Ryme",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Gym leader (Ghost); rapper",
+      "description": "rhythmic and raspy"
+    },
+    "Tuli": {
+      "englishName": "Tulip",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Gym leader (Psychic); makeup artist",
+      "description": "soft, elegant, airy"
+    },
+    "Grusha": {
+      "englishName": "Grusha",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Gym leader (Ice); former pro snowboarder",
+      "description": "cool, terse, aloof"
+    },
+    "Anán": {
+      "englishName": "Giacomo",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Team Star boss, Segin squad (Dark); DJ",
+      "description": "cool and laid-back"
+    },
+    "Melo": {
+      "englishName": "Mela",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Team Star boss, Schedar squad (Fire)",
+      "description": "hot-headed and brash"
+    },
+    "Henzo": {
+      "englishName": "Atticus",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Team Star boss, Navi squad (Poison)",
+      "description": "theatrical, old-fashioned ninja speech"
+    },
+    "Gus": {
+      "englishName": "Ortega",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Team Star boss, Ruchbah squad (Fairy)",
+      "description": "bratty and whiny"
+    },
+    "Erin": {
+      "englishName": "Eri",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Team Star boss, Caph squad (Fighting)",
+      "description": "steady, strong, earnest"
+    },
+    "Recluta": {
+      "englishName": "Team Star Grunt",
+      "gender": "neutral",
+      "ageGroup": "teen",
+      "role": "Team Star grunt; many students share this tag",
+      "description": "cocky and slangy"
+    },
+    "Cass": {
+      "englishName": "Kieran",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Rival from Kitakami; later Blueberry League champion",
+      "description": "shy and quiet, turns bitter"
+    },
+    "Corin": {
+      "englishName": "Carmine",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Cass's older sister",
+      "description": "brash and bossy"
+    },
+    "Heladia": {
+      "englishName": "Hideko",
+      "gender": "female",
+      "ageGroup": "elder",
+      "role": "Cass and Corin's grandmother",
+      "description": "kindly, unhurried",
+      "aliases": [
+        "Abuela"
+      ]
+    },
+    "Nevesio": {
+      "englishName": "Yukito",
+      "gender": "male",
+      "ageGroup": "elder",
+      "role": "Cass and Corin's grandfather",
+      "description": "kindly, storytelling",
+      "aliases": [
+        "Abuelo"
+      ]
+    },
+    "Gama": {
+      "englishName": "Perrin",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Photographer hunting a mysterious Pokémon",
+      "description": "calm and curious"
+    },
+    "Brie": {
+      "englishName": "Briar",
+      "gender": "female",
+      "ageGroup": "adult",
+      "role": "Blueberry Academy teacher; author on Area Zero",
+      "description": "excitable, rambling, nerdy"
+    },
+    "Mirtilo": {
+      "englishName": "Cyrano",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Director of Blueberry Academy",
+      "description": "cheerful and carefree"
+    },
+    "Aroa": {
+      "englishName": "Lacey",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Blueberry League Elite Four",
+      "description": "bright, by-the-rules"
+    },
+    "Levi": {
+      "englishName": "Drayton",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Blueberry League Elite Four; former champion",
+      "description": "lazy and laid-back"
+    },
+    "Denis": {
+      "englishName": "Crispin",
+      "gender": "male",
+      "ageGroup": "teen",
+      "role": "Blueberry League Elite Four",
+      "description": "fiery and loud"
+    },
+    "Nerina": {
+      "englishName": "Amarys",
+      "gender": "female",
+      "ageGroup": "teen",
+      "role": "Blueberry League Elite Four",
+      "description": "cool and blunt"
+    }
+  }
+}

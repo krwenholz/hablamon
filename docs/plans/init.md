@@ -133,30 +133,42 @@ OCR runs on two crops from the corrected frame: the body text and the name tag. 
 
 Voices come from a hand-editable character table, not from guessing gender from names. Spanish localized names don't reliably signal gender, and a small table is cheap to maintain.
 
-`characters.json` lives in Application Support and is seeded from a bundled default:
+`characters.json` lives in Application Support and is seeded from a bundled default (`Sources/HablamonCore/Resources/characters.default.json`). Entries are keyed by the Spanish (Spain) name exactly as the name tag shows it:
 
 ```json
 {
-  "Clavel": {
-    "gender": "male",
-    "description": "stiff, theatrical academy director",
-    "voices": {
-      "apple": { "voice": "es-ES male", "pitch": 0.9, "rate": 0.95 },
-      "qwen3": { "referenceClip": "voices/clavel.wav" }
-    }
-  },
-  "narrator": { "gender": "neutral", "voices": { "apple": { "pitch": 1.0, "rate": 1.0 } } }
+  "schemaVersion": 1,
+  "characters": {
+    "Clavel": {
+      "englishName": "Clavell",
+      "gender": "male",
+      "ageGroup": "adult",
+      "role": "Director of the academy",
+      "description": "theatrical and pompous, fond of rhymes and alliteration; warm underneath",
+      "aliases": ["Cael"],
+      "voices": {
+        "apple": { "voice": "com.apple.voice.premium.es-ES.Jorge", "pitch": 0.9, "rate": 0.95 },
+        "qwen3": { "referenceClip": "voices/clavel.wav" }
+      }
+    },
+    "Albora": { "englishName": "Professor Sada", "gender": "female", "ageGroup": "adult", "version": "scarlet" },
+    "narrator": { "gender": "neutral" }
+  }
 }
 ```
 
+- `aliases` are other name-tag texts for the same person (Clavel's disguise "Cael", "Abuela" before Heladia is named), so they get the same voice.
+- `ageGroup` (child, teen, adult, elder) and `gender` pick a default voice when an engine has no explicit entry.
+- `version` marks characters that only appear in Scarlet or Violet.
+
 **Assignment rules**
 
-- Known character: use its entry for the active engine.
-- New name: create an `unknown` entry. Assign the next voice in the default pool, cycling round-robin, with a pitch offset derived from a stable hash of the name. The same unknown name therefore always sounds the same, even before it is tagged.
+- Known character (name or alias matches): use its entry for the active engine, or the default for its gender and age group. Because the cast is known in advance, almost every tagged line should resolve here.
+- Unmatched name: create an `unknown` entry. Assign the next voice in the default pool, cycling round-robin, with a pitch offset derived from a stable hash of the name (FNV-1a, not Swift's per-launch `Hasher`). The same unknown name therefore always sounds the same, even before it is tagged. This is only the fallback for names missing from the table.
 - The UI shows recent unknown speakers with one-click tags (male, female, neutral). Tagging moves the character into that gender's pool and persists the change.
 - `description` is unused by the Apple engine; it is the input for designing Qwen3-TTS voices (next section).
 
-**Seeding.** Bundle a starter table for the main Scarlet cast using their Spanish names, gender only. Leave the exact list to the implementer; it is easy to extend, and `unknown` handling covers gaps.
+**Seeding.** The bundled table covers the named cast of the base game and both DLCs (academy, league, gym leaders, Team Star, Kitakami, Blueberry Academy), with names and genders checked against [WikiDex](https://www.wikidex.net/wiki/Pok%C3%A9mon_Escarlata_y_Pok%C3%A9mon_P%C3%BArpura). `description` values are voice-design starting points, not canon. Exact name-tag text (for example whether grunts show "Recluta" or a longer tag) still needs confirming from real frames.
 
 ## Speech engines
 
