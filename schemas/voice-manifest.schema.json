@@ -1,0 +1,52 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "voice-manifest",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "voices"
+  ],
+  "properties" : {
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "voices" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "object",
+        "required" : [
+          "engine",
+          "referenceClip",
+          "prompt",
+          "createdAt"
+        ],
+        "properties" : {
+          "engine" : {
+            "type" : "string",
+            "enum" : [
+              "apple",
+              "qwen3",
+              "kokoro"
+            ]
+          },
+          "referenceClip" : {
+            "type" : "string",
+            "minLength" : 1,
+            "description" : "WAV clip relative to the Application Support folder."
+          },
+          "prompt" : {
+            "type" : "string",
+            "description" : "Description the clip was designed from."
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "additionalProperties" : false
+      },
+      "description" : "Keyed by character name, matching `characters.json`."
+    }
+  },
+  "additionalProperties" : false
+}

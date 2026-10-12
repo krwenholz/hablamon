@@ -1,0 +1,121 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "calibration",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "deviceID",
+    "screenQuad",
+    "zoomFactor",
+    "referenceThumbnail",
+    "calibratedAt"
+  ],
+  "properties" : {
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "deviceID" : {
+      "type" : "string",
+      "minLength" : 1,
+      "description" : "`AVCaptureDevice.uniqueID` of the pinned camera."
+    },
+    "deviceName" : {
+      "type" : [
+        "string",
+        "null"
+      ]
+    },
+    "screenQuad" : {
+      "type" : "object",
+      "required" : [
+        "topLeft",
+        "topRight",
+        "bottomRight",
+        "bottomLeft"
+      ],
+      "properties" : {
+        "topLeft" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "number"
+            },
+            "y" : {
+              "type" : "number"
+            }
+          },
+          "additionalProperties" : false
+        },
+        "topRight" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "number"
+            },
+            "y" : {
+              "type" : "number"
+            }
+          },
+          "additionalProperties" : false
+        },
+        "bottomRight" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "number"
+            },
+            "y" : {
+              "type" : "number"
+            }
+          },
+          "additionalProperties" : false
+        },
+        "bottomLeft" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "number"
+            },
+            "y" : {
+              "type" : "number"
+            }
+          },
+          "additionalProperties" : false
+        }
+      },
+      "additionalProperties" : false,
+      "description" : "TV screen corners in source-camera pixels."
+    },
+    "zoomFactor" : {
+      "type" : "number",
+      "minimum" : 1.0,
+      "description" : "`AVCaptureDevice.videoZoomFactor` in use when calibrated."
+    },
+    "referenceThumbnail" : {
+      "type" : "string",
+      "description" : "Grayscale thumbnail of the corrected bezel, relative to the Application Support folder."
+    },
+    "calibratedAt" : {
+      "type" : "string",
+      "format" : "date-time",
+      "description" : "ISO 8601 timestamp."
+    }
+  },
+  "additionalProperties" : false
+}

@@ -15,6 +15,7 @@ mise run build    # swift build
 mise run test     # swift test (Swift Testing)
 mise run lint     # swift format lint --strict
 mise run format   # swift format in place
+mise run schemas  # regenerate schemas/ after changing a model type
 mise run verify   # lint + build + test, writes reports/verify.md
 ```
 
@@ -25,6 +26,7 @@ Plain `swift build` / `swift test --filter <name>` work too.
 - macOS on Apple Silicon is the target. Swift 6, SwiftPM only, no Xcode project. Cloud sessions run Linux, so only platform-neutral code can be built and tested there; gate Apple-only code with `#if canImport(...)` where practical.
 - Apple frameworks only. The only third-party packages are `swift-argument-parser` and `swift-json-schema`. Ask before adding dependencies.
 - Fully offline at runtime: no network calls or telemetry.
+- Every JSON file has a `VersionedDocument` type in `HablamonModels`; `schemas/` is generated from them and a test fails if it's stale.
 - Use Swift Testing (`@Test`, `#expect`), not XCTest. Keep hardware (camera, speech) behind protocols so logic is testable with fakes.
 - Don't fabricate test fixtures (screenshots, videos). If they're missing, tests should skip with a clear message.
 - Before calling work done, `mise run verify` passes and its summary is in the hand-off.

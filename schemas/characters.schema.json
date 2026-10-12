@@ -1,0 +1,202 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "characters",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "characters"
+  ],
+  "properties" : {
+    "$schema" : {
+      "type" : [
+        "string",
+        "null"
+      ],
+      "description" : "Path or URL of the JSON Schema, for editor autocomplete."
+    },
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "characters" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "object",
+        "required" : [
+          "gender"
+        ],
+        "properties" : {
+          "englishName" : {
+            "type" : [
+              "string",
+              "null"
+            ],
+            "description" : "Name in the English release, for reference."
+          },
+          "gender" : {
+            "type" : "string",
+            "enum" : [
+              "male",
+              "female",
+              "neutral",
+              "unknown"
+            ]
+          },
+          "ageGroup" : {
+            "oneOf" : [
+              {
+                "type" : "string",
+                "enum" : [
+                  "child",
+                  "teen",
+                  "adult",
+                  "elder"
+                ]
+              },
+              {
+                "type" : "null"
+              }
+            ]
+          },
+          "role" : {
+            "type" : [
+              "string",
+              "null"
+            ],
+            "description" : "Who the character is, in a few words."
+          },
+          "description" : {
+            "type" : [
+              "string",
+              "null"
+            ],
+            "description" : "How the character should sound; input for designing generated voices."
+          },
+          "aliases" : {
+            "oneOf" : [
+              {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                },
+                "description" : "Other name-tag texts that resolve to this speaker, such as a disguise or title."
+              },
+              {
+                "type" : "null"
+              }
+            ]
+          },
+          "version" : {
+            "oneOf" : [
+              {
+                "type" : "string",
+                "enum" : [
+                  "scarlet",
+                  "violet"
+                ],
+                "description" : "Set when the character appears in only one version of the game."
+              },
+              {
+                "type" : "null"
+              }
+            ]
+          },
+          "voices" : {
+            "oneOf" : [
+              {
+                "type" : "object",
+                "properties" : {
+                  "apple" : {
+                    "oneOf" : [
+                      {
+                        "type" : "object",
+                        "properties" : {
+                          "voice" : {
+                            "type" : [
+                              "string",
+                              "null"
+                            ],
+                            "description" : "`AVSpeechSynthesisVoice` identifier; omit to use the default es-ES voice."
+                          },
+                          "pitch" : {
+                            "type" : [
+                              "number",
+                              "null"
+                            ],
+                            "minimum" : 0.5,
+                            "maximum" : 2.0,
+                            "description" : "`AVSpeechUtterance.pitchMultiplier`."
+                          },
+                          "rate" : {
+                            "type" : [
+                              "number",
+                              "null"
+                            ],
+                            "minimum" : 0.5,
+                            "maximum" : 2.0,
+                            "description" : "Multiplier on the global speaking rate."
+                          }
+                        },
+                        "additionalProperties" : false
+                      },
+                      {
+                        "type" : "null"
+                      }
+                    ]
+                  },
+                  "qwen3" : {
+                    "oneOf" : [
+                      {
+                        "type" : "object",
+                        "required" : [
+                          "referenceClip"
+                        ],
+                        "properties" : {
+                          "referenceClip" : {
+                            "type" : "string",
+                            "minLength" : 1,
+                            "description" : "Short WAV clip the engine clones, relative to the Application Support folder."
+                          }
+                        },
+                        "additionalProperties" : false
+                      },
+                      {
+                        "type" : "null"
+                      }
+                    ]
+                  },
+                  "kokoro" : {
+                    "oneOf" : [
+                      {
+                        "type" : "object",
+                        "required" : [
+                          "voice"
+                        ],
+                        "properties" : {
+                          "voice" : {
+                            "type" : "string",
+                            "minLength" : 1,
+                            "description" : "Kokoro voice ID, such as `ef_dora`."
+                          }
+                        },
+                        "additionalProperties" : false
+                      },
+                      {
+                        "type" : "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties" : false
+              },
+              {
+                "type" : "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties" : false
+      }
+    }
+  },
+  "additionalProperties" : false
+}

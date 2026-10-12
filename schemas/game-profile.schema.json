@@ -1,0 +1,239 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "game-profile",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "id",
+    "name",
+    "frameSize",
+    "regions",
+    "panel"
+  ],
+  "properties" : {
+    "$schema" : {
+      "type" : [
+        "string",
+        "null"
+      ]
+    },
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "id" : {
+      "type" : "string",
+      "pattern" : "^[a-z0-9-]+$",
+      "description" : "Short identifier, such as `scarlet`."
+    },
+    "name" : {
+      "type" : "string"
+    },
+    "frameSize" : {
+      "type" : "object",
+      "required" : [
+        "width",
+        "height"
+      ],
+      "properties" : {
+        "width" : {
+          "type" : "integer",
+          "minimum" : 1.0
+        },
+        "height" : {
+          "type" : "integer",
+          "minimum" : 1.0
+        }
+      },
+      "additionalProperties" : false,
+      "description" : "Size of the perspective-corrected frame the regions are measured in."
+    },
+    "regions" : {
+      "type" : "object",
+      "required" : [
+        "dialogueBox",
+        "bodyText",
+        "nameTag"
+      ],
+      "properties" : {
+        "dialogueBox" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "y" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "width" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            },
+            "height" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            }
+          },
+          "additionalProperties" : false
+        },
+        "bodyText" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "y" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "width" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            },
+            "height" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            }
+          },
+          "additionalProperties" : false
+        },
+        "nameTag" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "y" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "width" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            },
+            "height" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            }
+          },
+          "additionalProperties" : false
+        },
+        "advanceIndicator" : {
+          "oneOf" : [
+            {
+              "type" : "object",
+              "required" : [
+                "x",
+                "y",
+                "width",
+                "height"
+              ],
+              "properties" : {
+                "x" : {
+                  "type" : "integer",
+                  "minimum" : 0.0
+                },
+                "y" : {
+                  "type" : "integer",
+                  "minimum" : 0.0
+                },
+                "width" : {
+                  "type" : "integer",
+                  "minimum" : 1.0
+                },
+                "height" : {
+                  "type" : "integer",
+                  "minimum" : 1.0
+                }
+              },
+              "additionalProperties" : false,
+              "description" : "The blinking ▼ shown when a page has finished typing."
+            },
+            {
+              "type" : "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties" : false
+    },
+    "panel" : {
+      "type" : "object",
+      "required" : [
+        "luminance",
+        "saturation",
+        "minEdgeDensity"
+      ],
+      "properties" : {
+        "luminance" : {
+          "type" : "object",
+          "required" : [
+            "min",
+            "max"
+          ],
+          "properties" : {
+            "min" : {
+              "type" : "number",
+              "minimum" : 0.0,
+              "maximum" : 1.0
+            },
+            "max" : {
+              "type" : "number",
+              "minimum" : 0.0,
+              "maximum" : 1.0
+            }
+          },
+          "additionalProperties" : false
+        },
+        "saturation" : {
+          "type" : "object",
+          "required" : [
+            "min",
+            "max"
+          ],
+          "properties" : {
+            "min" : {
+              "type" : "number",
+              "minimum" : 0.0,
+              "maximum" : 1.0
+            },
+            "max" : {
+              "type" : "number",
+              "minimum" : 0.0,
+              "maximum" : 1.0
+            }
+          },
+          "additionalProperties" : false
+        },
+        "minEdgeDensity" : {
+          "type" : "number",
+          "minimum" : 0.0,
+          "maximum" : 1.0
+        }
+      },
+      "additionalProperties" : false
+    }
+  },
+  "additionalProperties" : false
+}

@@ -20,6 +20,10 @@ run = "swift format lint --recursive --strict Package.swift Sources Tests"
 description = "Format sources in place with swift-format"
 run = "swift format --in-place --recursive Package.swift Sources Tests"
 
+[tasks.schemas]
+description = "Regenerate schemas/*.schema.json from the model types"
+run = "swift run hablamon schema export"
+
 [tasks.verify]
 description = "Lint, build, and test; writes reports/verify.md"
 run = "scripts/verify.sh"

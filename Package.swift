@@ -28,6 +28,7 @@ let package = Package(
             name: "HablamonCLI",
             dependencies: [
                 "HablamonCore",
+                "HablamonModels",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),

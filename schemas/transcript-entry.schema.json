@@ -1,0 +1,192 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "transcript-entry",
+  "oneOf" : [
+    {
+      "type" : "object",
+      "required" : [
+        "v",
+        "type",
+        "ts",
+        "session",
+        "seq",
+        "speaker",
+        "text",
+        "ocrConfidence",
+        "engine",
+        "voice"
+      ],
+      "properties" : {
+        "v" : {
+          "type" : "integer",
+          "minimum" : 1.0
+        },
+        "type" : {
+          "type" : "string",
+          "enum" : [
+            "line"
+          ]
+        },
+        "ts" : {
+          "type" : "string",
+          "format" : "date-time",
+          "description" : "ISO 8601 timestamp with offset."
+        },
+        "session" : {
+          "type" : "string"
+        },
+        "seq" : {
+          "type" : "integer",
+          "minimum" : 1.0,
+          "description" : "Position in the session, starting at 1."
+        },
+        "speaker" : {
+          "type" : "string",
+          "description" : "Resolved character name, or `narrator`."
+        },
+        "speakerRaw" : {
+          "type" : [
+            "string",
+            "null"
+          ],
+          "description" : "Name-tag text as OCR read it."
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "ocrConfidence" : {
+          "type" : "object",
+          "required" : [
+            "mean",
+            "min"
+          ],
+          "properties" : {
+            "mean" : {
+              "type" : "number",
+              "minimum" : 0.0,
+              "maximum" : 1.0
+            },
+            "min" : {
+              "type" : "number",
+              "minimum" : 0.0,
+              "maximum" : 1.0
+            }
+          },
+          "additionalProperties" : false
+        },
+        "crop" : {
+          "type" : [
+            "string",
+            "null"
+          ],
+          "description" : "Box crop relative to the session folder."
+        },
+        "engine" : {
+          "type" : "string",
+          "enum" : [
+            "apple",
+            "qwen3",
+            "kokoro"
+          ]
+        },
+        "voice" : {
+          "type" : "string",
+          "description" : "Human-readable voice settings used, such as `es-ES male p0.9 r0.95`."
+        },
+        "translation" : {
+          "type" : [
+            "string",
+            "null"
+          ]
+        },
+        "translationSource" : {
+          "type" : [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties" : false
+    },
+    {
+      "type" : "object",
+      "required" : [
+        "v",
+        "type",
+        "ts",
+        "session",
+        "reason",
+        "durationSec"
+      ],
+      "properties" : {
+        "v" : {
+          "type" : "integer",
+          "minimum" : 1.0
+        },
+        "type" : {
+          "type" : "string",
+          "enum" : [
+            "gap"
+          ]
+        },
+        "ts" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "session" : {
+          "type" : "string"
+        },
+        "reason" : {
+          "type" : "string",
+          "enum" : [
+            "camera_paused",
+            "camera_lost",
+            "screen_lost"
+          ]
+        },
+        "durationSec" : {
+          "type" : "number",
+          "minimum" : 0.0
+        }
+      },
+      "additionalProperties" : false
+    },
+    {
+      "type" : "object",
+      "required" : [
+        "v",
+        "type",
+        "ts",
+        "session",
+        "trigger"
+      ],
+      "properties" : {
+        "v" : {
+          "type" : "integer",
+          "minimum" : 1.0
+        },
+        "type" : {
+          "type" : "string",
+          "enum" : [
+            "recalibrated"
+          ]
+        },
+        "ts" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "session" : {
+          "type" : "string"
+        },
+        "trigger" : {
+          "type" : "string",
+          "enum" : [
+            "automatic",
+            "manual"
+          ]
+        }
+      },
+      "additionalProperties" : false
+    }
+  ]
+}

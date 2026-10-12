@@ -1,0 +1,93 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "settings",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "engine",
+    "speed",
+    "idleSampleInterval",
+    "dialogueSampleRate",
+    "speakBattleText",
+    "allowBuiltInCamera",
+    "hotkeys"
+  ],
+  "properties" : {
+    "$schema" : {
+      "type" : [
+        "string",
+        "null"
+      ]
+    },
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "engine" : {
+      "type" : "string",
+      "enum" : [
+        "apple",
+        "qwen3",
+        "kokoro"
+      ]
+    },
+    "speed" : {
+      "type" : "number",
+      "minimum" : 0.5,
+      "maximum" : 2.0,
+      "description" : "Global speaking-rate multiplier."
+    },
+    "idleSampleInterval" : {
+      "type" : "number",
+      "minimum" : 1.0,
+      "maximum" : 3.0,
+      "description" : "Seconds between checks while no dialogue box is visible."
+    },
+    "dialogueSampleRate" : {
+      "type" : "number",
+      "minimum" : 1.0,
+      "maximum" : 10.0,
+      "description" : "Samples per second while a dialogue box is visible."
+    },
+    "speakBattleText" : {
+      "type" : "boolean"
+    },
+    "allowBuiltInCamera" : {
+      "type" : "boolean",
+      "description" : "The built-in camera faces the player, so it is only allowed when chosen explicitly."
+    },
+    "hotkeys" : {
+      "type" : "object",
+      "required" : [
+        "repeatLast",
+        "repeatLastSlowly",
+        "toggleSpeed",
+        "togglePause",
+        "recalibrate"
+      ],
+      "properties" : {
+        "repeatLast" : {
+          "type" : "string",
+          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+        },
+        "repeatLastSlowly" : {
+          "type" : "string",
+          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+        },
+        "toggleSpeed" : {
+          "type" : "string",
+          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+        },
+        "togglePause" : {
+          "type" : "string",
+          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+        },
+        "recalibrate" : {
+          "type" : "string",
+          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+        }
+      },
+      "additionalProperties" : false
+    }
+  },
+  "additionalProperties" : false
+}

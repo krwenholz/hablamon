@@ -225,7 +225,8 @@ Path: `~/Library/Application Support/Hablamon/sessions/2026-10-11T19-30-00.jsonl
 {"v":1,"type":"gap","ts":"2026-10-11T19:44:30.000-07:00","session":"2026-10-11T19-30-00","reason":"camera_paused","durationSec":48}
 ```
 
-- `type`: `line` for spoken text, `gap` when the camera was paused or lost, `recalibrated` when the screen quad changed.
+- `type`: `line` for spoken text, `gap` when the camera was paused or lost (`reason`: `camera_paused`, `camera_lost`, `screen_lost`), `recalibrated` when the screen quad changed (`trigger`: `automatic` or `manual`).
+- Optional fields that are `null` may be omitted when written.
 - `speakerRaw` keeps the OCR'd tag text; `speaker` is the resolved character.
 - Crops are small grayscale PNGs of the corrected box region, used to fix OCR errors and build test fixtures.
 - Writes are append-only and flushed per line, so a crash loses at most the line in flight.
