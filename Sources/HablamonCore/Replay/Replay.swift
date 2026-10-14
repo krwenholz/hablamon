@@ -24,13 +24,17 @@
             profile: GameProfile,
             characters: CharacterTable,
             every interval: Double = 0.25,
+            onProgress: ((_ videoTime: Double, _ frames: Int) -> Void)? = nil,
             onEvent: (PipelineEvent, Double) throws -> Void
         ) async throws {
             let corrector = ScreenCorrector(quad: calibration.screenQuad, size: profile.frameSize)
             let context = CIContext()
             let recognizer = VisionTextRecognizer()
             var pipeline = DialoguePipeline(profile: profile, characters: characters)
+            var frames = 0
             try await forEachFrame(in: video, every: interval) { image, time in
+                frames += 1
+                if frames % 40 == 0 { onProgress?(time, frames) }
                 guard let flat = corrector.correct(image) else { return }
                 let frame = CorrectedFrame(image: flat, context: context, recognizer: recognizer)
                 for event in try pipeline.process(frame, at: time) {

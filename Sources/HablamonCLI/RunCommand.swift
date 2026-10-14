@@ -53,7 +53,13 @@ struct RunCommand: AsyncParsableCommand {
                 calibration: quad,
                 profile: try BundledData.profile(profile),
                 characters: try BundledData.defaultCharacters(),
-                every: every
+                every: every,
+                onProgress: { time, frames in
+                    print(
+                        String(
+                            format: "  … %.0fs of video, %d frames, %.1fs elapsed", time, frames,
+                            -start.timeIntervalSinceNow))
+                }
             ) { event, time in
                 switch event {
                 case .speak(let page):

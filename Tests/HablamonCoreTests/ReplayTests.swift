@@ -47,7 +47,10 @@ enum VideoFixtures {
     /// End-to-end: replay far.mp4 through correction, detection, settle, OCR, and speaker resolution,
     /// then compare against the golden transcript. Run `mise run fixtures` first; skipped without the video.
     @Suite struct ReplayTests {
-        @Test(.enabled(if: VideoFixtures.farVideoAvailable, "run `mise run fixtures` to download far.mp4"))
+        @Test(
+            .enabled(if: VideoFixtures.farVideoAvailable, "run `mise run fixtures` to download far.mp4"),
+            .timeLimit(.minutes(3))
+        )
         func farVideoMatchesGoldenTranscript() async throws {
             let calibration = try DocumentLoader.load(
                 Calibration.self,
@@ -58,11 +61,18 @@ enum VideoFixtures {
                 from: try Data(contentsOf: VideoFixtures.url("far.expected.json"))
             )
             var pages: [SpokenPage] = []
+            let started = Date()
             try await Replay.run(
                 video: VideoFixtures.url("far.mp4"),
                 calibration: calibration,
                 profile: try BundledData.profile("scarlet"),
-                characters: try BundledData.defaultCharacters()
+                characters: try BundledData.defaultCharacters(),
+                onProgress: { time, frames in
+                    print(
+                        String(
+                            format: "[replay] %.0fs of video, %d frames, %.1fs elapsed", time, frames,
+                            -started.timeIntervalSinceNow))
+                }
             ) { event, _ in
                 if case .speak(let page) = event { pages.append(page) }
             }
