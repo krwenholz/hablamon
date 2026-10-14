@@ -28,7 +28,7 @@ Near placement meets the ≥95% character-accuracy exit criterion on this small 
 ## Findings
 
 1. **Exposure is the main far-placement risk.** When the game scene brightens, the phone's auto-exposure blows out the TV and the white box loses contrast; about a third of the video's pages were too faint to read. M2 should lower exposure on the pinned camera (`exposureTargetBias`, or a locked exposure tuned for the TV) and the quality gate should warn on clipped highlights in the box, which the plan already lists.
-2. **Settling matters.** Every mid-typing sample was wrong. That confirms the settle detector design.
+2. **Settling matters.** Every mid-typing sample was wrong. That confirms the settle detector design, though its thresholds needed tuning on real frames (see First replay).
 3. **Name tags lose accents** ("Mencia", once "Mencii") at low confidence. `SpeakerResolver` folds accents and allows small misreads, so both still resolve to Mencía.
 4. **Vision's confidence is coarse** (0.3, 0.5, or 1.0 in practice), so "re-OCR when minimum confidence is low" should treat anything under 1.0 as low rather than tuning a fine threshold.
 5. **Long messages scroll.** The box shows two lines; a third line pushes the first up, so consecutive pages share a line ("…¡Que están deseando" then "y ¿sabes qué es lo mejor? ¡Que están deseando conocerte!"). The pipeline must speak only the new tail when a page starts with the previous page's last line, or it will repeat half a sentence.
@@ -58,6 +58,15 @@ Brightness and color don't work at the far placement: when the phone overexposes
 | Saturated-blue fraction of the name-tag region | 0.76–0.85 | 0.00–0.16 |
 
 The profile's `detection` thresholds (margin edges ≤ 0.012, text edges ≥ 0.003 and above the margin, tag ≥ 0.5 at saturation > 0.3) catch all 28 box samples. The two false positives are nearly blank frames, where OCR returns nothing, so they cost one OCR pass and no speech. The tag feature also tells narration (no tag) from a speaker line. Every line in this video has a tag, so narrator-box detection is still untested.
+
+## First replay (Oct 14)
+
+`hablamon run --replay` over `far.mp4` in CI ran the two-minute video in about 14 s, but spoke only 5 of 13 pages. Two causes, both found by recomputing the pipeline's measurements on every 4 Hz frame:
+
+- **Dialogue mode kept dropping.** On pages with tall letters (¿, ¡, descenders), text reaches the margin rows, so the margin-edge test failed while the box was plainly up. The name tag, by contrast, measured 0.73–0.86 throughout every speaker's box. Now the box counts as visible when the tag is present, and the stricter margin test only applies to narration.
+- **Pages never settled.** Still frames still change 0.1–0.3% of pixels from compression noise, above the 0.2% "still" threshold; and on washed-out pages the faint text barely registers at a fixed 24-level tolerance. The settle detector now scales its per-pixel tolerance to the crop's contrast (25% of the 2nd–98th percentile range, clamped to 8–24 levels), counts under 0.6% changed as still, and detects the next page by comparing against the snapshot taken at settle rather than the previous frame.
+
+Simulated on the same frames, these changes settle on all 14 expected page times, up from 7, with four extra settles on blank or repeated frames that OCR or the page sequencer drops.
 
 ## Still open
 

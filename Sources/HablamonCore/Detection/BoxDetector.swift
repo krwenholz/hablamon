@@ -94,11 +94,14 @@ public struct BoxFeatures: Sendable, Equatable {
         return blue >= red && blue >= green && image.saturation(x: x, y: y) > saturation
     }
 
-    /// Blank margins around text: the panel is there. Scenery has edges everywhere.
+    /// A speaker's name tag means the box is up. Without one (narration), require blank margins
+    /// around text: scenery has edges everywhere. Tall letters on some pages reach into the margins,
+    /// which is why the tag, when present, takes precedence.
     public func isBoxVisible(_ detection: BoxDetection) -> Bool {
-        marginEdgeDensity <= detection.maxMarginEdgeDensity
-            && textEdgeDensity >= detection.minTextEdgeDensity
-            && textEdgeDensity > marginEdgeDensity
+        hasNameTag(detection)
+            || (marginEdgeDensity <= detection.maxMarginEdgeDensity
+                && textEdgeDensity >= detection.minTextEdgeDensity
+                && textEdgeDensity > marginEdgeDensity)
     }
 
     /// Whether the box has a speaker name tag; without one, the line is narration.

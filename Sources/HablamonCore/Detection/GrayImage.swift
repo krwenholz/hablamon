@@ -55,4 +55,25 @@ public struct GrayImage: Sendable, Equatable {
         }
         return Double(changed) / Double(pixels.count)
     }
+
+    /// Spread between the 2nd and 98th percentile values: how much contrast the crop has.
+    /// Washed-out pages have little, so change detection must scale its tolerance to it.
+    public var contrastRange: Int {
+        var histogram = [Int](repeating: 0, count: 256)
+        for value in pixels { histogram[Int(value)] += 1 }
+        let cut = pixels.count / 50
+        var low = 0
+        var seen = 0
+        while low < 255, seen + histogram[low] <= cut {
+            seen += histogram[low]
+            low += 1
+        }
+        var high = 255
+        seen = 0
+        while high > 0, seen + histogram[high] <= cut {
+            seen += histogram[high]
+            high -= 1
+        }
+        return max(0, high - low)
+    }
 }

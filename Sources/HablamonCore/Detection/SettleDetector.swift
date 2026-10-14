@@ -12,22 +12,31 @@ public struct SettleDetector: Sendable {
     }
 
     public struct Configuration: Sendable, Equatable {
-        /// A pixel counts as changed when it moves by more than this many levels.
-        public var pixelTolerance: UInt8
+        /// A pixel counts as changed when it moves by more than this fraction of the crop's contrast…
+        public var toleranceFraction: Double
+        /// …but never less than this many levels (noise on near-blank crops)…
+        public var minTolerance: Int
+        /// …or more than this many (crisp, high-contrast pages).
+        public var maxTolerance: Int
         /// Fraction of changed pixels below which a frame counts as "not changing".
         public var stillThreshold: Double
         /// Consecutive still samples needed to settle (3 at ~4 Hz is ~750 ms).
         public var stillSamples: Int
-        /// Fraction of changed pixels above which, after settling, a new page started.
+        /// Fraction of pixels changed since the settled snapshot that means a new page started.
         public var pageChangeThreshold: Double
 
+        /// Defaults tuned on far.mp4; see docs/plans/spike-a-ocr.md.
         public init(
-            pixelTolerance: UInt8 = 24,
-            stillThreshold: Double = 0.002,
+            toleranceFraction: Double = 0.25,
+            minTolerance: Int = 8,
+            maxTolerance: Int = 24,
+            stillThreshold: Double = 0.006,
             stillSamples: Int = 3,
-            pageChangeThreshold: Double = 0.05
+            pageChangeThreshold: Double = 0.03
         ) {
-            self.pixelTolerance = pixelTolerance
+            self.toleranceFraction = toleranceFraction
+            self.minTolerance = minTolerance
+            self.maxTolerance = maxTolerance
             self.stillThreshold = stillThreshold
             self.stillSamples = stillSamples
             self.pageChangeThreshold = pageChangeThreshold
@@ -36,8 +45,10 @@ public struct SettleDetector: Sendable {
 
     public var configuration: Configuration
     private var previous: GrayImage?
+    /// The crop when the page settled. Comparing against it, rather than the previous frame,
+    /// catches a faint new page that changes only a little per sample.
+    private var settledSnapshot: GrayImage?
     private var stillCount = 0
-    private var hasSettled = false
 
     public init(configuration: Configuration = .init()) {
         self.configuration = configuration
@@ -49,23 +60,31 @@ public struct SettleDetector: Sendable {
             stillCount = 0
             return nil
         }
-        let difference = crop.changedFraction(from: previous, tolerance: configuration.pixelTolerance)
-        if hasSettled {
-            guard difference > configuration.pageChangeThreshold else { return nil }
-            hasSettled = false
+        if let settledSnapshot {
+            guard difference(crop, settledSnapshot) > configuration.pageChangeThreshold else { return nil }
+            self.settledSnapshot = nil
             stillCount = 0
             return .pageChanged
         }
-        stillCount = difference < configuration.stillThreshold ? stillCount + 1 : 0
+        stillCount = difference(crop, previous) < configuration.stillThreshold ? stillCount + 1 : 0
         guard stillCount >= configuration.stillSamples else { return nil }
-        hasSettled = true
+        settledSnapshot = crop
         return .settled
+    }
+
+    func difference(_ a: GrayImage, _ b: GrayImage) -> Double {
+        let contrast = Double(max(a.contrastRange, b.contrastRange))
+        let tolerance = min(
+            configuration.maxTolerance,
+            max(configuration.minTolerance, Int(configuration.toleranceFraction * contrast))
+        )
+        return a.changedFraction(from: b, tolerance: UInt8(tolerance))
     }
 
     /// Call when the dialogue box disappears.
     public mutating func reset() {
         previous = nil
+        settledSnapshot = nil
         stillCount = 0
-        hasSettled = false
     }
 }

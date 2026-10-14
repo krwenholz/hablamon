@@ -8,11 +8,11 @@ enum SyntheticPage {
     static let height = 40
 
     /// `revealed` is the fraction of the text drawn so far; `seed` varies the glyph pattern per page.
-    static func crop(revealed: Double, seed: Int, noise: UInt8 = 0, frame: Int = 0) -> GrayImage {
+    static func crop(revealed: Double, seed: Int, noise: UInt8 = 0, frame: Int = 0, ink: UInt8 = 40) -> GrayImage {
         var image = GrayImage(width: width, height: height, fill: 220)
         let visibleColumns = Int(Double(width - 8) * revealed)
         for x in 4..<(4 + visibleColumns) where (x * 7 + seed * 13) % 5 < 2 {
-            for y in 12..<28 { image[x, y] = 40 }
+            for y in 12..<28 { image[x, y] = ink }
         }
         if noise > 0 {
             // Deterministic sensor noise that differs per frame.
@@ -25,9 +25,11 @@ enum SyntheticPage {
     }
 
     /// Typing frames, then `hold` identical frames of the finished page.
-    static func typing(seed: Int, steps: Int = 8, hold: Int = 4, noise: UInt8 = 0) -> [GrayImage] {
-        let typing = (1...steps).map { crop(revealed: Double($0) / Double(steps), seed: seed, noise: noise, frame: $0) }
-        let held = (0..<hold).map { crop(revealed: 1, seed: seed, noise: noise, frame: steps + 1 + $0) }
+    static func typing(seed: Int, steps: Int = 8, hold: Int = 4, noise: UInt8 = 0, ink: UInt8 = 40) -> [GrayImage] {
+        let typing = (1...steps).map {
+            crop(revealed: Double($0) / Double(steps), seed: seed, noise: noise, frame: $0, ink: ink)
+        }
+        let held = (0..<hold).map { crop(revealed: 1, seed: seed, noise: noise, frame: steps + 1 + $0, ink: ink) }
         return typing + held
     }
 }
@@ -45,9 +47,9 @@ enum SyntheticPage {
         #expect(result.firstIndex(of: .settled) == 8 + 3 - 1)
     }
 
-    @Test func doesNotSettleWhileTypingSlowly() {
-        // About two letters per sample.
-        let typingOnly = (1...40).map { SyntheticPage.crop(revealed: Double($0) / 40, seed: 2) }
+    @Test func doesNotSettleWhileTyping() {
+        // About six letters per sample, like Scarlet's typewriter at 4 samples a second.
+        let typingOnly = (1...20).map { SyntheticPage.crop(revealed: Double($0) / 20, seed: 2) }
         #expect(events(typingOnly).compactMap { $0 }.isEmpty)
     }
 
@@ -59,6 +61,19 @@ enum SyntheticPage {
     @Test func toleratesCameraNoise() {
         let result = events(SyntheticPage.typing(seed: 3, hold: 5, noise: 4))
         #expect(result.compactMap { $0 } == [.settled])
+    }
+
+    /// Washed-out pages: text barely darker than the panel, as at the far placement.
+    @Test func handlesFaintPages() {
+        let frames = SyntheticPage.typing(seed: 1, ink: 190) + SyntheticPage.typing(seed: 2, ink: 190)
+        #expect(events(frames).compactMap { $0 } == [.settled, .pageChanged, .settled])
+    }
+
+    @Test func contrastRangeIgnoresOutliers() {
+        var image = GrayImage(width: 100, height: 1, fill: 200)
+        image[0, 0] = 0  // one dark speck
+        for x in 50..<100 { image[x, 0] = 150 }
+        #expect(image.contrastRange == 50)
     }
 
     @Test func resetStartsOver() {

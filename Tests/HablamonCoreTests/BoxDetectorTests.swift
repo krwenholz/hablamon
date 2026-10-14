@@ -61,6 +61,11 @@ import Testing
         #expect(!features(body: washedOut).isBoxVisible(detection))
     }
 
+    @Test func nameTagShowsTheBoxEvenWithBusyMargins() {
+        // Tall letters (¿, ¡, descenders) can reach the margin rows; the tag still says the box is up.
+        #expect(features(body: scenery, tag: blueTag).isBoxVisible(detection))
+    }
+
     @Test func detectsTheNameTag() {
         #expect(features(body: panel, tag: blueTag).hasNameTag(detection))
         // Bluish white from overexposure is not tag blue.
