@@ -53,29 +53,42 @@ public enum DialogueText {
     }
 }
 
-/// Suppresses repeats of the same page within one box session, tolerating small OCR differences.
-public struct PageDeduplicator: Sendable {
-    /// Pages at least this similar (by `DialogueText.matchKey`) count as the same page.
+/// Decides what to say for each settled page within one dialogue box session.
+///
+/// It skips repeats of the same page despite small OCR differences, and handles Scarlet's
+/// scrolling: when a long message pushes its first line up, the next page starts with the previous
+/// page's last line, and only the new lines should be spoken.
+public struct PageSequencer: Sendable {
+    /// Pages (or lines) at least this similar, by `DialogueText.matchKey`, count as the same.
     public var threshold: Double
-    private var lastKey: String?
+    private var previousLines: [String] = []
 
-    public init(threshold: Double = 0.9) {
+    public init(threshold: Double = 0.85) {
         self.threshold = threshold
     }
 
-    /// Returns whether `text` is a new page worth speaking, and remembers it if so.
-    public mutating func shouldSpeak(_ text: String) -> Bool {
-        let key = DialogueText.matchKey(text)
-        guard !key.isEmpty else { return false }
-        if let lastKey, similarity(lastKey, key) >= threshold {
-            return false
+    /// Returns the text to speak for a settled page's OCR lines, or nil when there's nothing new.
+    public mutating func next(lines: [String]) -> String? {
+        let lines = lines.map(DialogueText.clean).filter { !DialogueText.matchKey($0).isEmpty }
+        guard !lines.isEmpty else { return nil }
+        defer { previousLines = lines }
+        guard !previousLines.isEmpty else { return DialogueText.normalize(lines: lines) }
+
+        if same(lines.joined(separator: " "), previousLines.joined(separator: " ")) {
+            return nil
         }
-        lastKey = key
-        return true
+        if lines.count > 1, let last = previousLines.last, same(lines[0], last) {
+            return DialogueText.normalize(lines: Array(lines.dropFirst()))
+        }
+        return DialogueText.normalize(lines: lines)
     }
 
     /// Call when the dialogue box goes away; the next box may legitimately repeat a line.
     public mutating func reset() {
-        lastKey = nil
+        previousLines = []
+    }
+
+    private func same(_ a: String, _ b: String) -> Bool {
+        similarity(DialogueText.matchKey(a), DialogueText.matchKey(b)) >= threshold
     }
 }

@@ -37,37 +37,62 @@ import Testing
     }
 }
 
-@Suite struct PageDeduplicatorTests {
-    /// Feeds pages in order and returns which ones would be spoken.
-    func spoken(_ pages: [String], resetBefore: Set<Int> = []) -> [Bool] {
-        var dedupe = PageDeduplicator()
+@Suite struct PageSequencerTests {
+    /// Feeds settled pages in order and returns what would be spoken for each.
+    func spoken(_ pages: [[String]], resetBefore: Set<Int> = []) -> [String?] {
+        var sequencer = PageSequencer()
         return pages.enumerated().map { index, page in
-            if resetBefore.contains(index) { dedupe.reset() }
-            return dedupe.shouldSpeak(page)
+            if resetBefore.contains(index) { sequencer.reset() }
+            return sequencer.next(lines: page)
         }
     }
 
-    @Test func skipsRepeatsOfTheSamePage() {
+    @Test func skipsRepeatsDespiteOCRJitter() {
         let result = spoken([
-            "¡Sí que son fuertes tus Pokémon!",
-            "¡Sí que son fuertes tus Pokémon!",
-            // Misreads from camera jitter are still the same page.
-            "¡Si que son fuertes tus Pokemon!",
-            "¡Sí que son fuertes tus Pokérnon!",
+            ["¡Sí que son fuertes tus Pokémon!"],
+            ["¡Sí que son fuertes tus Pokémon!"],
+            ["¡Si que son fuertes tus Pokemon!"],
+            ["¡Sí que son fuertes tus Pokérnon!"],
         ])
-        #expect(result == [true, false, false, false])
+        #expect(result == ["¡Sí que son fuertes tus Pokémon!", nil, nil, nil])
+    }
+
+    /// Real pages from far.mp4 (78–84 s): the third line pushed the first one up.
+    @Test func speaksOnlyTheNewLineWhenTextScrolls() {
+        let result = spoken([
+            ["Todos esos parajes están repletos de Pokémon,", "y ¿sabes qué es lo mejor? ¡Que están deseando"],
+            ["y ¿sabes qué es lo mejor? ¡Que están deseando", "conocerte!"],
+        ])
+        #expect(
+            result == [
+                "Todos esos parajes están repletos de Pokémon, y ¿sabes qué es lo mejor? ¡Que están deseando",
+                "conocerte!",
+            ]
+        )
+    }
+
+    @Test func scrollToleratesOCRDifferences() {
+        // Same scroll, with the repeated line read slightly differently the second time (from the OCR report).
+        let result = spoken([
+            ["Todos esos parajes están repletos de Pokémon,", "y ¿sabes qué es lo mejor? ¡Que están deseando »"],
+            ["y ¿sabes qué es lo mejor? ¡Que están deseando", "conocertel"],
+        ])
+        #expect(result.last == "conocertel")
     }
 
     @Test func speaksANewPage() {
-        let result = spoken(["Si quieres combatir contra Entrenadores como yo.", "¡Sí que son fuertes tus Pokémon!"])
-        #expect(result == [true, true])
+        let result = spoken([
+            ["¿A que te alegras de haberte mudado a Paldea?", "¡Bienvenido a tu nuevo hogar!"],
+            ["Bueno, como ves, de aquí a la academia aún hay", "un buen trecho."],
+        ])
+        #expect(result[1] == "Bueno, como ves, de aquí a la academia aún hay un buen trecho.")
     }
 
     @Test func resetAllowsTheSameLineInANewBox() {
-        #expect(spoken(["¡Hola!", "¡Hola!"], resetBefore: [1]) == [true, true])
+        #expect(spoken([["¡Hola!"], ["¡Hola!"]], resetBefore: [1]) == ["¡Hola!", "¡Hola!"])
     }
 
-    @Test func ignoresEmptyText() {
-        #expect(spoken(["  ▼ "]) == [false])
+    @Test func ignoresEmptyPages() {
+        #expect(spoken([["  ▼ "]]) == [nil])
     }
 }

@@ -108,7 +108,7 @@ The 2-second idle lag is mostly hidden: the typewriter effect takes about that l
 - On settle, run OCR once. A later large change in the text crop with the box still present means a new page: reset and wait for settle again.
 - If the player advances mid-speech, the new page interrupts the current utterance (see Speech).
 
-**Deduplication.** Normalize OCR text (trim, collapse whitespace, strip the ▼ glyph) and skip speaking if it equals the last spoken page within the same box session. This prevents repeats from small camera jitter.
+**Deduplication.** Normalize OCR text (trim, collapse whitespace, strip the ▼ glyph) and skip speaking if it equals the last spoken page within the same box session. This prevents repeats from small camera jitter. Long messages scroll (a third line pushes the first up), so when a page starts with the previous page's last line, speak only the new lines.
 
 ## OCR and speaker identification
 
