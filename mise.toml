@@ -10,7 +10,7 @@ run = "swift build"
 
 [tasks.test]
 description = "Run all Swift Testing suites"
-run = "swift test --disable-xctest"
+run = "swift test --disable-xctest --no-parallel"
 
 [tasks.lint]
 description = "Check formatting with swift-format"

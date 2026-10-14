@@ -29,7 +29,9 @@ step() {
 step "lint" swift format lint --recursive --strict Package.swift Sources Tests
 step "photo privacy" python3 -I scripts/photo-privacy.py check Tests/Fixtures
 step "build" swift build
-step "test" swift test --disable-xctest
+# Serial: the Vision and video tests block threads, and in parallel they can starve
+# the shared concurrency pool on small CI runners.
+step "test" swift test --disable-xctest --no-parallel
 
 {
     echo "# Verify report"
