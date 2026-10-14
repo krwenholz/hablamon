@@ -68,6 +68,19 @@ The profile's `detection` thresholds (margin edges ≤ 0.012, text edges ≥ 0.0
 
 Simulated on the same frames, these changes settle on all 14 expected page times, up from 7, with four extra settles on blank or repeated frames that OCR or the page sequencer drops.
 
+### After tuning (CI run 21)
+
+The real replay matched the simulation: 15 pages spoken in 25 s of processing for 123 s of video.
+
+| Golden line | Result |
+| --- | --- |
+| 8 well-exposed lines (Mira, Montañas, Naturaleza, Todos esos parajes, ¿A que te alegras…, Bueno…, ¿Hacemos…?, ¡En marcha!) | Spoken once each, correct apart from small slips ("alli", "Montanas", "vistal", "Atafor") |
+| The scrolled message at 78–84 s | Spoken as two pages, the second only "conocertel", as intended |
+| "¡Así se habla!" (42 s) | Missed |
+| "Menuda estampa…" and the three faint pages (¿Ves ese…?, ¡Qué ganas…!, Podremos…) | Spoken but garbled by overexposure; ¿Ves ese…? and Podremos… came out twice because their two OCR readings differed too much to count as repeats |
+
+Every remaining error traces back to overexposure, which is why camera exposure control is the first thing to build in M2.
+
 ## Still open
 
 - A near-placement video, to compare exposure and settle timing.
