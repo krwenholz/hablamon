@@ -16,6 +16,7 @@ mise run test     # swift test (Swift Testing)
 mise run lint     # swift format lint --strict
 mise run format   # swift format in place
 mise run schemas  # regenerate schemas/ after changing a model type
+mise run fixtures # download fixture videos (not in git)
 mise run verify   # lint + build + test, writes reports/verify.md
 ```
 

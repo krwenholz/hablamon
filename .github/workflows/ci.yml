@@ -11,6 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+      - uses: actions/cache@v6
+        with:
+          path: Tests/Fixtures/videos
+          key: fixtures-${{ hashFiles('scripts/fetch-fixtures.sh') }}
+      - run: mise run fixtures
       - run: mise run verify
       - if: always()
         uses: actions/upload-artifact@v7

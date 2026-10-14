@@ -24,6 +24,10 @@ run = "swift format --in-place --recursive Package.swift Sources Tests"
 description = "Regenerate schemas/*.schema.json from the model types"
 run = "swift run hablamon schema export"
 
+[tasks.fixtures]
+description = "Download fixture videos that live outside git"
+run = "scripts/fetch-fixtures.sh"
+
 [tasks.verify]
 description = "Lint, build, and test; writes reports/verify.md"
 run = "scripts/verify.sh"

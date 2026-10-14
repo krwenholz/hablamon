@@ -6,7 +6,7 @@ Real captures from Kyle's setup. Don't fabricate these; tests skip when they're 
 | --- | --- | --- |
 | `screenshots/` | Clean Switch Capture-button screenshots of dialogue boxes (1280×720 JPG). Mix of speakers, narrator lines, short and long text. | Yes |
 | `photos/` | Phone photos or screenshots of the TV, from different placements and angles. Include name-tag lines, not just anonymous NPC text. | Yes |
-| `videos/` | iPhone recordings of normal play, one per placement: `near.mov`, `far.mov`. | No (too large; kept on the Mac) |
+| `videos/` | iPhone recordings of normal play, one per placement: `near.mp4`, `far.mp4`. | No; `mise run fixtures` downloads them (pinned by SHA-256 in `scripts/fetch-fixtures.sh`) |
 
 ## Naming
 
