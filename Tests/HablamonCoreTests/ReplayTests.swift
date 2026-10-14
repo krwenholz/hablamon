@@ -72,10 +72,11 @@ enum VideoFixtures {
                         String(
                             format: "[replay] %.0fs of video, %d frames, %.1fs elapsed", time, frames,
                             -started.timeIntervalSinceNow))
+                },
+                onEvent: { event, _ in
+                    if case .speak(let page) = event { pages.append(page) }
                 }
-            ) { event, _ in
-                if case .speak(let page) = event { pages.append(page) }
-            }
+            )
             for page in pages {
                 print(
                     String(format: "[replay %6.2fs] ", page.time)

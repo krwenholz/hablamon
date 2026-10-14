@@ -59,16 +59,17 @@ struct RunCommand: AsyncParsableCommand {
                         String(
                             format: "  … %.0fs of video, %d frames, %.1fs elapsed", time, frames,
                             -start.timeIntervalSinceNow))
+                },
+                onEvent: { event, time in
+                    switch event {
+                    case .speak(let page):
+                        pages.append(page)
+                        print(String(format: "[%6.2fs] ", time) + "\(page.speaker.name): \(page.text)")
+                    case .dialogueStarted, .dialogueEnded, .pageChanged:
+                        print(String(format: "[%6.2fs] ", time) + "(\(event))")
+                    }
                 }
-            ) { event, time in
-                switch event {
-                case .speak(let page):
-                    pages.append(page)
-                    print(String(format: "[%6.2fs] ", time) + "\(page.speaker.name): \(page.text)")
-                case .dialogueStarted, .dialogueEnded, .pageChanged:
-                    print(String(format: "[%6.2fs] ", time) + "(\(event))")
-                }
-            }
+            )
             for page in pages {
                 try await transcript.appendLine(
                     at: start.addingTimeInterval(page.time),
