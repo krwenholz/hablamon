@@ -1,0 +1,72 @@
+{
+  "video": "far.mp4",
+  "notes": "Drafted from flattened box crops and OCR; `certain: false` lines were too washed out to read with confidence. Kyle: please skim and fix. The player's name in this save is Miguel. The 'Yo también' choice bubble around 36s is a menu, not dialogue, so it is excluded. The game scrolls long messages: a third line pushes the first up, so one message can span two pages that share a line (the 'Todos esos parajes…' message at 78–84s). Lines here are whole messages.",
+  "lines": [
+    {
+      "at": 9,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "¡Mira, Miguel! Eso de allí es Ciudad Meseta."
+    },
+    {
+      "at": 21,
+      "speaker": "Mencía",
+      "certain": false,
+      "text": "¿Ves ese edificio gigantesco adornado con una Poké Ball? ¡Pues es nuestra academia!"
+    },
+    {
+      "at": 33,
+      "speaker": "Mencía",
+      "certain": false,
+      "text": "¡Qué ganas tengo de que estudiemos juntos!"
+    },
+    {
+      "at": 51,
+      "speaker": "Mencía",
+      "certain": false,
+      "text": "Podremos combatir una y otra y otra vez y vamos a aprender un montón, ¡ya lo verás!"
+    },
+    {
+      "at": 60,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "Menuda estampa se ve desde aquí arriba, ¿eh? ¿A que impresiona?"
+    },
+    {
+      "at": 69,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "Montañas, prados, bosques..."
+    },
+    {
+      "at": 72,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "¡Naturaleza en estado puro hasta donde alcanza la vista!"
+    },
+    {
+      "at": 78,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "Todos esos parajes están repletos de Pokémon, y ¿sabes qué es lo mejor? ¡Que están deseando conocerte!"
+    },
+    {
+      "at": 90,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "¿A que te alegras de haberte mudado a Paldea? ¡Bienvenido a tu nuevo hogar!"
+    },
+    {
+      "at": 99,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "Bueno, como ves, de aquí a la academia aún hay un buen trecho."
+    },
+    {
+      "at": 108,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "¿Hacemos una paradita en Pueblo Ataifor? Nos viene de paso."
+    }
+  ]
+}

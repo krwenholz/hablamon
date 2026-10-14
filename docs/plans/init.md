@@ -386,8 +386,8 @@ Build in this order. Each milestone is usable on its own, and the two spikes de-
 
 **Open questions**
 
-- Phone placement (near vs far) is undecided; Spike A should report both so the choice can be made on data.
-- Exact box and name-tag rectangles for `profiles/scarlet.json` need measuring from real frames.
+- Phone placement (near vs far) is undecided; Spike A should report both so the choice can be made on data. First results in [spike-a-ocr.md](spike-a-ocr.md): near reads exactly; far works when settled and not overexposed.
+- Exact box and name-tag rectangles for `profiles/scarlet.json` need measuring from real frames. First measurement from the far video is in [spike-a-ocr.md](spike-a-ocr.md).
 - Does the Switch's TV output setting (1080p vs 720p) change box legibility through the camera?
 - Should battle text ("¡Sprigatito usó Arañazo!") be spoken? Its box differs from dialogue; default off, revisit after M1.
 
