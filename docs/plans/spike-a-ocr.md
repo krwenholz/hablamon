@@ -46,10 +46,22 @@ Measured on the flattened 90 s frame and checked against the 83 s frame; stored 
 | Name tag | 284 | 488 | 200 | 46 |
 | Advance arrow | 918 | 596 | 52 | 46 |
 
-Panel statistics from the same frame: box median luminance 0.96 and saturation 0.01, against 0.72 and 0.33 for the scene; edge density about 0.05 in the box against 0.001 in the scene. The profile's thresholds (luminance ≥ 0.75, saturation ≤ 0.15, edge density ≥ 0.02) leave margin, but they come from one video and should be re-checked on the near video.
+Also `textLines` (330, 544, 630, 76): the rows of the body area that hold text; the rest of the body area is blank panel.
+
+### Detecting the box
+
+Brightness and color don't work at the far placement: when the phone overexposes the TV, the whole screen reads near-white and unsaturated whether or not a box is showing. Two structural features do work, checked every 3 s across `far.mp4` against what's actually on screen:
+
+| Feature | Box showing (28 samples) | No box (13 samples) |
+| --- | --- | --- |
+| Edge density in the blank rows above and below the text | 0.000–0.010 | 0.018–0.065, except two washed-out blank frames (0.003, 0.004) |
+| Saturated-blue fraction of the name-tag region | 0.76–0.85 | 0.00–0.16 |
+
+The profile's `detection` thresholds (margin edges ≤ 0.012, text edges ≥ 0.003 and above the margin, tag ≥ 0.5 at saturation > 0.3) catch all 28 box samples. The two false positives are nearly blank frames, where OCR returns nothing, so they cost one OCR pass and no speech. The tag feature also tells narration (no tag) from a speaker line. Every line in this video has a tag, so narrator-box detection is still untested.
 
 ## Still open
 
 - A near-placement video, to compare exposure and settle timing.
 - OCR on corrected, upscaled crops instead of full frames (part of M1).
 - `Tests/Fixtures/videos/far.expected.json` is a draft golden transcript; lines marked `certain: false` need Kyle's check.
+- A clip with narrator boxes (item pickups) to check detection without a name tag.

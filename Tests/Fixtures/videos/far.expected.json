@@ -21,6 +21,12 @@
       "text": "¡Qué ganas tengo de que estudiemos juntos!"
     },
     {
+      "at": 42,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "¡Así se habla!"
+    },
+    {
       "at": 51,
       "speaker": "Mencía",
       "certain": false,
@@ -67,6 +73,12 @@
       "speaker": "Mencía",
       "certain": true,
       "text": "¿Hacemos una paradita en Pueblo Ataifor? Nos viene de paso."
+    },
+    {
+      "at": 117,
+      "speaker": "Mencía",
+      "certain": true,
+      "text": "¡En marcha!"
     }
   ]
 }

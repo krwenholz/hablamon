@@ -47,13 +47,16 @@ import Testing
                 regions: ProfileRegions(
                     dialogueBox: PixelRect(x: 10, y: 500, width: 1200, height: 200),
                     bodyText: PixelRect(x: 40, y: 540, width: 1100, height: 120),
+                    textLines: PixelRect(x: 40, y: 550, width: 1100, height: 100),
                     nameTag: PixelRect(x: 40, y: 470, width: 300, height: 50),
                     advanceIndicator: nil
                 ),
-                panel: PanelAppearance(
-                    luminance: UnitRange(min: 0.1, max: 0.4),
-                    saturation: UnitRange(min: 0, max: 0.2),
-                    minEdgeDensity: 0.05
+                detection: BoxDetection(
+                    edgeStep: 0.04,
+                    maxMarginEdgeDensity: 0.012,
+                    minTextEdgeDensity: 0.003,
+                    tagSaturation: 0.3,
+                    minTagFraction: 0.5
                 )
             )
         )

@@ -8,7 +8,7 @@
     "name",
     "frameSize",
     "regions",
-    "panel"
+    "detection"
   ],
   "properties" : {
     "$schema" : {
@@ -52,6 +52,7 @@
       "required" : [
         "dialogueBox",
         "bodyText",
+        "textLines",
         "nameTag"
       ],
       "properties" : {
@@ -110,6 +111,35 @@
             }
           },
           "additionalProperties" : false
+        },
+        "textLines" : {
+          "type" : "object",
+          "required" : [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties" : {
+            "x" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "y" : {
+              "type" : "integer",
+              "minimum" : 0.0
+            },
+            "width" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            },
+            "height" : {
+              "type" : "integer",
+              "minimum" : 1.0
+            }
+          },
+          "additionalProperties" : false,
+          "description" : "The rows of `bodyText` that hold the two text lines; the rest of `bodyText` is blank panel."
         },
         "nameTag" : {
           "type" : "object",
@@ -178,61 +208,45 @@
       },
       "additionalProperties" : false
     },
-    "panel" : {
+    "detection" : {
       "type" : "object",
       "required" : [
-        "luminance",
-        "saturation",
-        "minEdgeDensity"
+        "edgeStep",
+        "maxMarginEdgeDensity",
+        "minTextEdgeDensity",
+        "tagSaturation",
+        "minTagFraction"
       ],
       "properties" : {
-        "luminance" : {
-          "type" : "object",
-          "required" : [
-            "min",
-            "max"
-          ],
-          "properties" : {
-            "min" : {
-              "type" : "number",
-              "minimum" : 0.0,
-              "maximum" : 1.0
-            },
-            "max" : {
-              "type" : "number",
-              "minimum" : 0.0,
-              "maximum" : 1.0
-            }
-          },
-          "additionalProperties" : false,
-          "description" : "Allowed range for the crop's median luminance."
-        },
-        "saturation" : {
-          "type" : "object",
-          "required" : [
-            "min",
-            "max"
-          ],
-          "properties" : {
-            "min" : {
-              "type" : "number",
-              "minimum" : 0.0,
-              "maximum" : 1.0
-            },
-            "max" : {
-              "type" : "number",
-              "minimum" : 0.0,
-              "maximum" : 1.0
-            }
-          },
-          "additionalProperties" : false,
-          "description" : "Allowed range for the crop's median saturation."
-        },
-        "minEdgeDensity" : {
+        "edgeStep" : {
           "type" : "number",
           "minimum" : 0.0,
           "maximum" : 1.0,
-          "description" : "Minimum fraction of strong-gradient pixels in the body text area (text and borders make edges)."
+          "description" : "Luminance step (0–1) between vertically adjacent pixels that counts as an edge."
+        },
+        "maxMarginEdgeDensity" : {
+          "type" : "number",
+          "minimum" : 0.0,
+          "maximum" : 1.0,
+          "description" : "Maximum edge density in the body-text rows outside `textLines`, where the panel is blank."
+        },
+        "minTextEdgeDensity" : {
+          "type" : "number",
+          "minimum" : 0.0,
+          "maximum" : 1.0,
+          "description" : "Minimum edge density within `textLines`."
+        },
+        "tagSaturation" : {
+          "type" : "number",
+          "minimum" : 0.0,
+          "maximum" : 1.0,
+          "description" : "A name-tag pixel counts as tag color when its saturation is above this and blue is its strongest channel."
+        },
+        "minTagFraction" : {
+          "type" : "number",
+          "minimum" : 0.0,
+          "maximum" : 1.0,
+          "description" : "Fraction of the name-tag region that must be tag color for the line to have a speaker."
         }
       },
       "additionalProperties" : false
