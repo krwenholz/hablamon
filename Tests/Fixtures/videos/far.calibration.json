@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "deviceID": "fixture:far.mp4",
+  "deviceName": "Corners placed by hand on the 90 s frame of far.mp4",
+  "screenQuad": {
+    "topLeft": { "x": 185, "y": 655 },
+    "topRight": { "x": 912, "y": 642 },
+    "bottomRight": { "x": 943, "y": 1043 },
+    "bottomLeft": { "x": 203, "y": 1079 }
+  },
+  "zoomFactor": 1,
+  "referenceThumbnail": "none",
+  "calibratedAt": "2026-10-14T00:00:00-07:00"
+}

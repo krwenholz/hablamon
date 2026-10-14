@@ -23,6 +23,11 @@ jobs:
         run: |
           mkdir -p reports
           mise exec -- swift run hablamon ocr Tests/Fixtures/photos/* Tests/Fixtures/videos/*.mp4 --every 3 2>&1 | tee reports/ocr.txt
+      - name: Replay report on far.mp4
+        if: always()
+        continue-on-error: true
+        run: |
+          mise exec -- swift run hablamon run --replay Tests/Fixtures/videos/far.mp4 --calibration Tests/Fixtures/videos/far.calibration.json --sessions reports/sessions 2>&1 | tee reports/replay.txt
       - if: always()
         uses: actions/upload-artifact@v7
         with:
