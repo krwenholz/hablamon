@@ -29,6 +29,7 @@ Plain `swift build` / `swift test --filter <name>` work too.
 - Every JSON file has a `VersionedDocument` type in `HablamonModels`; `schemas/` is generated from them and a test fails if it's stale.
 - Use Swift Testing (`@Test`, `#expect`), not XCTest. Keep hardware (camera, speech) behind protocols so logic is testable with fakes.
 - Don't fabricate test fixtures (screenshots, videos). If they're missing, tests should skip with a clear message.
+- Phone photos carry GPS location. Run `scripts/photo-privacy.py strip Tests/Fixtures` before committing any; `verify.sh` fails on leftovers.
 - Before calling work done, `mise run verify` passes and its summary is in the hand-off.
 
 ## Commit messages

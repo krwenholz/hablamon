@@ -5,7 +5,7 @@ Real captures from Kyle's setup. Don't fabricate these; tests skip when they're 
 | Folder | What | In git? |
 | --- | --- | --- |
 | `screenshots/` | Clean Switch Capture-button screenshots of dialogue boxes (1280×720 JPG). Mix of speakers, narrator lines, short and long text. | Yes |
-| `photos/` | Phone photos or screenshots of the TV, from different placements and angles. | Yes |
+| `photos/` | Phone photos or screenshots of the TV, from different placements and angles. Include name-tag lines, not just anonymous NPC text. | Yes |
 | `videos/` | iPhone recordings of normal play, one per placement: `near.mov`, `far.mov`. | No (too large; kept on the Mac) |
 
 ## Naming
@@ -17,6 +17,10 @@ Photos are named `<content>_<placement>_<angle>.<ext>`:
 - **angle**: how the phone sits relative to the TV, such as `straight`, `angled`, `rolled`, plus notes like `glare` or `clipped-left`.
 
 Placement and angle labels are judged by eye, so rename if they're off.
+
+## Before committing photos
+
+Phone photos embed GPS location. Run `scripts/photo-privacy.py strip Tests/Fixtures` first; it removes location, XMP, and IPTC data without re-encoding and keeps the orientation flag. `scripts/verify.sh` fails if any JPEG still has them.
 
 ## Notes
 
