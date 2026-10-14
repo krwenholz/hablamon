@@ -65,3 +65,4 @@ The profile's `detection` thresholds (margin edges ≤ 0.012, text edges ≥ 0.0
 - OCR on corrected, upscaled crops instead of full frames (part of M1).
 - `Tests/Fixtures/videos/far.expected.json` is a draft golden transcript; lines marked `certain: false` need Kyle's check.
 - A clip with narrator boxes (item pickups) to check detection without a name tag.
+- Whether re-reading low-confidence pages helps. The plan calls for OCRing the next sample when a page's minimum confidence is low, but Vision reports 0.5 even on correct reads, so that would double OCR on most pages. The pipeline doesn't re-read yet; decide once the replay report shows how often a second read would have fixed a page.
