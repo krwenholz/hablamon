@@ -3,34 +3,51 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
   pull_request:
+    paths-ignore: ["**.md", "docs/**"]
+
+# macOS minutes are expensive: a newer push cancels the run it supersedes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
     runs-on: macos-26
-    timeout-minutes: 30
+    # Every step has its own limit, about 3–5x its usual time; this caps the whole job.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        timeout-minutes: 2
       - uses: jdx/mise-action@v5
+        timeout-minutes: 5
       - uses: actions/cache@v6
+        timeout-minutes: 3
         with:
           path: Tests/Fixtures/videos
           key: fixtures-${{ hashFiles('scripts/fetch-fixtures.sh') }}
       - run: mise run fixtures
+        timeout-minutes: 3
+      # Usually about 2.5 minutes: build, then tests including the video replay.
       - run: mise run verify
+        timeout-minutes: 10
       - name: OCR report on fixtures
-        if: always()
+        if: ${{ !cancelled() }}
         continue-on-error: true
+        timeout-minutes: 4
         run: |
           mkdir -p reports
           mise exec -- swift run hablamon ocr Tests/Fixtures/photos/* Tests/Fixtures/videos/*.mp4 --every 3 2>&1 | tee reports/ocr.txt
       - name: Replay report on far.mp4
-        if: always()
+        if: ${{ !cancelled() }}
         continue-on-error: true
+        timeout-minutes: 4
         run: |
           mise exec -- swift run hablamon run --replay Tests/Fixtures/videos/far.mp4 --calibration Tests/Fixtures/videos/far.calibration.json --sessions reports/sessions 2>&1 | tee reports/replay.txt
-      - if: always()
+      - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
+        timeout-minutes: 2
         with:
           name: verify-report
           path: reports/

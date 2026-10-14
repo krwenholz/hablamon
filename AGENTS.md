@@ -31,6 +31,7 @@ Plain `swift build` / `swift test --filter <name>` work too.
 - Use Swift Testing (`@Test`, `#expect`), not XCTest. Keep hardware (camera, speech) behind protocols so logic is testable with fakes.
 - Don't fabricate test fixtures (screenshots, videos). If they're missing, tests should skip with a clear message.
 - Phone photos carry GPS location. Run `scripts/photo-privacy.py strip Tests/Fixtures` before committing any; `verify.sh` fails on leftovers.
+- CI runs on paid macOS minutes. Every workflow step needs a `timeout-minutes`, and tests that block on Vision or video must stay serial (`--no-parallel`); parallel runs once hung CI for hours.
 - Before calling work done, `mise run verify` passes and its summary is in the hand-off.
 
 ## Commit messages
