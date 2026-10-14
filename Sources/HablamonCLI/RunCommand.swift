@@ -24,6 +24,12 @@ struct RunCommand: AsyncParsableCommand {
     @Option(help: "Seconds between sampled frames.")
     var every: Double = 0.25
 
+    @Flag(help: "After replaying, read the pages aloud in order.")
+    var speak = false
+
+    @Option(help: "Speaking speed multiplier.")
+    var speed: Double = 0.85
+
     func run() async throws {
         guard let replay, let calibration else {
             throw ValidationError("Live camera mode isn't implemented yet; use --replay <video> --calibration <file>.")
@@ -69,6 +75,15 @@ struct RunCommand: AsyncParsableCommand {
                 )
             }
             print("\(pages.count) pages; transcript: \(transcript.fileURL.path)")
+            if speak {
+                let apple = AppleSpeechEngine()
+                let narrator = Narrator(engine: apple, fallback: apple, speed: speed)
+                for page in pages {
+                    print("speaking: \(page.speaker.name) [\(page.voice.summary)]: \(page.text)")
+                    await narrator.say(page.text, voice: page.voice)
+                    await narrator.finish()
+                }
+            }
         #else
             throw ValidationError("hablamon run needs AVFoundation, Core Image, and Vision, so it only runs on macOS.")
         #endif
