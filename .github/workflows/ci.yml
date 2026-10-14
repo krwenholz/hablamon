@@ -17,6 +17,12 @@ jobs:
           key: fixtures-${{ hashFiles('scripts/fetch-fixtures.sh') }}
       - run: mise run fixtures
       - run: mise run verify
+      - name: OCR report on fixtures
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          mise exec -- swift run hablamon ocr Tests/Fixtures/photos/* Tests/Fixtures/videos/*.mp4 --every 3 2>&1 | tee reports/ocr.txt
       - if: always()
         uses: actions/upload-artifact@v7
         with:
