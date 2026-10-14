@@ -204,7 +204,8 @@
               "maximum" : 1.0
             }
           },
-          "additionalProperties" : false
+          "additionalProperties" : false,
+          "description" : "Allowed range for the crop's median luminance."
         },
         "saturation" : {
           "type" : "object",
@@ -224,12 +225,14 @@
               "maximum" : 1.0
             }
           },
-          "additionalProperties" : false
+          "additionalProperties" : false,
+          "description" : "Allowed range for the crop's median saturation."
         },
         "minEdgeDensity" : {
           "type" : "number",
           "minimum" : 0.0,
-          "maximum" : 1.0
+          "maximum" : 1.0,
+          "description" : "Minimum fraction of strong-gradient pixels in the body text area (text and borders make edges)."
         }
       },
       "additionalProperties" : false

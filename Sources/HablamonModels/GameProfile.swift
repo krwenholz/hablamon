@@ -99,12 +99,15 @@ public struct ProfileRegions: Codable, Sendable, Equatable {
     }
 }
 
-/// Statistics that say "a dialogue box is on screen", measured on the box crop.
+/// Statistics that say "a dialogue box is on screen", measured on the `dialogueBox` crop.
 @Schemable
 @ObjectOptions(.additionalProperties(false))
 public struct PanelAppearance: Codable, Sendable, Equatable {
+    /// Allowed range for the crop's median luminance.
     public var luminance: UnitRange
+    /// Allowed range for the crop's median saturation.
     public var saturation: UnitRange
+    /// Minimum fraction of strong-gradient pixels in the body text area (text and borders make edges).
     @NumberOptions(.minimum(0), .maximum(1))
     public var minEdgeDensity: Double
 

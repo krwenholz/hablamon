@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "scarlet",
+  "name": "Pokémon Scarlet / Violet (Spain Spanish)",
+  "frameSize": { "width": 1280, "height": 720 },
+  "regions": {
+    "dialogueBox": { "x": 296, "y": 512, "width": 690, "height": 144 },
+    "bodyText": { "x": 330, "y": 536, "width": 630, "height": 104 },
+    "nameTag": { "x": 284, "y": 488, "width": 200, "height": 46 },
+    "advanceIndicator": { "x": 918, "y": 596, "width": 52, "height": 46 }
+  },
+  "panel": {
+    "luminance": { "min": 0.75, "max": 1.0 },
+    "saturation": { "min": 0.0, "max": 0.15 },
+    "minEdgeDensity": 0.02
+  }
+}

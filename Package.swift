@@ -23,7 +23,7 @@ let package = Package(
         .target(
             name: "HablamonCore",
             dependencies: ["HablamonModels"],
-            resources: [.copy("Resources/characters.default.json")]
+            resources: [.copy("Resources/characters.default.json"), .copy("Resources/profiles")]
         ),
         .executableTarget(
             name: "HablamonCLI",

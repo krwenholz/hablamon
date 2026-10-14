@@ -11,4 +11,12 @@ public enum BundledData {
         let text = try String(contentsOf: url, encoding: .utf8)
         return try DocumentLoader.load(CharacterTable.self, from: text)
     }
+
+    /// A bundled game profile, such as `scarlet`.
+    public static func profile(_ id: String) throws -> GameProfile {
+        guard let url = Bundle.module.url(forResource: id, withExtension: "json", subdirectory: "profiles") else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return try DocumentLoader.load(GameProfile.self, from: try String(contentsOf: url, encoding: .utf8))
+    }
 }
