@@ -10,6 +10,15 @@ Design docs live in [`docs/plans/`](docs/plans/). [`init.md`](docs/plans/init.md
 
 Work happens in several places (cloud sessions, Kyle's Mac, uploads from his phone), so `main` may have moved. At the start of each significant new request, `git fetch` and fast-forward to `origin/main` before reading or changing code. If local work has diverged, merge rather than discard it, and ask when the two sides conflict in substance.
 
+## Subagents
+
+Hand self-contained, checkable work to cheaper, faster subagents and keep judgment in the main session.
+
+- Good fits: broad read-only searches, reading long CI logs or reports and summarizing what failed, fetching and summarizing docs, mechanical edits across many files, drafting tests from a clear spec.
+- Keep in the main session: design decisions, tuning thresholds against real data, Mac-only code that can't be compiled where you are, and anything that commits, pushes, or rewrites history.
+- Give each one a complete brief (goal, files, constraints, what "done" looks like); it doesn't see this conversation.
+- Treat its output as a draft: read the diff and run `mise run verify` before committing.
+
 ## Setup and commands
 
 Tooling is managed by [mise](https://mise.jdx.dev). `mise install` fetches the pinned Swift toolchain.
