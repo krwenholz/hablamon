@@ -25,7 +25,7 @@ public struct SettleDetector: Sendable {
         /// Fraction of pixels changed since the settled snapshot that means a new page started.
         public var pageChangeThreshold: Double
 
-        /// Defaults tuned on far.mp4; see docs/plans/spike-a-ocr.md.
+        /// Defaults tuned on far.mp4; see docs/plans/done/spike-a-ocr.md.
         public init(
             toleranceFraction: Double = 0.25,
             minTolerance: Int = 8,

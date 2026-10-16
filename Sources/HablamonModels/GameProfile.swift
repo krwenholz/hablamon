@@ -107,7 +107,7 @@ public struct ProfileRegions: Codable, Sendable, Equatable {
 ///
 /// Brightness and color alone fail when the phone overexposes the TV (everything reads white), so
 /// detection relies on structure: the box's blank margins above and below the text have almost no
-/// edges, while scenery is busy everywhere. See docs/plans/spike-a-ocr.md.
+/// edges, while scenery is busy everywhere. See docs/plans/done/spike-a-ocr.md.
 @Schemable
 @ObjectOptions(.additionalProperties(false))
 public struct BoxDetection: Codable, Sendable, Equatable {

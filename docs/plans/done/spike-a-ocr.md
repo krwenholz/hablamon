@@ -1,10 +1,10 @@
 # Spike A: camera OCR
 
-Oct 14, 2026 · first pass, from the fixtures in `Tests/Fixtures/`
+Oct 14, 2026 · done · from the fixtures in `Tests/Fixtures/`
 
 ## Question
 
-Can Vision read Scarlet's dialogue boxes through an iPhone pointed at the TV, at near and far placements? (See Milestones in [init.md](init.md).)
+Can Vision read Scarlet's dialogue boxes through an iPhone pointed at the TV, at near and far placements? (See Milestones in [init.md](../init.md).)
 
 ## Method
 
@@ -81,10 +81,6 @@ The real replay matched the simulation: 15 pages spoken in 25 s of processing fo
 
 Every remaining error traces back to overexposure, which is why camera exposure control is the first thing to build in M2.
 
-## Still open
+## Follow-ups
 
-- A near-placement video, to compare exposure and settle timing.
-- OCR on corrected, upscaled crops instead of full frames (part of M1).
-- `Tests/Fixtures/videos/far.expected.json` is a draft golden transcript; lines marked `certain: false` need Kyle's check.
-- A clip with narrator boxes (item pickups) to check detection without a name tag.
-- Whether re-reading low-confidence pages helps. The plan calls for OCRing the next sample when a page's minimum confidence is low, but Vision reports 0.5 even on correct reads, so that would double OCR on most pages. The pipeline doesn't re-read yet; decide once the replay report shows how often a second read would have fixed a page.
+Open items from this spike moved to the remaining work in [init.md](../init.md): exposure control and a lower quality-gate threshold (M2), a near-placement video and a narrator clip, Kyle's check of the golden transcript, and the low-confidence re-read question.

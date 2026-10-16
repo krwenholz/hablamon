@@ -1,6 +1,6 @@
 # Hablamon: Live Spanish Audio for Pokémon Scarlet
 
-Oct 11, 2026 · @Kyle
+Oct 11, 2026 · @Kyle · trimmed Oct 16 to the remaining work; finished work is in [done/](done/)
 
 ## Overview
 
@@ -9,7 +9,7 @@ Hablamon is a native macOS app that watches Pokémon Scarlet on the TV through a
 **Goals**
 
 - Detect a dialogue box on screen, wait for the typewriter text to finish, OCR it, and speak it in Spanish.
-- Identify the speaker from the name tag and use the same voice for that character every time, matching gender where known.
+- Identify the speaker from the name tag and use the same voice for that character every time.
 - Run fully offline on a MacBook Air (Apple Silicon, fanless) for multi-hour sessions without thermal throttling.
 - Recover gracefully when the iPhone camera is picked up, moved, or paused.
 - Keep an append-only transcript of every line for later study and translation.
@@ -20,376 +20,130 @@ Hablamon is a native macOS app that watches Pokémon Scarlet on the TV through a
 - Translation to English (v2, run offline in batch against the transcript).
 - Capture cards, Windows, Linux, mobile, or any hosted/server component.
 - Reading menus, move lists, or battle UI text. Dialogue boxes only.
-- Other games. Box detection is tuned to Scarlet; keep it isolated so a second game profile is possible later.
+- Other games. Everything Scarlet-specific lives in `profiles/scarlet.json` so a second game profile is possible later.
 
 ## Platform and stack
 
-Swift on macOS, using Apple frameworks for everything in v1. Rust and Go were considered, but nearly every hard part here is already solved by a built-in macOS framework, and binding to those from another language would cost more than it saves.
+Swift 6 on macOS with SwiftPM, using Apple frameworks only: AVFoundation (camera, video, speech), Vision (rectangle detection, OCR), Core Image (perspective correction), SwiftUI (window, menu bar). No OpenCV and no LLM in v1. Data files are JSON validated against schemas generated from the Swift types; transcripts are JSONL under `~/Library/Application Support/Hablamon/`.
 
-| Concern | Choice | Why |
+## Status
+
+| Milestone | State | Record |
 | --- | --- | --- |
-| Language | Swift 6, Swift Package Manager | Direct access to the frameworks below; builds with `swift build`, no Xcode project required |
-| Camera | AVFoundation (`AVCaptureSession`) | Exposes the iPhone via Continuity Camera as a normal capture device, with connect/disconnect notifications |
-| Screen finding + perspective | Vision `VNDetectRectanglesRequest` + Core Image `CIPerspectiveCorrection` | Finds the TV quad and flattens it; GPU-backed, no OpenCV dependency |
-| OCR | Vision `VNRecognizeTextRequest`, `.accurate`, `es-ES` | On-device, supports Spanish, returns per-line bounding boxes and confidence |
-| Cheap change detection | Core Image / vImage on a downscaled grayscale crop | Microseconds per frame; gates the expensive OCR |
-| Speech (v1) | `AVSpeechSynthesizer` with es-ES voices | Offline, zero setup, supports pitch and rate per utterance |
-| UI | SwiftUI window + menu bar extra | Small status/transcript window facing the player; calibration preview |
-| Storage | JSONL + PNG files under `~/Library/Application Support/Hablamon/` | Append-only, greppable, easy to post-process |
+| Spike A: camera OCR | Done | [done/spike-a-ocr.md](done/spike-a-ocr.md) |
+| M1: offline replay | Done, with leftovers below | [done/m1-offline-replay.md](done/m1-offline-replay.md) |
+| M2: live Continuity Camera | Not started | This doc |
+| M3: disruption handling | State machine built and tested; not wired to a camera | This doc |
+| M4: characters and companion UI | Character table, matching, and voices built; UI not started | This doc |
+| Spike B: Qwen3-TTS on the Air | Not started | This doc |
+| M5: second speech engine | Not started | This doc |
 
-No OpenCV and no LLM in v1. If Vision's rectangle detection proves unreliable for the TV quad, OpenCV (via a small C++ shim) is the fallback, not the default.
+Built so far: the full pipeline from frame to transcript (perspective correction, box detection, settle, OCR, scroll-aware page sequencing, speaker matching, voice choice, Apple speech, JSONL transcript), the data-file types and schemas, the Scarlet profile and character table, `hablamon run --replay`, `ocr`, `export`, and `schema export`, and macOS CI. The [M1 record](done/m1-offline-replay.md) lists what lives where and how it differs from the first design.
 
-## Architecture
+## M1 leftovers
 
-A linear pipeline in `HablamonCore`. Everything before OCR is cheap enough to run continuously; OCR and speech run once per dialogue page. A connection state machine (see Disruption handling) can pause the whole pipeline.
+- Hear `--speak` on a real Mac; speech is untested on hardware.
+- Kyle: check the `certain: false` lines in `Tests/Fixtures/videos/far.expected.json`.
+- Save box crops with transcript lines (the `crop` field stays empty today).
+- Decide on low-confidence re-reads once more video is available (Vision reports 0.5 even on correct reads).
 
-&#91;embedded content: processing pipeline · 8 stages\]
+## M2: live Continuity Camera
 
-Each stage is a Swift actor or plain type behind a small protocol, so stages can be tested with recorded frames and the speech engine can be swapped. Frames flow as `CIImage`. Only the downscaled crops reach the detector and settler, and only settled crops reach OCR.
-
-## Capture and calibration
-
-The iPhone, via Continuity Camera, is the primary camera; the MacBook's built-in camera is never used as a silent fallback because it faces the player. Calibration turns whatever angle the phone has into a flat, fixed-size image of the TV, so everything downstream works as if it had a capture card.
+The iPhone, via Continuity Camera, is the primary camera; the MacBook's built-in camera is never used as a silent fallback because it faces the player. Calibration turns whatever angle the phone has into the canonical 1280×720 frame the pipeline already consumes.
 
 **Camera selection**
 
-- Enumerate devices with `AVCaptureDevice.DiscoverySession` including `.continuityCamera`. Persist the chosen device's `uniqueID`.
-- Never auto-switch to another device. If the pinned device disappears, enter the Lost state (see Disruption handling).
+- Enumerate devices with `AVCaptureDevice.DiscoverySession` including `.continuityCamera`. Persist the chosen device's `uniqueID` in `calibration.json`.
+- Never auto-switch to another device. If the pinned device disappears, enter the Lost state (M3).
 - Request 1080p at 30 fps; the app samples far fewer frames than that.
-- Allow the built-in camera only when explicitly chosen in settings (useful for development).
+- Allow the built-in camera only when `settings.json` says so (useful for development).
+
+**Exposure control (new, from Spike A).** The phone's auto-exposure blows out the TV whenever the game scene brightens, and that caused every remaining replay error. Lower exposure on the pinned camera (`exposureTargetBias`, or a locked exposure tuned on the box) and re-check the far video's faint pages with it.
 
 **Calibration**
 
 1. Show the live preview in the main window.
-2. Run `VNDetectRectanglesRequest` to propose the TV screen quad (a bright rectangle inside a dark bezel). The user accepts it, or drags the four corners to fix it.
-3. Apply `CIPerspectiveCorrection` with that quad to every sampled frame, producing a canonical 1280×720 image.
-4. Save the quad, the device ID, and a small grayscale reference thumbnail of the corrected bezel region.
+2. Run `VNDetectRectanglesRequest` to propose the TV screen quad. The user accepts it, or drags the four corners to fix it.
+3. Feed `ScreenCorrector` (already built) with that quad.
+4. Save the quad, device ID, zoom, and a small grayscale reference thumbnail of the corrected bezel.
 
-**Designing for both phone placements**
+**Quality gate** (after calibration, shown in the UI)
 
-Placement is not decided, so calibration must handle both and tell the user which they have.
+- Measure body-text cap height in camera pixels. Spike A read text correctly at about 10 px, so start the warning around 8 px rather than the 14 px first planned.
+- Run a test OCR on the next real dialogue box and show the result.
+- Expose `videoZoomFactor` as a setting so a far phone can zoom in.
+- Warn on clipped highlights inside the box region.
 
-| Placement | Expected | Handling |
-| --- | --- | --- |
-| Near: stand on the TV console, roughly square to the screen | Mild keystone, large text | Default path; should just work |
-| Far: propped near the couch, steeper angle | Strong keystone, smaller text, more glare | Same correction; quality gate below decides whether it is usable |
+**Adaptive sampling.** Idle: one box check every 2 s (setting: 1–3 s). Dialogue: about 4 per second, as in replay. Dialogue mode ends after the box has been absent for 3 s (`DialoguePresence` already does this).
 
-**Quality gate** (run after calibration and shown in the UI):
+**App bundle and install** (`scripts/install.sh`, not written yet)
 
-- Measure the corrected dialogue box's body text cap height in source-camera pixels. Starting thresholds, to tune in the camera spike: target ≥ 18 px, warn below 14 px ("move the phone closer or zoom").
-- Run a test OCR on the next real dialogue box and show its confidence.
-- Expose the iPhone's zoom factor (`videoZoomFactor`) as a setting so a far phone can zoom in on the TV.
-- Warn on clipped highlights (glare) inside the box region.
+1. `swift build -c release`, assemble `Hablamon.app` with `Info.plist` (`NSCameraUsageDescription`) and resources.
+2. Ad-hoc codesign with the camera entitlement; a stable bundle ID keeps the permission across rebuilds.
+3. Copy to `~/Applications/` and symlink the CLI into `~/.local/bin/hablamon`.
 
-## Box detection, polling and settle
+Gotchas: camera permission attaches to the app bundle, so live `hablamon run` should launch or talk to the bundled app rather than borrow Terminal's permission. Mark capture and OCR work `.utility` QoS so the Air prefers efficiency cores.
 
-Most of the time there is no dialogue on screen, so the app idles at about one cheap check every 2 seconds and only speeds up while a box is visible. OCR runs once per page, after the typewriter animation stops.
+## M3: disruption handling
 
-**Box detection (no OCR).** Scarlet's dialogue box occupies a fixed region near the bottom of the corrected frame, with a separate name tag above its top-left corner. Detection on the corrected 1280×720 frame:
+Picking up the phone is expected, not an error. `ConnectionMonitor` already turns signals into states and effects (stop the pipeline, log a gap with its first cause, log a recalibration, ask for help after 10 s). What's left is producing the signals and performing the effects:
 
-- Crop the box region and the name-tag region using rectangles stored in a per-game profile (`profiles/scarlet.json`), measured once from reference screenshots.
-- Decide "box present" from simple statistics on the crop: mean luminance and saturation inside the expected panel color range, plus edge density along the box border. No ML.
-- Require two consecutive positive samples to enter Dialogue mode, to ignore transient flashes.
+- **Paused:** key-value observe `AVCaptureDevice.isSuspended` on the pinned device; the monitor's frame timeout covers frames simply stopping.
+- **Lost / reconnected:** `wasDisconnectedNotification` / `wasConnectedNotification` for the pinned `uniqueID`.
+- **Phone bumped:** in Tracking, every ~10 s compare the corrected bezel against the reference thumbnail; a large mismatch, or box detection failing on every sample, is `screenMismatch`.
+- **Re-finding:** run rectangle detection on each sample; accept a ~16:9 quad whose corrected bezel matches the reference.
+- **Effects:** wire `stopPipeline` to `Narrator.interrupt()` and `DialoguePipeline.reset()`, the log effects to `TranscriptWriter`, and the cues to short, quiet system sounds (stopped watching, resumed, needs attention).
 
-**Adaptive sampling**
+Apple documents that the Continuity Camera feed pauses while the phone is in use and resumes once it is [locked and mounted again](https://support.apple.com/102546), and that macOS may switch cameras when the iPhone disconnects, which is why the device is pinned.
 
-| Mode | Sample rate | Work per sample |
-| --- | --- | --- |
-| Idle | Every 2 s (setting: 1–3 s) | Correct the frame, box-present check |
-| Dialogue | \~4 per second | Box-present check + change detection on the text crop |
-| Settled | — | One OCR pass, then hand off to speech |
+## M4: characters and companion UI
 
-The 2-second idle lag is mostly hidden: the typewriter effect takes about that long to finish anyway. Dialogue mode returns to Idle after the box has been absent for 3 s.
+- **Data files in Application Support:** seed `characters.json` from the bundled table and `settings.json` from `Settings.defaults` on first run, write a `$schema` key, and load them through `DocumentLoader` so hand edits get clear errors.
+- **Unknown speakers:** unmatched tags already get a stable fallback voice. Add the UI to tag them (male, female, neutral) and persist them to `characters.json`.
+- **Main window:** glanceable from the couch: large type, dark background. Top: connection state (dot plus word) and engine. Center: speaker and current line. Bottom: session transcript; click a line to replay it. Side drawer: unknown speakers awaiting a tag.
+- **Calibration view:** live preview, proposed quad with draggable corners, quality-gate readout, zoom slider.
+- **Menu bar extra:** state dot, start/pause, open window, recalibrate, quit.
+- **Global hotkeys** via Carbon `RegisterEventHotKey` (no Accessibility permission); defaults are already in `Settings.defaults`: repeat last line ⌥⌘R, repeat slowly ⌥⇧⌘R, toggle slow/normal speed ⌥⌘S, pause/resume ⌥⌘P, recalibrate ⌥⌘C.
+- **CLI still to add:** `hablamon calibrate`, live `hablamon run`, and `hablamon voices design` (M5).
 
-**Settle logic (typewriter handling)**
+## Spike B and M5: second speech engine
 
-- Downscale the body-text crop to grayscale \~160×40 and compute the mean absolute difference from the previous sample.
-- "Settled" = difference below threshold for 3 consecutive Dialogue samples (\~750 ms). Optionally also detect the blinking ▼ advance indicator in the box's bottom-right as a confirming signal.
-- On settle, run OCR once. A later large change in the text crop with the box still present means a new page: reset and wait for settle again.
-- If the player advances mid-speech, the new page interrupts the current utterance (see Speech).
-
-**Deduplication.** Normalize OCR text (trim, collapse whitespace, strip the ▼ glyph) and skip speaking if it equals the last spoken page within the same box session. This prevents repeats from small camera jitter. Long messages scroll (a third line pushes the first up), so when a page starts with the previous page's last line, speak only the new lines.
-
-## OCR and speaker identification
-
-OCR runs on two crops from the corrected frame: the body text and the name tag. Both use Vision with `recognitionLevel = .accurate`, `recognitionLanguages = ["es-ES"]`, and `usesLanguageCorrection = true`.
-
-**Body text**
-
-- Upscale the crop 2× and apply mild contrast normalization before OCR; camera frames are softer than screenshots.
-- Join observations top to bottom into one string, joining wrapped lines with a space (and rejoining words hyphenated across a line break).
-- Record mean and minimum line confidence. If the minimum is below a threshold, OCR the next Dialogue sample too and keep the higher-confidence result.
-- Strip UI glyphs (▼, button icons) and normalize quotes. Keep ¡ ¿ ñ and accents intact.
-
-**Speaker name**
-
-- If the name-tag region is empty or the box-present check says no tag, the speaker is `narrator` (item pickups, system messages such as "Has obtenido el Bocadillo").
-- Otherwise OCR the tag and fuzzy-match it (normalized Levenshtein ≤ 2) against known names in the character table, so a misread "Clavei" still resolves to Clavel.
-- An unmatched name becomes a new `unknown` character entry, voiced with the default for its slot until the user tags it (see Character table).
-
-**Accuracy fixtures.** Collect real camera frames from both near and far placements into `Tests/Fixtures/` with the expected text, and run them as tests. Screenshots already shared in this project are a good starting set for expected strings, but camera frames are the real test.
-
-## Character table and voice assignment
-
-Voices come from a hand-editable character table, not from guessing gender from names. Spanish localized names don't reliably signal gender, and a small table is cheap to maintain.
-
-`characters.json` lives in Application Support and is seeded from a bundled default (`Sources/HablamonCore/Resources/characters.default.json`). Entries are keyed by the Spanish (Spain) name exactly as the name tag shows it:
-
-```json
-{
-  "schemaVersion": 1,
-  "characters": {
-    "Clavel": {
-      "englishName": "Clavell",
-      "gender": "male",
-      "ageGroup": "adult",
-      "role": "Director of the academy",
-      "description": "theatrical and pompous, fond of rhymes and alliteration; warm underneath",
-      "aliases": ["Cael"],
-      "voices": {
-        "apple": { "voice": "com.apple.voice.premium.es-ES.Jorge", "pitch": 0.9, "rate": 0.95 },
-        "qwen3": { "referenceClip": "voices/clavel.wav" }
-      }
-    },
-    "Albora": { "englishName": "Professor Sada", "gender": "female", "ageGroup": "adult", "version": "scarlet" },
-    "narrator": { "gender": "neutral" }
-  }
-}
-```
-
-- `aliases` are other name-tag texts for the same person (Clavel's disguise "Cael", "Abuela" before Heladia is named), so they get the same voice.
-- `ageGroup` (child, teen, adult, elder) and `gender` pick a default voice when an engine has no explicit entry.
-- `version` marks characters that only appear in Scarlet or Violet.
-
-**Assignment rules**
-
-- Known character (name or alias matches): use its entry for the active engine, or the default for its gender and age group. Because the cast is known in advance, almost every tagged line should resolve here.
-- Unmatched name: create an `unknown` entry. Assign the next voice in the default pool, cycling round-robin, with a pitch offset derived from a stable hash of the name (FNV-1a, not Swift's per-launch `Hasher`). The same unknown name therefore always sounds the same, even before it is tagged. This is only the fallback for names missing from the table.
-- The UI shows recent unknown speakers with one-click tags (male, female, neutral). Tagging moves the character into that gender's pool and persists the change.
-- `description` is unused by the Apple engine; it is the input for designing Qwen3-TTS voices (next section).
-
-**Seeding.** The bundled table covers the named cast of the base game and both DLCs (academy, league, gym leaders, Team Star, Kitakami, Blueberry Academy), with names and genders checked against [WikiDex](https://www.wikidex.net/wiki/Pok%C3%A9mon_Escarlata_y_Pok%C3%A9mon_P%C3%BArpura). `description` values are voice-design starting points, not canon. Exact name-tag text (for example whether grunts show "Recluta" or a longer tag) still needs confirming from real frames.
-
-## Speech engines
-
-All speech goes through one protocol, so engines can be swapped in settings without touching the pipeline. v1 ships only the Apple engine; Qwen3-TTS is the planned upgrade, and Kokoro is a fallback.
-
-```swift
-protocol SpeechEngine: AnyObject {
-    var id: String { get }                  // "apple", "qwen3", "kokoro"
-    func prepare() async throws            // load models; may take seconds
-    func speak(_ line: Line, as voice: VoiceSpec, rate: Float) async throws
-    func stop()                            // interrupt immediately
-}
-```
-
-**Shared behavior (in the pipeline, not each engine)**
-
-- A single-slot queue: a new page interrupts the current line via `stop()`. Lines never pile up behind each other.
-- Global speed multiplier with a slow default (0.85×) and a hotkey to toggle normal speed.
-- "Repeat last line" and "repeat slowly" hotkeys replay the last line through the same engine.
-- If an engine fails to prepare or throws, fall back to the Apple engine and show a warning. Never go silent.
-
-**Engines, in priority order**
+All engines go through the `SpeechEngine` protocol and `Narrator` (one line in flight, slow 0.85× default, Apple fallback), which are built.
 
 | Order | Engine | Voices | Footprint | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Apple `AVSpeechSynthesizer` | System es-ES voices (install Enhanced/Premium in System Settings), varied by pitch and rate | None | v1 |
-| 2 | [Qwen3-TTS](https://www.mintlify.com/QwenLM/Qwen3-TTS/introduction) | A distinct voice per character | 0.6B runtime model, plus 1.7B for one-time design | Spike first |
-| 3 | [Kokoro-82M](https://replicate.com/alphanumericuser/kokoro-82m) | ef\_dora (female), em\_alex and em\_santa (male) | \~82M parameters | Fallback if Qwen3 is too slow |
+| 1 | Apple `AVSpeechSynthesizer` | Installed es-ES voices (Enhanced/Premium recommended), varied by pitch | None | Built |
+| 2 | [Qwen3-TTS](https://www.mintlify.com/QwenLM/Qwen3-TTS/introduction) | A distinct voice per character | 0.6B runtime model, plus 1.7B for one-time design | Spike B |
+| 3 | [Kokoro-82M](https://replicate.com/alphanumericuser/kokoro-82m) | ef_dora (female), em_alex and em_santa (male) | ~82M parameters | Fallback if Qwen3 is too slow |
 
-**Qwen3-TTS plan: design once, clone at runtime.** Qwen3-TTS covers [European and Latin American Spanish](https://www.mintlify.com/QwenLM/Qwen3-TTS/concepts/languages). Its 1.7B VoiceDesign model creates a voice from a text description, and its 0.6B Base model clones a voice from a \~3-second sample. So:
+**Qwen3-TTS: design once, clone at runtime.** Qwen3-TTS covers [European and Latin American Spanish](https://www.mintlify.com/QwenLM/Qwen3-TTS/concepts/languages). `hablamon voices design` runs the 1.7B VoiceDesign model on each character's `description` and writes `voices/<name>.wav` (recorded in `voices/manifest.json`); during play the 0.6B Base model clones from that clip, and characters without one use a preset voice by gender. Run through [mlx-audio](https://github.com/blaizzy/mlx-audio); if its Swift port lacks Qwen3-TTS, a local Python helper over stdin/stdout is acceptable. It stays offline.
 
-1. Offline tool `hablamon voices design` runs VoiceDesign on each character's `description` and writes a short reference clip to `voices/<name>.wav`.
-2. During play, the engine runs the 0.6B Base model, cloning from that clip.
-3. Characters without a clip use one of the model's preset voices by gender.
+**Latency budget.** Speech should start within ~1.5 s of settle on the Air. Spike B measures time to first audio for a typical 120-character line, peak memory, and 30-minute thermals; if Qwen3 misses the budget, use Kokoro.
 
-Run through [mlx-audio](https://github.com/blaizzy/mlx-audio), which targets Apple Silicon and has a Swift package (mlx-audio-swift). If the Swift port lacks Qwen3-TTS, a small local Python helper process speaking JSON over stdin/stdout is acceptable. It stays offline and local.
+## Testing still to build
 
-**Latency budget.** Speech should start within \~1.5 s of settle on the Air. The Qwen3 spike measures time to first audio for a typical 120-character line, peak memory, and sustained thermals over 30 minutes. If it misses the budget, pre-synthesis can't help (text isn't known in advance), so fall back to Kokoro.
-
-## Disruption handling
-
-Picking up the phone is expected, not an error. The app pauses cleanly, logs a gap, re-finds the TV when the phone is set down, and only interrupts the player when it can't find the screen on its own.
-
-&#91;embedded content: connection state machine · 5 states\]
-
-Apple documents that the Continuity Camera feed pauses while the phone is in use and resumes once it is [locked and mounted again](https://support.apple.com/102546); it also notes macOS may switch to another camera when the iPhone disconnects, which is why the device is pinned.
-
-**Signals**
-
-- **Paused:** key-value observe `AVCaptureDevice.isSuspended` on the pinned device; also treat no frames for > 1 s as paused.
-- **Lost:** `AVCaptureDevice.wasDisconnectedNotification` for the pinned `uniqueID`. Return on `wasConnectedNotification` with the same ID.
-- **Phone bumped:** in Tracking, every \~10 s compare the corrected frame's bezel region against the saved reference thumbnail. A large mismatch, or the box detector suddenly failing on every sample, moves to Re-finding.
-- **Re-finding:** run rectangle detection on each sample. Accept a quad whose aspect ratio is \~16:9 and whose corrected bezel matches the reference, then log a `recalibrated` entry.
-- **Recalibrate:** after \~10 s without a match, play a chime, bring the window forward with the calibration preview, and wait.
-
-**On leaving Tracking:** stop any speech, discard a half-settled page, and write a `gap` log entry when Tracking resumes. Lines shown while the camera was away are not recovered.
-
-## Transcript log
-
-Every spoken page is appended to a JSONL file, one file per session, with raw OCR kept separate from anything derived so it can be re-translated or re-OCR'd later. Translation fields exist in the schema but stay empty in v1.
-
-Path: `~/Library/Application Support/Hablamon/sessions/2026-10-11T19-30-00.jsonl`, with box crops in a sibling `crops/` folder.
-
-```json
-{"v":1,"type":"line","ts":"2026-10-11T19:42:07.512-07:00","session":"2026-10-11T19-30-00","seq":42,"speaker":"Clavel","speakerRaw":"Clavel","text":"Al fin y al cabo, debo hacerme responsable de las torpezas en que incurra mi academia.","ocrConfidence":{"mean":0.94,"min":0.81},"crop":"crops/000042.png","engine":"apple","voice":"es-ES male p0.9 r0.95","translation":null,"translationSource":null}
-{"v":1,"type":"gap","ts":"2026-10-11T19:44:30.000-07:00","session":"2026-10-11T19-30-00","reason":"camera_paused","durationSec":48}
-```
-
-- `type`: `line` for spoken text, `gap` when the camera was paused or lost (`reason`: `camera_paused`, `camera_lost`, `screen_lost`), `recalibrated` when the screen quad changed (`trigger`: `automatic` or `manual`).
-- Optional fields that are `null` may be omitted when written.
-- `speakerRaw` keeps the OCR'd tag text; `speaker` is the resolved character.
-- Crops are small grayscale PNGs of the corrected box region, used to fix OCR errors and build test fixtures.
-- Writes are append-only and flushed per line, so a crash loses at most the line in flight.
-- `hablamon export --since 7d --format csv` produces a flat file for later study or batch translation.
-
-## UI and controls
-
-The laptop faces the player, so the main window is a readable companion: who is speaking, the current line, and recent history. It must be glanceable from the couch: large type, dark background, no dense controls.
-
-**Main window**
-
-- Top strip: connection state (Tracking, Paused, Lost, Re-finding) as a colored dot plus a word, and the active engine.
-- Center: speaker name and the current Spanish line in large type. A v2 translation line will sit under it.
-- Bottom: scrolling transcript of the session, newest at the bottom. Click a line to replay it.
-- Side drawer: unknown speakers awaiting a gender tag.
-
-**Calibration view.** Live camera preview with the proposed screen quad, draggable corners, the quality-gate readout, and a zoom slider.
-
-**Menu bar extra.** State dot, start/pause, open window, recalibrate, quit.
-
-**Global hotkeys** (configurable; defaults avoid common game-capture shortcuts)
-
-| Action | Default |
-| --- | --- |
-| Repeat last line | ⌥⌘R |
-| Repeat last line slowly | ⌥⇧⌘R |
-| Toggle slow/normal speed | ⌥⌘S |
-| Pause/resume watching | ⌥⌘P |
-| Recalibrate | ⌥⌘C |
-
-**Audible cues.** Short, quiet system sounds on state changes: camera lost, screen re-found, recalibration needed. The player shouldn't have to look at the laptop to know it stopped listening.
-
-**CLI.** The same binary exposes `hablamon run`, `hablamon calibrate`, `hablamon voices design`, `hablamon export`, and `hablamon ocr <image>` (one-shot OCR for debugging and fixtures).
-
-## Project layout, build and install
-
-One Swift package with a core library and thin app/CLI targets, so the pipeline is testable without a camera. A script assembles a signed `.app` bundle, because camera access needs one.
-
-```
-Hablamon/
-  Package.swift
-  Sources/
-    HablamonCore/        // pipeline: Capture, Calibration, Detector, Settler, OCR,
-                         // Speakers, Speech (protocol + engines), Transcript, StateMachine
-    HablamonModels/      // @Schemable Codable types for every JSON file
-    HablamonApp/         // SwiftUI window, menu bar extra, hotkeys
-    HablamonCLI/         // swift-argument-parser: run, calibrate, voices, export, ocr, schema
-  Resources/
-    profiles/scarlet.json
-    characters.default.json
-    Info.plist           // NSCameraUsageDescription
-  schemas/               // exported *.schema.json, checked in, verified by tests
-  Tests/
-    HablamonCoreTests/   // unit, state machine, synthetic camera, replay, speech, perf
-    HablamonModelsTests/ // schema round trips, migrations, export drift
-    Fixtures/            // Switch screenshots, phone videos, golden transcripts
-  scripts/
-    install.sh           // build, bundle, sign, install
-    verify.sh            // run every test layer, write reports/verify.md
-  .github/workflows/ci.yml
-```
-
-**Build and install** (`scripts/install.sh`, run on every change):
-
-1. `swift build -c release`
-2. Assemble `Hablamon.app` with `Info.plist` and resources.
-3. Ad-hoc codesign (`codesign --force --sign - --entitlements ...`) with the camera entitlement. A stable bundle ID keeps the camera permission grant across rebuilds.
-4. Copy to `~/Applications/` and symlink the CLI into `~/.local/bin/hablamon`.
-
-**Gotchas to handle up front**
-
-- Camera permission attaches to the app bundle. A bare CLI run from Terminal would borrow Terminal's permission instead, so `hablamon run` should launch or talk to the bundled app.
-- Use Carbon `RegisterEventHotKey` for global hotkeys; it needs no Accessibility permission.
-- Mark the capture and OCR work `.utility` QoS so the fanless Air prefers efficiency cores.
-
-## Schemas and data contracts
-
-Every JSON file Hablamon reads or writes has a schema. Swift `Codable` types are the single source of truth, and JSON Schema (draft 2020-12) is generated from them, so the two can't drift.
-
-**Approach**
-
-- Define each file's shape as a Swift struct marked `@Schemable` from [swift-json-schema](https://github.com/ajevans99/swift-json-schema). The macro generates the JSON Schema, and the library validates JSON against it and parses it into the Swift type.
-- `hablamon schema export` writes every schema to `schemas/*.schema.json` in the repo. A test regenerates them and fails if the committed files differ, so a type change without a schema update breaks CI.
-- At load time, validate every user-editable file *before* decoding and report errors with a JSON path, such as `characters.json: /Clavel/gender must be one of male, female, neutral`. A hand-edit typo then gives a clear message instead of a decode crash.
-- User-editable files carry a `$schema` key pointing at the exported schema, so VS Code gives autocomplete and inline errors while you edit them.
-- If the macro can't express a constraint (for example "pitch between 0.5 and 2.0"), add it with the library's schema options rather than an ad hoc check, so it shows up in the exported schema too.
-
-**Contracts**
-
-| File | Swift type | Validated | Notes |
-| --- | --- | --- | --- |
-| `characters.json` | `CharacterTable` | On load | User-editable; `$schema` key |
-| `profiles/<game>.json` | `GameProfile` | On load | Box and name-tag rectangles, color ranges |
-| `calibration.json` | `Calibration` | On load | Screen quad, device ID, zoom, reference thumbnail path |
-| `settings.json` | `Settings` | On load | Engine, speed, hotkeys, sample rates |
-| `voices/manifest.json` | `VoiceManifest` | On load | Designed Qwen3 reference clips per character |
-| `sessions/*.jsonl` | `TranscriptEntry` (tagged union: line, gap, recalibrated) | In tests; writer is typed | One schema per line |
-
-**Versioning.** Every file has an integer `schemaVersion` (`v` on transcript lines, to keep lines short). Loaders run explicit, tested migrations from older versions and refuse files from a newer version with a clear message. The transcript is append-only history, so its schema only gains optional fields; nothing is ever removed or renamed.
-
-## Testing plan
-
-Claude Code proves each milestone with automated tests and a generated report. Kyle's part is one short capture session up front and a five-minute play test per milestone.
-
-**What Kyle provides, once (\~20 minutes)**
-
-- 15–20 Switch screenshots of dialogue boxes from the Capture button: clean 1280×720 images with a mix of speakers, narrator lines, and long and short text.
-- Two 5-minute iPhone videos of normal play, one from each placement (near and far), advancing dialogue at a normal pace.
-
-Ground truth comes from OCR of the clean screenshots, plus a golden transcript for each video. Claude Code drafts the golden transcript from the box crops, and Kyle skims it once.
-
-**Test layers** (Swift Testing `@Test` suites, run with `swift test`, no camera or human needed)
+The unit, state-machine, schema, OCR, and replay layers exist and run in `scripts/verify.sh` and CI. Still to add:
 
 | Layer | What it proves | How |
 | --- | --- | --- |
-| Unit | Settler, dedupe, fuzzy speaker match, log writer, migrations behave correctly | Pure functions over recorded frame-difference sequences and fixture JSON |
-| State machine | Every disruption path recovers or asks correctly | Fake clock and a fake camera that emits suspend, disconnect, reconnect, and bump events |
-| Schemas | Files and code agree | Round-trip encode → validate → decode for every type; committed schemas match regenerated ones |
-| Synthetic camera | OCR survives real-world camera conditions | Warp clean screenshots with seeded random perspective, scale, blur, noise, moiré, glare, and gamma for near and far presets; assert character error rate stays under a threshold per preset |
-| Replay | The whole pipeline works end to end | Run `--replay` on the two videos; diff against the golden transcript: every line found, none duplicated, speakers correct |
-| Speech round trip | Audio actually says the line | Render speech to a buffer (`AVSpeechSynthesizer.write`), transcribe it back on-device with Apple's Speech framework in es-ES, and assert word error rate is low. Also asserts per-character pitch and rate were applied. Skips with a notice if on-device recognition isn't installed. |
-| Performance | It's light enough for a fanless Air | Benchmarks for idle and dialogue sample cost, OCR latency, and settle-to-first-audio time, each asserted against a budget |
+| Synthetic camera | OCR survives camera conditions | Warp clean screenshots with seeded perspective, blur, noise, glare, and exposure for near and far presets; assert character error rate per preset |
+| Speech round trip | Audio says the line | Render with `AVSpeechSynthesizer.write`, transcribe on-device with the Speech framework in es-ES, assert low word error rate; skip if on-device recognition isn't installed |
+| Performance | Light enough for a fanless Air | Budgets for idle and dialogue sample cost, OCR latency, and settle-to-first-audio time |
 
-The synthetic layer is what keeps this light on Kyle: from 20 screenshots it can generate thousands of camera-like frames, so OCR tuning never needs the Switch on.
-
-**Proof of work.** `scripts/verify.sh` runs every layer and writes `reports/verify.md`: pass/fail per suite, OCR accuracy by placement preset, replay diff, speech word error rate, and performance numbers against budget. Claude Code runs it before calling any milestone done and pastes the summary. GitHub Actions on a macOS runner runs the same script on every push, except the replay and speech layers if the runner can't support them.
+**Fixtures still needed from Kyle:** a near-placement video, a clip with narrator boxes (item pickups), and clean Switch screenshots for the synthetic layer.
 
 **Kyle's play test per milestone** (about 5 minutes)
 
 - [ ] Lines are spoken shortly after the text finishes typing, without repeats.
-- [ ] Picking up the phone and putting it back recovers with no input from you, or with one corner confirm.
+- [ ] Picking up the phone and putting it back recovers with no input, or with one corner confirm.
 - [ ] Speakers sound consistent across a conversation.
 
-## Milestones, spikes and open questions
+## Open questions
 
-Build in this order. Each milestone is usable on its own, and the two spikes de-risk the parts most likely to fail.
-
-1. **Spike A: camera OCR.** Film a few minutes of Scarlet with the iPhone from both near and far placements. Run perspective correction and Vision OCR on still frames. Exit: body text ≥ 95% character accuracy at the near placement, and a measured answer for far.
-2. **M1: offline replay.** `hablamon run --replay clip.mov` end to end: correction, box detection, settle, OCR, Apple speech, JSONL log. No live camera yet. Schema types, scripts/verify.sh and CI land here, so every later milestone is tested from day one.
-3. **M2: live Continuity Camera.** Device pinning, calibration UI, quality gate, adaptive sampling.
-4. **M3: disruption handling.** The full state machine, audible cues, gap entries in the log, auto re-find.
-5. **M4: characters and companion UI.** Character table, unknown-speaker tagging, main window, hotkeys, menu bar.
-6. **Spike B: Qwen3-TTS on the Air.** Time to first audio, memory, and 30-minute thermals through mlx-audio. Exit: decide between Qwen3 and Kokoro as engine 2.
-7. **M5: second engine.** Implement whichever engine Spike B picks, plus `hablamon voices design` if it's Qwen3.
-
-**Open questions**
-
-- Phone placement (near vs far) is undecided; Spike A should report both so the choice can be made on data. First results in [spike-a-ocr.md](spike-a-ocr.md): near reads exactly; far works when settled and not overexposed.
-- Exact box and name-tag rectangles for `profiles/scarlet.json` need measuring from real frames. First measurement from the far video is in [spike-a-ocr.md](spike-a-ocr.md).
-- Does the Switch's TV output setting (1080p vs 720p) change box legibility through the camera?
-- Should battle text ("¡Sprigatito usó Arañazo!") be spoken? Its box differs from dialogue; default off, revisit after M1.
+- Phone placement: near reads exactly; far works when settled and not overexposed. Decide after exposure control and a near video.
+- Does the Switch's TV output setting (1080p vs 720p) change legibility through the camera?
+- Should battle text ("¡Sprigatito usó Arañazo!") be spoken? Its box differs from dialogue; default off.
+- Exact name-tag text for generic speakers (does a grunt's tag say "Recluta" or something longer?).
 
 **v2 ideas (out of scope)**
 

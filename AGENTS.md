@@ -4,7 +4,7 @@ Hablamon is a native macOS app that watches Pokémon Scarlet (played in Spanish)
 
 ## Plans
 
-Design docs live in [`docs/plans/`](docs/plans/). Read the relevant ones before starting work, and update them in the same change if the design shifts. [`docs/plans/init.md`](docs/plans/init.md) is the original v1 design: stack, architecture, testing plan, milestones.
+Design docs live in [`docs/plans/`](docs/plans/). [`init.md`](docs/plans/init.md) is the active v1 plan: status table and remaining work. Finished milestones and spikes are recorded in [`docs/plans/done/`](docs/plans/done/). Read the relevant ones before starting work, and update them in the same change if the design shifts. When a milestone finishes, write its record in `done/` and trim it from the active plan (see [`docs/plans/README.md`](docs/plans/README.md)).
 
 ## Setup and commands
 
