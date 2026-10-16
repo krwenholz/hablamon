@@ -6,6 +6,10 @@ Hablamon is a native macOS app that watches Pokémon Scarlet (played in Spanish)
 
 Design docs live in [`docs/plans/`](docs/plans/). [`init.md`](docs/plans/init.md) is the active v1 plan: status table and remaining work. Finished milestones and spikes are recorded in [`docs/plans/done/`](docs/plans/done/). Read the relevant ones before starting work, and update them in the same change if the design shifts. When a milestone finishes, write its record in `done/` and trim it from the active plan (see [`docs/plans/README.md`](docs/plans/README.md)).
 
+## Before starting
+
+Work happens in several places (cloud sessions, Kyle's Mac, uploads from his phone), so `main` may have moved. At the start of each significant new request, `git fetch` and fast-forward to `origin/main` before reading or changing code. If local work has diverged, merge rather than discard it, and ask when the two sides conflict in substance.
+
 ## Setup and commands
 
 Tooling is managed by [mise](https://mise.jdx.dev). `mise install` fetches the pinned Swift toolchain.
