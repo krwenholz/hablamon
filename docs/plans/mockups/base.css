@@ -1,0 +1,60 @@
+/* Shared Scarlet-ish visual language for the Hablamon mockups. */
+:root {
+  --navy: #1b2453;
+  --navy-2: #26306a;
+  --ink: #34363c;
+  --paper: #fbfaf3;
+  --yellow: #f6cf1a;
+  --scarlet: #e5402a;
+  --orange: #ff7a1a;
+  --green: #3fcf6e;
+  --amber: #ffb21a;
+  --red: #ff4d4d;
+  --dialogue: "Gill Sans", "Gill Sans MT", "Avenir Next", sans-serif;
+  --menu: "Avenir Next", "Avenir", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1470px; height: 956px; overflow: hidden; }
+body { font-family: var(--menu); -webkit-font-smoothing: antialiased; }
+
+/* The in-game dialogue box: off-white, rounded, yellow tick marks, navy name tag. */
+.box {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 14px;
+  font-family: var(--dialogue);
+  box-shadow: 0 3px 0 rgba(0,0,0,.18), 0 10px 24px rgba(0,0,0,.25);
+}
+.box::before, .box::after {
+  content: ""; position: absolute; width: 5px; background: var(--yellow); border-radius: 2px;
+}
+.box::before { left: 14px; top: 14px; height: 22%; min-height: 12px; }
+.box::after { right: 14px; bottom: 14px; height: 22%; min-height: 12px; }
+.box .tag {
+  position: absolute; left: -6px; top: -18px;
+  background: var(--navy); color: #fff; font-family: var(--dialogue); font-weight: 600;
+  padding: 4px 22px 5px 16px; border-radius: 4px 4px 4px 0;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+.box .next { position: absolute; right: 30px; bottom: 16px; color: var(--navy); font-size: 16px; }
+.box.narrator .tag { display: none; }
+
+/* Slanted pill, like Scarlet's menu buttons. */
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 800; font-style: italic; letter-spacing: .01em;
+  padding: 5px 16px; border-radius: 999px; transform: skewX(-8deg);
+}
+.pill > * { transform: skewX(8deg); }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.ok { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.dot.warn { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+.dot.bad { background: var(--red); box-shadow: 0 0 10px var(--red); }
+.dot.off { background: #5a607a; }
+.kbd {
+  font-family: var(--menu); font-weight: 700; font-size: 11px;
+  border: 1px solid currentColor; border-radius: 5px; padding: 1px 5px; opacity: .8;
+}
+.en { font-family: var(--menu); font-style: italic; opacity: .55; }
+.en.placeholder { border: 1.5px dashed currentColor; border-radius: 8px; padding: 4px 10px; opacity: .35; }

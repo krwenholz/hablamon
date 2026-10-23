@@ -1,0 +1,87 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body {
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 18px, transparent 18px 36px),
+    radial-gradient(1200px 700px at 30% 100%, #23306e 0%, #121836 60%, #0c1028 100%);
+  color: #eef0ff; padding: 30px 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 26px 34px; align-content: start;
+}
+h1 { grid-column: 1 / -1; font-size: 26px; font-weight: 900; font-style: italic; }
+h1 small { font-size: 15px; font-weight: 600; font-style: normal; color: #8f96c8; margin-left: 12px; }
+h2 { font-size: 13px; font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: .1em; color: #8f96c8; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 14px; height: 4px; background: var(--scarlet); border-radius: 2px; transform: skewX(-20deg); }
+
+.state { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+.state .pill { font-size: 15px; color: #fff; justify-self: start; }
+.state p { font-size: 14px; color: #c9cdf0; line-height: 1.35; }
+.state p b { color: #fff; }
+.p-ok { background: #17402a; } .p-say { background: #4a3b05; } .p-warn { background: #4a3305; } .p-bad { background: #4d1414; } .p-idle { background: #262b48; }
+.stages { display: inline-flex; gap: 5px; vertical-align: middle; margin-left: 6px; }
+.stages .dot { width: 9px; height: 9px; }
+
+.card { background: rgba(10,14,38,.72); border: 1.5px solid rgba(255,255,255,.08); border-radius: 16px; padding: 18px 20px; }
+.alert { border: 2px solid var(--amber); background: rgba(74,51,5,.55); }
+.alert .big { font-size: 22px; font-weight: 900; font-style: italic; margin-bottom: 6px; }
+.alert p { color: #f1e3c4; font-size: 15px; line-height: 1.4; }
+.alert .acts { display: flex; gap: 10px; margin-top: 14px; }
+.alert .acts span { font-weight: 800; font-style: italic; padding: 7px 16px; border-radius: 999px; background: var(--amber); color: #1d1d24; font-size: 14px; }
+.alert .acts span.sec { background: rgba(255,255,255,.1); color: #fff; }
+.thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.thumbs figure { position: relative; border-radius: 10px; overflow: hidden; }
+.thumbs img { width: 100%; display: block; height: 120px; object-fit: cover; }
+.thumbs figcaption { position: absolute; left: 8px; bottom: 6px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,.65); padding: 2px 8px; border-radius: 6px; }
+.quad { position: absolute; inset: 22% 4% 2% 3%; border: 2px solid var(--green); border-radius: 3px; }
+.quad i { position: absolute; width: 10px; height: 10px; background: var(--green); border-radius: 50%; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+td { padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); color: #c9cdf0; }
+td:last-child { text-align: right; color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+td .ok { color: var(--green); } td .warn { color: var(--amber); }
+.spark { display: inline-flex; gap: 2px; align-items: flex-end; height: 16px; margin-right: 8px; vertical-align: middle; }
+.spark i { width: 3px; background: #6f78b8; border-radius: 1px; }
+</style></head>
+<body>
+<h1>Status, recovery, and diagnostics <small>how the app tells you whether it's working</small></h1>
+
+<section>
+  <h2>Header pill by state</h2>
+  <div class="state"><span class="pill p-idle"><span><span class="dot off"></span> Idle</span></span><p>TV found, no dialogue box. Checks every 2 s. <span class="stages"><span class="dot ok"></span><span class="dot ok"></span><span class="dot off"></span><span class="dot off"></span><span class="dot off"></span></span></p></div>
+  <div class="state"><span class="pill p-ok"><span><span class="dot ok"></span> Reading</span></span><p>Box on screen, waiting for the text to stop typing. <span class="stages"><span class="dot ok"></span><span class="dot ok"></span><span class="dot ok"></span><span class="dot warn"></span><span class="dot off"></span></span></p></div>
+  <div class="state"><span class="pill p-say"><span><span class="dot" style="background:var(--yellow)"></span> Speaking</span></span><p>Line read and being spoken. <span class="stages"><span class="dot ok"></span><span class="dot ok"></span><span class="dot ok"></span><span class="dot ok"></span><span class="dot ok"></span></span></p></div>
+  <div class="state"><span class="pill p-warn"><span><span class="dot warn"></span> Phone in use</span></span><p><b>Paused.</b> Continuity Camera stopped while you use the phone. Resumes by itself when it's put back.</p></div>
+  <div class="state"><span class="pill p-warn"><span><span class="dot warn"></span> Finding TV</span></span><p>Phone moved; looking for the screen again. Speech is stopped so nothing gets misread.</p></div>
+  <div class="state"><span class="pill p-bad"><span><span class="dot bad"></span> Lost camera</span></span><p>iPhone disconnected. The Mac's own camera is never used in its place.</p></div>
+  <div class="state"><span class="pill p-bad"><span><span class="dot bad"></span> Needs you</span></span><p>Couldn't re-find the TV after 10 s. Plays a soft chime and shows the card on the right.</p></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+  <div>
+    <h2>Recovery card (replaces the vocab panel until resolved)</h2>
+    <div class="card alert">
+      <div class="big">Can't find the TV</div>
+      <p>The phone moved 18 s ago. If the corners below look right, confirm them; otherwise drag them onto the screen.</p>
+      <div class="thumbs">
+        <figure><img src="tv-frame.jpg"><figcaption>Saved view</figcaption></figure>
+        <figure><img src="tv-frame.jpg" style="filter:brightness(.8) contrast(1.1)"><div class="quad"><i style="left:-6px;top:-6px"></i><i style="right:-6px;top:-6px"></i><i style="right:-6px;bottom:-6px"></i><i style="left:-6px;bottom:-6px"></i></div><figcaption>Now · proposed corners</figcaption></figure>
+      </div>
+      <div class="acts"><span>Use these corners ⏎</span><span class="sec">Adjust…</span><span class="sec">Pause</span></div>
+    </div>
+  </div>
+  <div>
+    <h2>Diagnostics, expanded</h2>
+    <div class="card">
+      <table>
+        <tr><td>Text height on camera</td><td><span class="ok">●</span> 13 px (warn below 8)</td></tr>
+        <tr><td>Highlights clipped in box</td><td><span class="ok">●</span> 0.4 %</td></tr>
+        <tr><td>OCR time, last 20</td><td><span class="spark"><i style="height:7px"></i><i style="height:9px"></i><i style="height:6px"></i><i style="height:12px"></i><i style="height:8px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:8px"></i></span>140 ms</td></tr>
+        <tr><td>Text settled → voice started</td><td>0.9 s (budget 1.5)</td></tr>
+        <tr><td>Samples per second</td><td>4 (dialogue)</td></tr>
+        <tr><td>OCR confidence, last line</td><td><span class="warn">●</span> 0.50</td></tr>
+        <tr><td>Session</td><td>1 h 12 m · 214 lines · 2 gaps</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+</body></html>
