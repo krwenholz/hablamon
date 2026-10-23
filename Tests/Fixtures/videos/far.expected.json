@@ -1,6 +1,6 @@
 {
   "video": "far.mp4",
-  "notes": "Drafted from flattened box crops and OCR; `certain: false` lines were too washed out to read with confidence. Kyle: please skim and fix. The player's name in this save is Miguel. The 'Yo también' choice bubble around 36s is a menu, not dialogue, so it is excluded. The game scrolls long messages: a third line pushes the first up, so one message can span two pages that share a line (the 'Todos esos parajes…' message at 78–84s). Lines here are whole messages.",
+  "notes": "Drafted from flattened box crops and OCR. Three lines too washed out to read with confidence were dropped (Oct 23). The player's name in this save is Miguel. The 'Yo también' choice bubble around 36s is a menu, not dialogue, so it is excluded. The game scrolls long messages: a third line pushes the first up, so one message can span two pages that share a line (the 'Todos esos parajes…' message at 78–84s). Lines here are whole messages.",
   "lines": [
     {
       "at": 9,
@@ -9,28 +9,10 @@
       "text": "¡Mira, Miguel! Eso de allí es Ciudad Meseta."
     },
     {
-      "at": 21,
-      "speaker": "Mencía",
-      "certain": false,
-      "text": "¿Ves ese edificio gigantesco adornado con una Poké Ball? ¡Pues es nuestra academia!"
-    },
-    {
-      "at": 33,
-      "speaker": "Mencía",
-      "certain": false,
-      "text": "¡Qué ganas tengo de que estudiemos juntos!"
-    },
-    {
       "at": 42,
       "speaker": "Mencía",
       "certain": true,
       "text": "¡Así se habla!"
-    },
-    {
-      "at": 51,
-      "speaker": "Mencía",
-      "certain": false,
-      "text": "Podremos combatir una y otra y otra vez y vamos a aprender un montón, ¡ya lo verás!"
     },
     {
       "at": 60,

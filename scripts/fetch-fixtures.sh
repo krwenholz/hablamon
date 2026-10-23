@@ -11,6 +11,8 @@ mkdir -p "$dir"
 # name | Google Drive file ID | sha256
 fixtures=(
     "far.mp4|11XuOSuHXMJdC45W4ioz11gpULz8NeaVs|81471a532436685dc4d24ad78a8830f128712da301a5094e5d6762a033d6c57b"
+    "academy-lobby_far.mp4|1DnN4SZqv3ZNo_5WC9dcY1cjAChy7ZGWJ|9275cdaba69ac224e7a06e527e7230cce832f44943c1570fd8f9656a97cbbb38"
+    "classroom_far.mp4|1XPnHCGWO7Gh8lXArpE2Ae6FScE3JQ3i2|cb9792039f7810c7a4a4e1865454bf131d0aba7cd6e289b69fbc0b6a6d2c6eb3"
 )
 
 sha256() {

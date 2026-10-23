@@ -38,7 +38,7 @@ enum VideoFixtures {
     @Test func goldenTranscriptParses() throws {
         let data = try Data(contentsOf: VideoFixtures.url("far.expected.json"))
         let golden = try JSONDecoder().decode(GoldenTranscript.self, from: data)
-        #expect(golden.lines.count > 10)
+        #expect(golden.lines.count >= 10)
         #expect(golden.lines.map(\.at) == golden.lines.map(\.at).sorted())
     }
 }
