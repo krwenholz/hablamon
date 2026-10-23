@@ -42,7 +42,6 @@ Built so far: the full pipeline from frame to transcript (perspective correction
 
 ## M1 leftovers
 
-- Kyle: check the `certain: false` lines in `Tests/Fixtures/videos/far.expected.json`.
 - Save box crops with transcript lines (the `crop` field stays empty today).
 - Decide on low-confidence re-reads once more video is available (Vision reports 0.5 even on correct reads).
 
@@ -103,6 +102,7 @@ Apple documents that the Continuity Camera feed pauses while the phone is in use
   - **Top, largest:** the line being spoken in a copy of the game's box, with the not-yet-spoken words dimmed. The English translation goes under it in v2; leave the space now.
   - **Lower left:** the conversation so far, chat-style, with speaker, time, and a replay on click. Gaps from M3 (phone picked up, recalibrated) show as small inline notes.
   - **Lower right:** vocabulary from the recent lines: word, part of speech, English gloss, and the sentence it came from. Definitions come from the dictionaries macOS already ships (Dictionary Services), keeping it offline with no new dependency. Unverified: the public `DCSCopyTextDefinition` only searches the dictionaries enabled in Dictionary.app, so the Spanish–English one may need enabling, and output parsing is untested.
+    - **Which words:** rank by three signals Kyle named. *Newness*: not shown in an earlier session (by lemma, so `combatir` and `combatimos` count once). *Frequency*: how often the lemma appears across all transcripts, so words the game keeps using rise. *Importance to the sentence*: content words (nouns, verbs, adjectives, adverbs) over function words and names. `NaturalLanguage`'s `NLTagger` gives Spanish lemmas and word classes offline. Treating frequency as in-game frequency rather than general Spanish frequency was our call, since it needs no word list; revisit if the panel fills with game jargon.
   - **Bottom strip:** state pill, five pipeline lights (camera, TV, box, text, voice), device and voice, a couple of timings, and hotkey hints.
   - **No live camera view.** The phone's own screen shows what it sees. The camera view appears only in the recovery card and calibration.
   - **Labels in Spanish.** Holding a hotkey switches labels to English while held (Carbon delivers key-release events, so this works globally).
@@ -137,7 +137,7 @@ The unit, state-machine, schema, OCR, and replay layers exist and run in `script
 | Speech round trip | Audio says the line | Render with `AVSpeechSynthesizer.write`, transcribe on-device with the Speech framework in es-ES, assert low word error rate; skip if on-device recognition isn't installed |
 | Performance | Light enough for a fanless Air | Budgets for idle and dialogue sample cost, OCR latency, and settle-to-first-audio time |
 
-**Fixtures still needed from Kyle:** a retake of `near.mp4` with the whole TV in frame (the right edge is clipped, and calibration needs all four corners), and a clip with narrator boxes (item pickups) and other text.
+**Fixtures still needed from Kyle:** a clip with item pickups. The landscape videos and photos from Oct 23 cover the real placement and three non-standard boxes (shout, phone call, PA announcement).
 
 **Kyle's play test per milestone** (about 5 minutes)
 
