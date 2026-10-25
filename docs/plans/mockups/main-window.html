@@ -1,0 +1,103 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body {
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.10) 0 22px, transparent 22px 44px),
+    linear-gradient(160deg, #ffb33b 0%, #ff7a1a 45%, #e5402a 100%);
+  color: #1d1d24;
+  display: grid; grid-template-rows: auto 1fr 52px; gap: 18px; padding: 22px 26px 18px; height: 956px;
+}
+.ink { border: 3px solid #1d1d24; box-shadow: 6px 6px 0 #1d1d24; border-radius: 18px; background: #fff; }
+
+/* Hero: the line being spoken, styled exactly like the game's box. */
+.hero { position: relative; padding-top: 30px; }
+.hero .box { font-size: 38px; line-height: 1.36; padding: 34px 100px 30px 52px; min-height: 230px;
+  border: 3px solid #1d1d24; box-shadow: 6px 6px 0 #1d1d24; }
+.hero .box .tag { font-size: 23px; top: -26px; padding: 6px 32px 7px 22px; }
+.hero .box::before, .hero .box::after { width: 7px; }
+.hero .unspoken { color: #a3a5ad; }
+.hero .en { display: block; font-size: 22px; margin-top: 14px; color: var(--navy); opacity: .7; }
+.badge { position: absolute; right: 16px; top: 0; display: flex; gap: 8px; }
+.badge .pill { background: #1d1d24; color: #fff; font-size: 14px; }
+.badge .pill.y { background: var(--yellow); color: #1d1d24; }
+
+.cols { display: grid; grid-template-columns: 1fr 430px; gap: 22px; min-height: 0; }
+.panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.panel h2 { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 900; font-style: italic;
+  background: #1d1d24; color: #fff; padding: 9px 18px; border-radius: 14px 14px 0 0; margin: -3px -3px 0; }
+.panel h2 .n { margin-left: auto; font-size: 13px; color: var(--yellow); }
+
+/* Rotom-phone style transcript. */
+.chat { flex: 1; padding: 16px 18px; display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18%); }
+.msg { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: start; }
+.av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #fff; font-size: 18px; border: 2.5px solid #1d1d24; }
+.bub { background: #f3f1e8; border-radius: 4px 16px 16px 16px; padding: 8px 14px 10px; font-family: var(--dialogue); font-size: 19px; line-height: 1.32; }
+.bub .who { font-family: var(--menu); font-size: 12px; font-weight: 900; color: var(--navy); text-transform: uppercase; letter-spacing: .06em; display: block; }
+.bub .en { display: block; font-size: 14px; margin-top: 2px; }
+.msg .t { font-size: 11px; color: #9a98a0; font-weight: 700; padding-top: 4px; }
+.sys { text-align: center; font-size: 12px; font-weight: 800; color: #6b6a72; }
+.sys span { background: #ece9dc; border-radius: 999px; padding: 4px 12px; }
+
+.vocab { padding: 4px 18px 12px; overflow: hidden; }
+.card { display: grid; grid-template-columns: 1fr auto; padding: 11px 0; border-bottom: 2px dashed #e6e3d6; }
+.card:last-child { border-bottom: 0; }
+.card b { font-family: var(--dialogue); font-size: 23px; font-weight: 600; }
+.card .pos { font-size: 11px; font-weight: 900; color: #fff; background: var(--scarlet); border-radius: 6px; padding: 2px 7px; align-self: center; }
+.card .gloss { grid-column: 1 / -1; font-size: 15px; color: #45444c; }
+.card .ctx { grid-column: 1 / -1; font-family: var(--dialogue); font-size: 13px; color: #8a8892; margin-top: 2px; }
+.card .ctx u { text-decoration: none; background: #fff2a8; padding: 0 2px; border-radius: 3px; }
+
+.status { display: flex; align-items: center; gap: 12px; background: #1d1d24; color: #fff; border-radius: 999px; padding: 0 10px 0 10px;
+  box-shadow: 0 4px 0 rgba(0,0,0,.25); font-size: 13px; font-weight: 700; }
+.status .pill { font-size: 14px; background: var(--green); color: #0d2a17; }
+.seg { display: flex; align-items: center; gap: 7px; color: #c9c8d2; }
+.seg .dot { width: 9px; height: 9px; }
+.sep { width: 1px; height: 22px; background: #3a3a46; }
+.status .r { margin-left: auto; display: flex; gap: 14px; color: #9a98a8; }
+.status .r b { color: #fff; }
+</style></head>
+<body>
+<section class="hero">
+  <div class="badge"><span class="pill y"><span>▶ Speaking</span></span><span class="pill"><span>↻ ⌥⌘R</span></span><span class="pill"><span>Slow ⌥⇧⌘R</span></span></div>
+  <div class="box"><span class="tag">Clavel</span>
+    No esperaba menos de la delegada <span class="unspoken">con rango de Campeona.</span>
+    <span class="en">“I expected nothing less from the student rep with Champion rank.”</span>
+    <span class="next">▽</span>
+  </div>
+</section>
+<section class="cols">
+  <div class="panel ink">
+    <h2>Conversation <span class="n">Academia · 7 lines</span></h2>
+    <div class="chat">
+      <div class="msg"><div class="av" style="background:#8a8f9e">…</div><div class="bub"><span class="who">Narrator</span>¡Ciudad Meseta es famosa por la academia, y tiene también una gran oferta cultural!</div><span class="t">4:11</span></div>
+      <div class="sys"><span>Phone picked up · 14 s · back on track</span></div>
+      <div class="msg"><div class="av" style="background:#3c5bd6">M</div><div class="bub"><span class="who">Mencía</span>¡Este es el vestíbulo!<span class="en">“This is the lobby!”</span></div><span class="t">4:15</span></div>
+      <div class="msg"><div class="av" style="background:#3c5bd6">M</div><div class="bub"><span class="who">Mencía</span>La entrada es tan amplia que sería ideal para un combate Pokémon, pero está estrictamente prohibido... Lo pone hasta en el reglamento.</div><span class="t">4:16</span></div>
+      <div class="msg"><div class="av" style="background:#7a3fb8">C</div><div class="bub"><span class="who">Clavel</span>Hola, Miguel. Hola, Mencía.</div><span class="t">4:17</span></div>
+      <div class="msg"><div class="av" style="background:#7a3fb8">C</div><div class="bub"><span class="who">Clavel</span>¿Qué tal ha ido tu primera travesía hasta la academia?</div><span class="t">4:17</span></div>
+    </div>
+  </div>
+  <div class="panel ink">
+    <h2>Words <span class="n">5 new today</span></h2>
+    <div class="vocab">
+      <div class="card"><b>delegada</b><span class="pos">n. f.</span><span class="gloss">class representative</span><span class="ctx">…menos de la <u>delegada</u> con rango…</span></div>
+      <div class="card"><b>travesía</b><span class="pos">n. f.</span><span class="gloss">journey, crossing</span><span class="ctx">…tu primera <u>travesía</u> hasta la academia</span></div>
+      <div class="card"><b>reglamento</b><span class="pos">n. m.</span><span class="gloss">rules, regulations</span><span class="ctx">Lo pone hasta en el <u>reglamento</u>.</span></div>
+      <div class="card"><b>vestíbulo</b><span class="pos">n. m.</span><span class="gloss">lobby, entrance hall</span><span class="ctx">¡Este es el <u>vestíbulo</u>!</span></div>
+    </div>
+  </div>
+</section>
+<footer class="status">
+  <span class="pill"><span>● Watching</span></span>
+  <span class="seg"><span class="dot ok"></span>Camera</span>
+  <span class="seg"><span class="dot ok"></span>TV</span>
+  <span class="seg"><span class="dot ok"></span>Box</span>
+  <span class="seg"><span class="dot ok"></span>Text</span>
+  <span class="seg"><span class="dot ok"></span>Voice</span>
+  <span class="sep"></span>
+  <span class="seg">iPhone de Kyle · Apple Mónica 0.85×</span>
+  <span class="r"><span>OCR <b>140 ms</b></span><span>to voice <b>0.9 s</b></span><span>Pause <b>⌥⌘P</b></span><span>Recalibrate <b>⌥⌘C</b></span></span>
+</footer>
+</body></html>
