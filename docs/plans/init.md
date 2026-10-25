@@ -32,7 +32,7 @@ Swift 6 on macOS with SwiftPM, using Apple frameworks only: AVFoundation (camera
 | --- | --- | --- |
 | Spike A: camera OCR | Done | [done/spike-a-ocr.md](done/spike-a-ocr.md) |
 | M1: offline replay | Done, with leftovers below | [done/m1-offline-replay.md](done/m1-offline-replay.md) |
-| M2: live Continuity Camera | Not started | This doc |
+| M2: live Continuity Camera | Not started; after the window | This doc |
 | M3: disruption handling | State machine built and tested; not wired to a camera | This doc |
 | M4: characters and companion UI | Character table, matching, and voices built; UI designed (mockups), not built | This doc |
 | Spike B: Qwen3-TTS on the Air | Not started | This doc |
@@ -96,18 +96,20 @@ Apple documents that the Continuity Camera feed pauses while the phone is in use
 
 ## M4: characters and companion UI
 
+**Order (Kyle, Oct 25):** build the window first, fed by `hablamon run --replay` on the fixture videos, then prepare M2 and M3 so live play can be tested.
+
 - **Data files in Application Support:** seed `characters.json` from the bundled table and `settings.json` from `Settings.defaults` on first run, write a `$schema` key, and load them through `DocumentLoader` so hand edits get clear errors.
-- **Unknown speakers:** unmatched tags already get a stable fallback voice. Add the UI to tag them (male, female, neutral) and persist them to `characters.json`.
 - **Main window:** see [mockups/main-window.png](mockups/main-window.png) (chosen over a busier dark layout). Runs full screen on a 13" Air (1470×956 points), read from the couch, so it favors whitespace over density. The style borrows from the game: Scarlet's orange striped menus, cards with heavy ink outlines, and the in-game dialogue box (off-white, yellow tick marks, navy name tag).
   - **Top, largest:** the line being spoken in a copy of the game's box, with the not-yet-spoken words dimmed. The English translation goes under it in v2; leave the space now.
   - **Lower left:** the conversation so far, chat-style, with speaker, time, and a replay on click. Gaps from M3 (phone picked up, recalibrated) show as small inline notes.
   - **Lower right:** vocabulary from the recent lines: word, part of speech, English gloss, and the sentence it came from. Definitions come from the dictionaries macOS already ships (Dictionary Services), keeping it offline with no new dependency. Unverified: the public `DCSCopyTextDefinition` only searches the dictionaries enabled in Dictionary.app, so the Spanish–English one may need enabling, and output parsing is untested.
-    - **Which words:** rank by three signals Kyle named. *Newness*: not shown in an earlier session (by lemma, so `combatir` and `combatimos` count once). *Frequency*: how often the lemma appears across all transcripts, so words the game keeps using rise. *Importance to the sentence*: content words (nouns, verbs, adjectives, adverbs) over function words and names. `NaturalLanguage`'s `NLTagger` gives Spanish lemmas and word classes offline. Treating frequency as in-game frequency rather than general Spanish frequency was our call, since it needs no word list; revisit if the panel fills with game jargon.
+    - **Which words:** rank by three signals Kyle named. *Newness*: not marked known (by lemma, so `combatir` and `combatimos` count once). *Frequency*: how often the lemma appears across all transcripts, so words the game keeps using rise. *Importance to the sentence*: content words (nouns, verbs, adjectives, adverbs) over function words and names. `NaturalLanguage`'s `NLTagger` gives Spanish lemmas and word classes offline. Treating frequency as in-game frequency rather than general Spanish frequency was our call, since it needs no word list; revisit if the panel fills with game jargon.
+    - **"Ya la sé":** tapping a word marks it known, and it never shows again. Until then a word keeps coming back as its rank allows. Known words live in `known-words.json` in Application Support (a `VersionedDocument`, so it gets a schema).
   - **Bottom strip:** state pill, five pipeline lights (camera, TV, box, text, voice), device and voice, a couple of timings, and hotkey hints.
   - **No live camera view.** The phone's own screen shows what it sees. The camera view appears only in the recovery card and calibration.
   - **Labels in Spanish.** Holding a hotkey switches labels to English while held (Carbon delivers key-release events, so this works globally).
 - **Status and recovery:** see [mockups/status-states.png](mockups/status-states.png) for the pill in each state (Idle, Reading, Speaking, Phone in use, Finding TV, Lost camera, Needs you). When the TV can't be re-found, a recovery card with the saved view, the current view, and proposed corners replaces the vocabulary panel until resolved. Diagnostics (text height, clipped highlights, OCR time, settle-to-voice time, confidence) expand from the bottom strip. That sheet uses the rejected dark styling; build it in the main window's style.
-- **Unknown speakers:** prompt to tag them in the vocabulary panel's slot, like the recovery card, rather than a separate drawer.
+- **Unknown speakers: never ask mid-game.** An unmatched name tag gets a neutral voice right away (one voice for all unknowns, pitch nudged by name so two strangers still differ), replacing today's per-name guess at male or female. The bottom strip shows a quiet count ("2 voces sin asignar"), and the menu bar icon gets a dot. Clicking either opens a small sheet listing each unknown speaker with the lines they said (tap to replay) and male, female, or neutral buttons; choices are saved to `characters.json`, which can also be edited by hand. No system notifications during play: our call, since banners would cover the game-adjacent screen; easy to add if the badge gets missed.
 - **Calibration view:** live preview, proposed quad with draggable corners, quality-gate readout, zoom slider.
 - **Menu bar extra:** state dot, start/pause, open window, recalibrate, quit.
 - **Global hotkeys** via Carbon `RegisterEventHotKey` (no Accessibility permission); defaults are already in `Settings.defaults`: repeat last line ⌥⌘R, repeat slowly ⌥⇧⌘R, toggle slow/normal speed ⌥⌘S, pause/resume ⌥⌘P, recalibrate ⌥⌘C.
