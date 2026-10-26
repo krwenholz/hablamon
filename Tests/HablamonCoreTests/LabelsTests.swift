@@ -21,4 +21,11 @@ import Testing
     @Test func knowItCopy() {
         #expect(text(.knowIt, english: false) == "Ya la sé")
     }
+
+    @Test func unassignedCountAgrees() {
+        #expect(unassignedVoices(1, english: false) == "1 voz sin asignar")
+        #expect(unassignedVoices(2, english: false) == "2 voces sin asignar")
+        #expect(unassignedVoices(1, english: true) == "1 unassigned voice")
+        #expect(unassignedVoices(3, english: true) == "3 unassigned voices")
+    }
 }

@@ -28,7 +28,7 @@
                 Spacer()
                 if !state.unknownSpeakers.isEmpty {
                     Button(action: onSpeakers) {
-                        Text("\(state.unknownSpeakers.count) \(text(.unassignedVoices, english: english))")
+                        Text(unassignedVoices(state.unknownSpeakers.count, english: english))
                             .foregroundStyle(Theme.yellow)
                     }
                     .buttonStyle(.plain)

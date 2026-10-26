@@ -6,13 +6,16 @@
 
     /// Launch options, read from the command line:
     /// `--replay <video> [--calibration <file>]` plays a recording as if live;
-    /// `--windowed` skips full screen; `--mute` starts with speech paused;
+    /// `--windowed` skips full screen; `--mute` starts with speech paused; `--root <dir>` uses another
+    /// data folder instead of Application Support; `--panel speakers|diagnostics` opens that panel;
     /// `--snapshot <png> --after <seconds>` saves the window and quits.
     struct LaunchOptions {
         var replay: URL?
         var calibration: URL?
         var windowed = false
         var mute = false
+        var root: URL?
+        var panel: SidePanel = .words
         var snapshot: URL?
         var snapshotDelay = 20.0
 
@@ -24,6 +27,8 @@
                 case "--calibration": calibration = iterator.next().map { URL(fileURLWithPath: $0) }
                 case "--windowed": windowed = true
                 case "--mute": mute = true
+                case "--root": root = iterator.next().map { URL(fileURLWithPath: $0, isDirectory: true) }
+                case "--panel": panel = iterator.next().flatMap(SidePanel.init(rawValue:)) ?? panel
                 case "--snapshot": snapshot = iterator.next().map { URL(fileURLWithPath: $0) }
                 case "--after": snapshotDelay = iterator.next().flatMap(Double.init) ?? snapshotDelay
                 default: break
@@ -50,12 +55,21 @@
     @main
     struct HablamonApp: App {
         @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-        @State private var model = AppModel()
-        private let options = LaunchOptions()
+        @State private var model: AppModel
+        @State private var side: SidePanel
+        private let options: LaunchOptions
+
+        init() {
+            let options = LaunchOptions()
+            self.options = options
+            _model = State(
+                initialValue: AppModel(store: options.root.map(AppSupportStore.init(root:)) ?? AppSupportStore()))
+            _side = State(initialValue: options.panel)
+        }
 
         var body: some Scene {
             Window("Hablamon", id: "main") {
-                MainWindow(model: model)
+                MainWindow(model: model, side: $side)
                     .task { await start() }
             }
             .defaultSize(width: 1470, height: 956)

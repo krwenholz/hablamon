@@ -4,7 +4,7 @@ public enum LabelKey: CaseIterable, Sendable {
     case idle, reading, speaking, phoneInUse, findingTV, lostCamera, needsYou
     case conversation, words, knowIt
     case camera, tv, box, text, voice
-    case unassignedVoices, narrator
+    case narrator
     case male, female, neutral
     case repeatLine, slow, pause, recalibrate
     case diagnostics
@@ -30,7 +30,6 @@ public func text(_ label: LabelKey, english: Bool) -> String {
         case .box: ("Caja", "Box")
         case .text: ("Texto", "Text")
         case .voice: ("Voz", "Voice")
-        case .unassignedVoices: ("voces sin asignar", "unassigned voices")
         case .narrator: ("Narrador", "Narrator")
         case .male: ("Masculina", "Male")
         case .female: ("Femenina", "Female")
@@ -60,4 +59,10 @@ public func text(_ pill: StatusPill, english: Bool) -> String {
         case .needsYou: .needsYou
         }
     return text(label, english: english)
+}
+
+/// "2 voces sin asignar", with the noun agreeing with the count.
+public func unassignedVoices(_ count: Int, english: Bool) -> String {
+    if english { return count == 1 ? "1 unassigned voice" : "\(count) unassigned voices" }
+    return count == 1 ? "1 voz sin asignar" : "\(count) voces sin asignar"
 }
