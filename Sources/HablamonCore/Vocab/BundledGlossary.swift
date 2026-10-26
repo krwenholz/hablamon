@@ -11,10 +11,22 @@ public struct BundledGlossary: GlossProvider, Sendable {
 
     private let lemmas: [String: Entry]
     private let forms: [String: String]
+    /// Accent-folded spellings of accented lemmas and forms, for OCR that drops accents.
+    private let folded: [String: String]
 
     init(lemmas: [String: Entry], forms: [String: String]) {
         self.lemmas = lemmas
         self.forms = forms
+        var folded: [String: String] = [:]
+        for (word, lemma) in forms.map({ ($0.key, $0.value) }) + lemmas.keys.map({ ($0, $0) }) {
+            let key = Self.fold(word)
+            if key != word, lemmas[key] == nil, forms[key] == nil, folded[key] == nil { folded[key] = lemma }
+        }
+        self.folded = folded
+    }
+
+    static func fold(_ word: String) -> String {
+        word.folding(options: [.diacriticInsensitive], locale: nil).replacingOccurrences(of: "ñ", with: "n")
     }
 
     /// Parses the bundled table; takes about a second, so call it off the main thread.
@@ -53,7 +65,13 @@ public struct BundledGlossary: GlossProvider, Sendable {
     /// The lemma for a word as written, or nil if the glossary doesn't know it.
     public func lemma(forForm form: String) -> String? {
         let form = form.lowercased()
-        return lemmas[form] != nil ? form : forms[form]
+        if lemmas[form] != nil { return form }
+        return forms[form] ?? folded[Self.fold(form)]
+    }
+
+    /// Whether the glossary lists `lemma` as this class (a word can be several).
+    public func has(_ lemma: String, as wordClass: WordClass) -> Bool {
+        lemmas[lemma.lowercased()]?.glosses[wordClass] != nil
     }
 
     public func wordClass(of lemma: String) -> WordClass? {

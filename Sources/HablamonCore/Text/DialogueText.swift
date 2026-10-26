@@ -15,6 +15,18 @@ public enum DialogueText {
     /// UI glyphs are dropped, curly quotes are straightened, and whitespace is collapsed.
     /// Spanish punctuation and accents (¡ ¿ ñ á …) are kept.
     public static func normalize(lines: [String]) -> String {
+        dropArrowLetter(joinLines(lines))
+    }
+
+    /// OCR sometimes reads the advance arrow as a "V" right after the final punctuation.
+    static func dropArrowLetter(_ text: String) -> String {
+        guard let last = text.last, last == "V" || last == "v" else { return text }
+        let before = text.dropLast().trimmingCharacters(in: .whitespaces)
+        guard let mark = before.last, ".!?…".contains(mark) else { return text }
+        return before
+    }
+
+    static func joinLines(_ lines: [String]) -> String {
         var joined = ""
         for line in lines {
             let cleaned = clean(line)

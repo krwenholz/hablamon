@@ -1,8 +1,8 @@
 #if canImport(NaturalLanguage)
     import NaturalLanguage
 
-    /// Tags Spanish words with Apple's on-device NaturalLanguage models. When the tagger has no
-    /// lemma, or one the glossary doesn't know, the glossary's inflection table decides.
+    /// Tags Spanish words with Apple's on-device NaturalLanguage models. Lemmas come from the
+    /// glossary's inflection table first and the tagger second; word classes the other way round.
     public struct NLWordAnalyzer: WordAnalyzer {
         let glossary: BundledGlossary
 
@@ -22,10 +22,16 @@
                 let surface = String(text[range])
                 guard surface.first?.isLetter == true else { return true }
                 let tagged = tagger.tag(at: range.lowerBound, unit: .word, scheme: .lemma).0?.rawValue.lowercased()
+                // The glossary's inflection table is more reliable than the tagger ("puedes" → "podar"),
+                // unless it names a lemma of another class ("hemos" → "hemo", a noun, for a verb).
+                let taggedClass = Self.wordClass(tag)
+                let fromGlossary = glossary.lemma(forForm: surface)
+                let fromTagger = tagged.flatMap { glossary.isLemma($0) ? $0 : nil }
+                let candidates = [fromGlossary, fromTagger].compactMap { $0 }
                 let lemma =
-                    tagged.flatMap { glossary.isLemma($0) ? $0 : nil }
-                    ?? glossary.lemma(forForm: surface) ?? tagged ?? surface.lowercased()
-                let wordClass = Self.wordClass(tag) ?? glossary.wordClass(of: lemma) ?? .other
+                    candidates.first { candidate in taggedClass.map { glossary.has(candidate, as: $0) } ?? true }
+                    ?? candidates.first ?? tagged ?? surface.lowercased()
+                let wordClass = taggedClass ?? glossary.wordClass(of: lemma) ?? .other
                 words.append(AnalyzedWord(surface: surface, lemma: lemma, wordClass: wordClass))
                 return true
             }

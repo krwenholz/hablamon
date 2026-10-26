@@ -121,6 +121,7 @@ struct FakeGlosses: GlossProvider {
         #expect(glossary.lemma(forForm: "combatir") == "combatir")
         #expect(glossary.wordClass(of: "combatir") == .verb)
         #expect(glossary.gloss(for: "zzzz", as: .noun) == nil)
+        #expect(glossary.lemma(forForm: "lios") == "lío", "OCR often drops accents")
         #expect(glossary.gloss(for: "deber", as: .verb) != glossary.gloss(for: "deber", as: .noun))
         #expect(glossary.gloss(for: "deber", as: .adverb) != nil, "falls back to another class")
     }

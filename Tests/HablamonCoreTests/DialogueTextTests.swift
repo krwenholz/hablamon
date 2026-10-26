@@ -3,6 +3,15 @@ import Testing
 @testable import HablamonCore
 
 @Suite struct DialogueTextTests {
+    @Test func dropsArrowReadAsTrailingLetter() {
+        #expect(
+            DialogueText.normalize("Miguel los ha espantado por las malas.V")
+                == "Miguel los ha espantado por las malas.")
+        #expect(DialogueText.normalize("¿Sabes si siguen ahí? v") == "¿Sabes si siguen ahí?")
+        #expect(DialogueText.normalize("Team Star.") == "Team Star.", "real words are kept")
+        #expect(DialogueText.normalize("Vitamina V") == "Vitamina V", "a V after a word, not punctuation, stays")
+    }
+
     @Test func joinsWrappedLines() {
         // From photos/trainer-challenge_near_straight.jpeg
         let text = DialogueText.normalize(lines: [
