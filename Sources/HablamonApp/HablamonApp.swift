@@ -73,6 +73,24 @@
                     .task { await start() }
             }
             .defaultSize(width: 1470, height: 956)
+
+            MenuBarExtra {
+                Text(text(model.state.pill, english: model.english))
+                Button(model.paused ? "Reanudar" : "Pausa") { model.togglePause() }
+                Button("Abrir ventana") { NSApp.activate(ignoringOtherApps: true) }
+                Button(text(.recalibrate, english: false)) { model.recalibrate() }
+                if !model.state.unknownSpeakers.isEmpty {
+                    Button(unassignedVoices(model.state.unknownSpeakers.count, english: false)) {
+                        side = .speakers
+                        NSApp.activate(ignoringOtherApps: true)
+                    }
+                }
+                Divider()
+                Button("Salir") { NSApp.terminate(nil) }
+            } label: {
+                // A filled dot while unknown speakers wait for a voice.
+                Image(systemName: model.state.unknownSpeakers.isEmpty ? "bubble.left" : "bubble.left.fill")
+            }
             .commands {
                 CommandGroup(after: .newItem) {
                     Button("Abrir grabación…") { openRecording() }.keyboardShortcut("o")
@@ -81,6 +99,7 @@
         }
 
         @MainActor private func start() async {
+            model.registerHotkeys()
             if !options.windowed, let window = NSApp.windows.first, !window.styleMask.contains(.fullScreen) {
                 window.toggleFullScreen(nil)
             }

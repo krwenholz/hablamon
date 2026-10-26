@@ -176,6 +176,16 @@
             if let current = state.current { replay(current, slow: slow) }
         }
 
+        /// Writes a line to this session's log.
+        func note(_ message: String) {
+            log?.write(message)
+        }
+
+        /// Calibration arrives with the live camera (M2); until then this only notes the request.
+        func recalibrate() {
+            log?.write("recalibrate requested (not available until the live camera)")
+        }
+
         func togglePause() {
             paused.toggle()
             if paused { Task { await narrator.interrupt() } }
