@@ -31,7 +31,10 @@ mise run format   # swift format in place
 mise run schemas  # regenerate schemas/ after changing a model type
 mise run fixtures # download fixture videos (not in git)
 mise run verify   # lint + build + test, writes reports/verify.md
+mise run install  # build Hablamon.app into ~/Applications, link the CLI
 ```
+
+The app keeps all data (settings, characters, known words, transcripts, logs) in `~/Library/Application Support/Hablamon`, so reinstalls never touch it. For testing, `HablamonApp --replay <video> --windowed --mute --root <scratch dir> --snapshot <png> --after <s>` renders the window without speaking or touching real data.
 
 Plain `swift build` / `swift test --filter <name>` work too.
 

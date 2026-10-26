@@ -74,7 +74,7 @@ The iPhone, via Continuity Camera, is the primary camera; the MacBook's built-in
 
 **Adaptive sampling.** Idle: one box check every 2 s (setting: 1–3 s). Dialogue: about 4 per second, as in replay. Dialogue mode ends after the box has been absent for 3 s (`DialoguePresence` already does this).
 
-**App bundle and install** (`scripts/install.sh`, not written yet)
+**App bundle and install** (`scripts/install.sh`, `mise run install`; built Oct 26)
 
 1. `swift build -c release`, assemble `Hablamon.app` with `Info.plist` (`NSCameraUsageDescription`) and resources.
 2. Ad-hoc codesign with the camera entitlement; a stable bundle ID keeps the permission across rebuilds.
