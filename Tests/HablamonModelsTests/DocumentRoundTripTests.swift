@@ -129,4 +129,18 @@ import Testing
             )
         )
     }
+
+    @Test func knownWords() throws {
+        try roundTrip(KnownWords(schemaURI: "hablamon:known-words", lemmas: ["travesía", "vestíbulo"]))
+    }
+
+    @Test func knownWordsRejectsUnknownKeys() {
+        #expect(throws: DocumentError.self) {
+            try DocumentLoader.load(KnownWords.self, from: #"{"schemaVersion": 1, "lemmas": [], "extra": 1}"#)
+        }
+    }
+
+    @Test func settingsDefaultsIncludeHoldForEnglish() {
+        #expect(Settings.defaults.hotkeys.holdForEnglish == "opt+cmd+E")
+    }
 }

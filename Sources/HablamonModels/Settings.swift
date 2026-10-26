@@ -86,6 +86,9 @@ public struct Hotkeys: Codable, Sendable, Equatable {
     public var togglePause: String
     @StringOptions(.pattern(Hotkeys.pattern))
     public var recalibrate: String
+    /// Held down, shows the labels in English.
+    @StringOptions(.pattern(Hotkeys.pattern))
+    public var holdForEnglish: String
 
     public static let pattern = "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
 
@@ -94,7 +97,8 @@ public struct Hotkeys: Codable, Sendable, Equatable {
         repeatLastSlowly: "opt+shift+cmd+R",
         toggleSpeed: "opt+cmd+S",
         togglePause: "opt+cmd+P",
-        recalibrate: "opt+cmd+C"
+        recalibrate: "opt+cmd+C",
+        holdForEnglish: "opt+cmd+E"
     )
 
     public init(
@@ -102,12 +106,14 @@ public struct Hotkeys: Codable, Sendable, Equatable {
         repeatLastSlowly: String,
         toggleSpeed: String,
         togglePause: String,
-        recalibrate: String
+        recalibrate: String,
+        holdForEnglish: String
     ) {
         self.repeatLast = repeatLast
         self.repeatLastSlowly = repeatLastSlowly
         self.toggleSpeed = toggleSpeed
         self.togglePause = togglePause
         self.recalibrate = recalibrate
+        self.holdForEnglish = holdForEnglish
     }
 }

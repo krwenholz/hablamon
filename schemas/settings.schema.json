@@ -62,7 +62,8 @@
         "repeatLastSlowly",
         "toggleSpeed",
         "togglePause",
-        "recalibrate"
+        "recalibrate",
+        "holdForEnglish"
       ],
       "properties" : {
         "repeatLast" : {
@@ -84,6 +85,11 @@
         "recalibrate" : {
           "type" : "string",
           "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+        },
+        "holdForEnglish" : {
+          "type" : "string",
+          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$",
+          "description" : "Held down, shows the labels in English."
         }
       },
       "additionalProperties" : false

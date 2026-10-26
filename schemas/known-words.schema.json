@@ -1,0 +1,28 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "known-words",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "lemmas"
+  ],
+  "properties" : {
+    "$schema" : {
+      "type" : [
+        "string",
+        "null"
+      ]
+    },
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "lemmas" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      },
+      "description" : "Lowercased lemmas, sorted and unique."
+    }
+  },
+  "additionalProperties" : false
+}

@@ -9,6 +9,7 @@ public enum SchemaCatalog {
         Calibration.self,
         Settings.self,
         VoiceManifest.self,
+        KnownWords.self,
         TranscriptEntry.self,
     ]
 
