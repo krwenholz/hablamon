@@ -1,0 +1,116 @@
+import Foundation
+
+public enum WordClass: String, Sendable {
+    case noun, verb, adjective, adverb, other
+}
+
+public struct AnalyzedWord: Equatable, Sendable {
+    public var surface: String
+    public var lemma: String
+    public var wordClass: WordClass
+
+    public init(surface: String, lemma: String, wordClass: WordClass) {
+        self.surface = surface
+        self.lemma = lemma
+        self.wordClass = wordClass
+    }
+}
+
+/// Splits a line into words with their lemma and word class.
+public protocol WordAnalyzer: Sendable {
+    func analyze(_ text: String) -> [AnalyzedWord]
+}
+
+/// Short English meanings for Spanish lemmas.
+public protocol GlossProvider: Sendable {
+    /// The meaning for that word class, or for another class when there's none.
+    func gloss(for lemma: String, as wordClass: WordClass) -> String?
+}
+
+public struct VocabEntry: Equatable, Sendable, Identifiable {
+    public var id: String { lemma }
+    public var lemma: String
+    public var surface: String
+    public var wordClass: WordClass
+    public var gloss: String?
+    /// The most recent line the word appeared in.
+    public var sentence: String
+    public var score: Double
+}
+
+/// Picks the words worth showing from recent lines: new to the player, frequent in the game,
+/// and carrying meaning (nouns and verbs over adverbs; names and function words never).
+public struct VocabRanker: Sendable {
+    /// How many recent lines supply candidates.
+    public static let window = 20
+    /// Content words that are too basic or too grammatical to be worth a card.
+    static let stopLemmas: Set<String> = ["haber", "ser", "estar", "tener", "hacer", "ir", "poder", "decir"]
+    static let classWeights: [WordClass: Double] = [.noun: 1.0, .verb: 1.0, .adjective: 0.8, .adverb: 0.5]
+
+    private let analyzer: any WordAnalyzer
+    private let glosses: any GlossProvider
+    /// Lemma counts from earlier sessions.
+    private let history: [String: Int]
+    private var session: [String: Int] = [:]
+    private var known: Set<String>
+    private var recent: [(line: String, words: [AnalyzedWord])] = []
+
+    public init(analyzer: any WordAnalyzer, glosses: any GlossProvider, history: [String], known: Set<String>) {
+        self.analyzer = analyzer
+        self.glosses = glosses
+        self.known = Set(known.map { $0.lowercased() })
+        var counts: [String: Int] = [:]
+        for line in history {
+            for word in Self.contentWords(analyzer.analyze(line)) { counts[word.lemma, default: 0] += 1 }
+        }
+        self.history = counts
+    }
+
+    public mutating func add(line: String) {
+        let words = Self.contentWords(analyzer.analyze(line))
+        for word in words { session[word.lemma, default: 0] += 1 }
+        recent.append((line, words))
+        if recent.count > Self.window { recent.removeFirst(recent.count - Self.window) }
+    }
+
+    public mutating func markKnown(_ lemma: String) {
+        known.insert(lemma.lowercased())
+    }
+
+    public func top(_ count: Int = 5) -> [VocabEntry] {
+        var entries: [String: VocabEntry] = [:]
+        var lastSeen: [String: Int] = [:]
+        for (index, (line, words)) in recent.enumerated() {
+            for word in words where !known.contains(word.lemma) {
+                let seenBefore = history[word.lemma] != nil
+                let frequency = (history[word.lemma] ?? 0) + (session[word.lemma] ?? 0)
+                let score =
+                    (seenBefore ? 0 : 2.0) + log(1 + Double(frequency)) + (Self.classWeights[word.wordClass] ?? 0)
+                // Later lines overwrite earlier ones, so the sentence is the most recent use.
+                entries[word.lemma] = VocabEntry(
+                    lemma: word.lemma, surface: word.surface, wordClass: word.wordClass,
+                    gloss: glosses.gloss(for: word.lemma, as: word.wordClass), sentence: line, score: score)
+                lastSeen[word.lemma] = index
+            }
+        }
+        return entries.values
+            .sorted {
+                if $0.score != $1.score { return $0.score > $1.score }
+                let (first, second) = (lastSeen[$0.lemma] ?? 0, lastSeen[$1.lemma] ?? 0)
+                return first != second ? first > second : $0.lemma < $1.lemma
+            }
+            .prefix(count)
+            .map { $0 }
+    }
+
+    /// Nouns, verbs, adjectives, and adverbs, minus names (capitalized mid-sentence) and stop lemmas.
+    static func contentWords(_ words: [AnalyzedWord]) -> [AnalyzedWord] {
+        words.enumerated().compactMap { index, word in
+            guard word.wordClass != .other, word.surface.count >= 3 else { return nil }
+            if index > 0, word.surface.first?.isUppercase == true { return nil }
+            var word = word
+            word.lemma = word.lemma.lowercased()
+            return stopLemmas.contains(word.lemma) ? nil : word
+        }
+    }
+}
