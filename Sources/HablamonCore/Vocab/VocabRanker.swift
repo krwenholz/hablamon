@@ -53,21 +53,29 @@ public struct VocabRanker: Sendable {
     private let history: [String: Int]
     private var session: [String: Int] = [:]
     private var known: Set<String>
+    /// Match keys of character names and aliases, which are never vocabulary.
+    private let names: Set<String>
     private var recent: [(line: String, words: [AnalyzedWord])] = []
 
-    public init(analyzer: any WordAnalyzer, glosses: any GlossProvider, history: [String], known: Set<String>) {
+    public init(
+        analyzer: any WordAnalyzer, glosses: any GlossProvider, history: [String], known: Set<String>,
+        names: Set<String> = []
+    ) {
         self.analyzer = analyzer
         self.glosses = glosses
         self.known = Set(known.map { $0.lowercased() })
+        self.names = Set(names.map(DialogueText.matchKey))
         var counts: [String: Int] = [:]
         for line in history {
-            for word in Self.contentWords(analyzer.analyze(line)) { counts[word.lemma, default: 0] += 1 }
+            for word in Self.contentWords(analyzer.analyze(line), in: line, names: self.names) {
+                counts[word.lemma, default: 0] += 1
+            }
         }
         self.history = counts
     }
 
     public mutating func add(line: String) {
-        let words = Self.contentWords(analyzer.analyze(line))
+        let words = Self.contentWords(analyzer.analyze(line), in: line, names: names)
         for word in words { session[word.lemma, default: 0] += 1 }
         recent.append((line, words))
         if recent.count > Self.window { recent.removeFirst(recent.count - Self.window) }
@@ -103,14 +111,26 @@ public struct VocabRanker: Sendable {
             .map { $0 }
     }
 
-    /// Nouns, verbs, adjectives, and adverbs, minus names (capitalized mid-sentence) and stop lemmas.
-    static func contentWords(_ words: [AnalyzedWord]) -> [AnalyzedWord] {
-        words.enumerated().compactMap { index, word in
+    /// Nouns, verbs, adjectives, and adverbs, minus known names, other names (capitalized away from
+    /// a sentence start), and stop lemmas.
+    static func contentWords(_ words: [AnalyzedWord], in line: String, names: Set<String>) -> [AnalyzedWord] {
+        var searchFrom = line.startIndex
+        return words.compactMap { word in
+            let range = line.range(of: word.surface, range: searchFrom..<line.endIndex)
+            if let range { searchFrom = range.upperBound }
             guard word.wordClass != .other, word.surface.count >= 3 else { return nil }
-            if index > 0, word.surface.first?.isUppercase == true { return nil }
+            guard !names.contains(DialogueText.matchKey(word.surface)) else { return nil }
+            if word.surface.first?.isUppercase == true, !startsSentence(line, at: range?.lowerBound) { return nil }
             var word = word
             word.lemma = word.lemma.lowercased()
             return stopLemmas.contains(word.lemma) ? nil : word
         }
+    }
+
+    /// True at the start of the line or after sentence punctuation (. ! ? … and Spanish ¡ ¿).
+    static func startsSentence(_ line: String, at index: String.Index?) -> Bool {
+        guard let index else { return false }
+        let before = line[..<index].reversed().first { !$0.isWhitespace }
+        return before.map { ".!?…¡¿".contains($0) } ?? true
     }
 }

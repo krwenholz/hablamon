@@ -27,6 +27,8 @@
         @ObservationIgnored private let narrator: Narrator
         @ObservationIgnored private let voices = VoiceSelector()
         @ObservationIgnored private var replayTask: Task<Void, Never>?
+        /// Decodes and reads the video; cancelled along with `replayTask` so an old replay stops.
+        @ObservationIgnored private var replayProducer: Task<Void, Never>?
         @ObservationIgnored private var transcript: TranscriptWriter?
         @ObservationIgnored private var log: FileLog?
         @ObservationIgnored private var sessionStart = Date()
@@ -61,6 +63,7 @@
         /// Plays a recorded video as if it were the live camera.
         func startReplay(video: URL, calibration: URL) {
             replayTask?.cancel()
+            replayProducer?.cancel()
             source = video.lastPathComponent
             let quad: Calibration
             do {
@@ -80,7 +83,7 @@
             let (stream, continuation) = AsyncStream.makeStream(of: ReplayMessage.self)
             let characters = self.characters
             let started = ContinuousClock.now
-            Task.detached(priority: .utility) {
+            let producer = Task.detached(priority: .utility) {
                 do {
                     try await Replay.run(
                         video: video, calibration: quad, profile: try BundledData.profile("scarlet"),
@@ -97,6 +100,8 @@
                 }
                 continuation.finish()
             }
+            continuation.onTermination = { _ in producer.cancel() }
+            replayProducer = producer
             replayTask = Task { [weak self] in
                 for await message in stream {
                     guard let self, !Task.isCancelled else { break }
@@ -148,9 +153,14 @@
 
         // MARK: Speech
 
-        private func speak(_ text: String, voice: VoicePlan) async {
+        /// `tracksCurrent` is false when replaying an older line, so it doesn't drive the top box.
+        private func speak(_ text: String, voice: VoicePlan, tracksCurrent: Bool = true) async {
             generation += 1
             let token = generation
+            guard tracksCurrent else {
+                await narrator.say(text, voice: voice)
+                return
+            }
             await narrator.say(text, voice: voice) { offset in
                 Task { @MainActor [weak self] in
                     guard let self, self.generation == token else { return }
@@ -169,7 +179,8 @@
         func replay(_ page: SpokenPage, slow: Bool = false) {
             var voice = page.voice
             if slow { voice.rate *= 0.7 }
-            Task { await speak(page.text, voice: voice) }
+            let isCurrent = page == state.current
+            Task { await speak(page.text, voice: voice, tracksCurrent: isCurrent) }
         }
 
         func repeatLast(slow: Bool) {
@@ -203,11 +214,13 @@
         private func loadVocabulary() {
             let history = store.pastLines().map(\.text)
             let known = Set(self.known.lemmas)
+            let names = Set(characters.characters.flatMap { [$0.key] + ($0.value.aliases ?? []) })
             Task.detached(priority: .utility) {
                 do {
                     let glossary = try BundledGlossary.load()
                     let ranker = VocabRanker(
-                        analyzer: NLWordAnalyzer(glossary: glossary), glosses: glossary, history: history, known: known)
+                        analyzer: NLWordAnalyzer(glossary: glossary), glosses: glossary, history: history, known: known,
+                        names: names)
                     await MainActor.run { [weak self] in
                         self?.ranker = ranker
                         self?.refreshWords()

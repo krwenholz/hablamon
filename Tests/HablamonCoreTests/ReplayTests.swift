@@ -99,12 +99,21 @@ enum VideoFixtures {
             #expect(latest.screens == latest.frames, "the calibrated screen is found in every frame")
         }
 
+        @Test(
+            .enabled(
+                if: !VideoFixtures.names.allSatisfy(VideoFixtures.available),
+                "every fixture video is present"))
+        func someFixtureVideosAreMissing() {
+            let missing = VideoFixtures.names.filter { !VideoFixtures.available($0) }
+            print("[replay] skipped \(missing.joined(separator: ", ")): run `mise run fixtures` to download them")
+        }
+
         /// Videos whose misses are understood but not fixed yet.
         static let knownMisses = ["classroom_far": "boxes without a name tag aren't detected yet"]
 
-        @Test(.timeLimit(.minutes(3)), arguments: VideoFixtures.names)
+        /// Only downloaded videos run, so a checkout without them skips rather than fails.
+        @Test(.timeLimit(.minutes(3)), arguments: VideoFixtures.names.filter(VideoFixtures.available))
         func videoMatchesGoldenTranscript(_ name: String) async throws {
-            try #require(VideoFixtures.available(name), "run `mise run fixtures` to download \(name).mp4")
             let golden = try VideoFixtures.golden(name)
             var pages: [SpokenPage] = []
             let started = Date()

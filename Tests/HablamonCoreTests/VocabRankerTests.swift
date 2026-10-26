@@ -38,6 +38,19 @@ struct FakeGlosses: GlossProvider {
         #expect(vocab.top().map(\.lemma) == ["travesía"])
     }
 
+    @Test func knownNamesNeverShow() {
+        var vocab = VocabRanker(
+            analyzer: analyzer, glosses: FakeGlosses(), history: [], known: [], names: ["Mencía"])
+        vocab.add(line: "mencía travesía")
+        #expect(vocab.top().map(\.lemma) == ["travesía"])
+    }
+
+    @Test func wordsAfterSentenceEndsCountAsSentenceStarts() {
+        var vocab = ranker()
+        vocab.add(line: "¡Ah! Travesía larga.")
+        #expect(vocab.top().map(\.lemma) == ["travesía"])
+    }
+
     @Test func auxiliariesNeverShow() {
         var vocab = ranker()
         vocab.add(line: "hemos combatimos")

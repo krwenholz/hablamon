@@ -63,4 +63,22 @@ import Testing
     @Test func logsLiveUnderTheRoot() {
         #expect(store.logsDirectory == root.appendingPathComponent("logs", isDirectory: true))
     }
+
+    @Test func brokenFileIsKeptAsideOnSave() throws {
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let broken = #"{"schemaVersion": 1, "characters": {"Robo": {"gender": "robot"}}}"#
+        let url = root.appendingPathComponent("characters.json")
+        try broken.write(to: url, atomically: true, encoding: .utf8)
+        try store.save(CharacterTable(characters: ["Clavel": Speaker(gender: .male)]))
+        let files = try FileManager.default.contentsOfDirectory(atPath: root.path)
+        let kept = try #require(files.first { $0.hasPrefix("characters.broken-") })
+        #expect(try String(contentsOf: root.appendingPathComponent(kept), encoding: .utf8) == broken)
+        #expect(store.characters().value.characters.keys.sorted() == ["Clavel"])
+    }
+
+    @Test func unreadableFileIsAnIssue() throws {
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try Data([0xFF, 0xFE, 0x00]).write(to: root.appendingPathComponent("known-words.json"))
+        #expect(store.knownWords().issue != nil)
+    }
 }

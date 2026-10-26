@@ -34,6 +34,10 @@
             #expect(analyzer.analyze("Nos hemos cruzado").first { $0.surface == "hemos" }?.lemma == "haber")
         }
 
+        @Test func personalNamesAreNotVocabulary() {
+            #expect(analyzer.analyze("Miguel los ha espantado.").first?.wordClass == .other)
+        }
+
         @Test func skipsPunctuation() {
             #expect(analyzer.analyze("¡¿Qué es?!").allSatisfy { !$0.surface.isEmpty && $0.surface.first!.isLetter })
         }

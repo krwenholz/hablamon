@@ -59,12 +59,14 @@ public struct AppSupportStore: Sendable {
     }
 
     public func save(_ table: CharacterTable) throws {
+        try keepAsideIfBroken(CharacterTable.self, at: charactersURL)
         var table = table
         table.schemaURI = table.schemaURI ?? Self.schemaTag(CharacterTable.self)
         try write(table, to: charactersURL)
     }
 
     public func save(_ words: KnownWords) throws {
+        try keepAsideIfBroken(KnownWords.self, at: knownWordsURL)
         var words = words
         words.schemaURI = words.schemaURI ?? Self.schemaTag(KnownWords.self)
         words.lemmas = Array(Set(words.lemmas.map { $0.lowercased() })).sorted()
@@ -90,9 +92,24 @@ public struct AppSupportStore: Sendable {
 
     private func exists(_ url: URL) -> Bool { FileManager.default.fileExists(atPath: url.path) }
 
+    /// Before overwriting a file that doesn't load, moves it to `<name>.broken-<time>.json` so hand
+    /// edits with a typo aren't lost.
+    private func keepAsideIfBroken<T: VersionedDocument>(_ type: T.Type, at url: URL) throws {
+        guard exists(url) else { return }
+        if let text = try? String(contentsOf: url, encoding: .utf8),
+            (try? DocumentLoader.load(T.self, from: text)) != nil
+        {
+            return
+        }
+        let stamp = TranscriptWriter.sessionName(startingAt: Date())
+        let name = url.deletingPathExtension().lastPathComponent
+        try FileManager.default.moveItem(at: url, to: root.appendingPathComponent("\(name).broken-\(stamp).json"))
+    }
+
     private func load<T: VersionedDocument>(_ type: T.Type, from url: URL, fallback: () -> T) -> Loaded<T> {
+        guard exists(url) else { return Loaded(value: fallback(), issue: nil) }
         guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return Loaded(value: fallback(), issue: nil)
+            return Loaded(value: fallback(), issue: "\(url.lastPathComponent): can't be read as UTF-8 text")
         }
         do {
             return Loaded(value: try DocumentLoader.load(T.self, from: text), issue: nil)

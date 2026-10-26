@@ -36,7 +36,8 @@ public final class FileLog: @unchecked Sendable {
     public func write(_ message: String) {
         lock.withLock {
             let line = "\(formatter.string(from: Date())) \(message)\n"
-            handle.write(Data(line.utf8))
+            // A full disk shouldn't crash the app over a log line.
+            try? handle.write(contentsOf: Data(line.utf8))
         }
     }
 }

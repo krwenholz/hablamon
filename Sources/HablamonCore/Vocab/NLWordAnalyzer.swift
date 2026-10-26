@@ -11,7 +11,7 @@
         }
 
         public func analyze(_ text: String) -> [AnalyzedWord] {
-            let tagger = NLTagger(tagSchemes: [.lemma, .lexicalClass])
+            let tagger = NLTagger(tagSchemes: [.lemma, .lexicalClass, .nameType])
             tagger.string = text
             tagger.setLanguage(.spanish, range: text.startIndex..<text.endIndex)
             var words: [AnalyzedWord] = []
@@ -31,7 +31,9 @@
                 let lemma =
                     candidates.first { candidate in taggedClass.map { glossary.has(candidate, as: $0) } ?? true }
                     ?? candidates.first ?? tagged ?? surface.lowercased()
-                let wordClass = taggedClass ?? glossary.wordClass(of: lemma) ?? .other
+                let isName =
+                    tagger.tag(at: range.lowerBound, unit: .word, scheme: .nameType).0 == .personalName
+                let wordClass = isName ? .other : taggedClass ?? glossary.wordClass(of: lemma) ?? .other
                 words.append(AnalyzedWord(surface: surface, lemma: lemma, wordClass: wordClass))
                 return true
             }
