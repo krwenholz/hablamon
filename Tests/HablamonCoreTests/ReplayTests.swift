@@ -62,6 +62,43 @@ enum VideoFixtures {
     /// resolution, then compare against its golden transcript. Run `mise run fixtures` first; a video
     /// that isn't downloaded is skipped.
     @Suite struct ReplayTests {
+        final class Latest: @unchecked Sendable {
+            var time = 0.0
+            var frames = 0
+            var screens = 0
+        }
+
+        @Test(
+            .enabled(if: VideoFixtures.available("academy-lobby_far"), "run `mise run fixtures`"),
+            .timeLimit(.minutes(2))
+        )
+        func realTimeReplayTracksTheClock() async throws {
+            let latest = Latest()
+            let started = ContinuousClock.now
+            let replay = Task {
+                try await Replay.run(
+                    video: VideoFixtures.url("academy-lobby_far.mp4"),
+                    calibration: try VideoFixtures.calibration("academy-lobby_far"),
+                    profile: try BundledData.profile("scarlet"),
+                    characters: try BundledData.defaultCharacters(),
+                    realTime: true,
+                    onFrame: { screenFound, time in
+                        latest.time = time
+                        latest.frames += 1
+                        if screenFound { latest.screens += 1 }
+                    },
+                    onEvent: { _, _ in }
+                )
+            }
+            while latest.time < 6 { try await Task.sleep(for: .milliseconds(50)) }
+            replay.cancel()
+            _ = await replay.result
+            let elapsed = ContinuousClock.now - started
+            #expect(elapsed >= .seconds(5.5), "6 s of video should take about 6 s")
+            #expect(abs(latest.frames - Int(latest.time / 0.25)) <= 3, "one onFrame per sample")
+            #expect(latest.screens == latest.frames, "the calibrated screen is found in every frame")
+        }
+
         /// Videos whose misses are understood but not fixed yet.
         static let knownMisses = ["classroom_far": "boxes without a name tag aren't detected yet"]
 
