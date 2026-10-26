@@ -123,4 +123,24 @@ struct FakeFrame: DialogueFrame {
     @Test func ignoresBoxlessFrames() throws {
         #expect(try run(empty(20)).isEmpty)
     }
+
+    @Test func updatedCharactersApplyToNextPage() throws {
+        var pipeline = DialoguePipeline(
+            profile: try BundledData.profile("scarlet"), characters: CharacterTable(characters: [:]))
+        var events: [PipelineEvent] = []
+        var time = 0.0
+        func feed(_ frames: [FakeFrame]) throws {
+            for frame in frames {
+                events += try pipeline.process(frame, at: time)
+                time += 0.25
+            }
+        }
+        try feed(page(1, tag: "Clavel", lines: ["Hola, Miguel. Hola, Mencía."]))
+        pipeline.updateCharacters(try BundledData.defaultCharacters())
+        try feed(page(2, tag: "Clavel", lines: ["¿Qué tal ha ido tu primera travesía hasta la academia?"]))
+        let speakers = spoken(events).map(\.speaker)
+        #expect(speakers.first == .unknown(tag: "Clavel"))
+        #expect(speakers.last?.name == "Clavel")
+        if case .known = speakers.last {} else { Issue.record("expected Clavel to be known after the update") }
+    }
 }

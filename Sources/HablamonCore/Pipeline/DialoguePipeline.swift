@@ -34,7 +34,7 @@ public enum PipelineEvent: Equatable, Sendable {
 /// speaker resolution, and voice choice. Platform-neutral; frames supply the pixels and OCR.
 public struct DialoguePipeline {
     public let profile: GameProfile
-    private let resolver: SpeakerResolver
+    private var resolver: SpeakerResolver
     private let voices: VoiceSelector
     private var presence: DialoguePresence
     private var settle: SettleDetector
@@ -81,6 +81,11 @@ public struct DialoguePipeline {
             break
         }
         return events
+    }
+
+    /// Uses a new character table from the next page on, as when the player tags a speaker.
+    public mutating func updateCharacters(_ table: CharacterTable) {
+        resolver = SpeakerResolver(table: table)
     }
 
     /// Forgets the current box, as when the camera stops watching mid-dialogue.

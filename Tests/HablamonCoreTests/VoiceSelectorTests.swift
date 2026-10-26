@@ -56,4 +56,22 @@ import Testing
             #expect((0.5...2.0).contains(pitch))
         }
     }
+
+    @Test func unknownSpeakersShareNeutralRegister() {
+        let first = selector.plan(for: .unknown(tag: "Recepcionista"))
+        let second = selector.plan(for: .unknown(tag: "Recluta"))
+        let range =
+            (VoiceSelector.neutralPitch - selector.spread * 1.5)...(VoiceSelector.neutralPitch + selector.spread * 1.5)
+        #expect(first.register == .female)
+        #expect(second.register == .female)
+        #expect(range.contains(first.pitch))
+        #expect(range.contains(second.pitch))
+        #expect(first.pitch != second.pitch)
+    }
+
+    @Test func neutralCharacterUsesNeutralPitch() {
+        let plan = selector.plan(for: .known(name: "Rotom", speaker: Speaker(gender: .neutral)))
+        #expect(plan.register == .female)
+        #expect(abs(plan.pitch - VoiceSelector.neutralPitch) <= selector.spread + 0.005)
+    }
 }

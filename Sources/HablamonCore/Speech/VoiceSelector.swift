@@ -34,6 +34,9 @@ public struct VoicePlan: Equatable, Sendable {
 public struct VoiceSelector: Sendable {
     /// Maximum pitch nudge either way for characters without an explicit pitch.
     public var spread: Double
+    /// Base pitch for neutral and unknown speakers. Apple's es-ES voices are male or female,
+    /// so "neutral" is a slightly lowered female voice.
+    public static let neutralPitch = 0.92
 
     public init(spread: Double = 0.08) {
         self.spread = spread
@@ -45,8 +48,10 @@ public struct VoiceSelector: Sendable {
             return VoicePlan(register: .female, voiceIdentifier: nil, pitch: 1.0, rate: 1.0)
         case .known(let name, let character):
             let apple = character.voices?.apple
-            let register = Self.register(for: character.gender, name: name)
-            let base = Self.basePitch(for: character.ageGroup, register: register)
+            let register = Self.register(for: character.gender)
+            let base =
+                character.gender == .neutral && character.ageGroup == nil
+                ? Self.neutralPitch : Self.basePitch(for: character.ageGroup, register: register)
             return VoicePlan(
                 register: register,
                 voiceIdentifier: apple?.voice,
@@ -54,23 +59,18 @@ public struct VoiceSelector: Sendable {
                 rate: apple?.rate ?? 1.0
             )
         case .unknown(let tag):
-            let register = Self.register(for: .unknown, name: tag)
+            // One neutral voice for everyone not in the table, nudged by name so strangers differ.
             return VoicePlan(
-                register: register,
+                register: .female,
                 voiceIdentifier: nil,
-                pitch: clamp(Self.basePitch(for: nil, register: register) + nudge(for: tag) * 1.5),
+                pitch: clamp(Self.neutralPitch + nudge(for: tag) * 1.5),
                 rate: 1.0
             )
         }
     }
 
-    static func register(for gender: Gender, name: String) -> VoicePlan.Register {
-        switch gender {
-        case .male: .male
-        case .female, .neutral: .female
-        // Unknown speakers alternate by name so a crowd of NPCs isn't all one voice.
-        case .unknown: stableHash(DialogueText.matchKey(name)) % 2 == 0 ? .female : .male
-        }
+    static func register(for gender: Gender) -> VoicePlan.Register {
+        gender == .male ? .male : .female
     }
 
     static func basePitch(for age: AgeGroup?, register: VoicePlan.Register) -> Double {
