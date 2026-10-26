@@ -7,8 +7,20 @@ public protocol SpeechEngine: Sendable {
     func prepare() async throws
     /// Speaks `text` and returns when it finishes or is stopped.
     func speak(_ text: String, voice: VoicePlan, rate: Double) async throws
+    /// Same, calling `progress` with the UTF-16 offset of each word as it starts.
+    func speak(_ text: String, voice: VoicePlan, rate: Double, progress: @escaping @Sendable (Int) -> Void)
+        async throws
     /// Interrupts speech immediately.
     func stop() async
+}
+
+extension SpeechEngine {
+    /// Engines that can't report progress just speak.
+    public func speak(
+        _ text: String, voice: VoicePlan, rate: Double, progress: @escaping @Sendable (Int) -> Void
+    ) async throws {
+        try await speak(text, voice: voice, rate: rate)
+    }
 }
 
 /// Speaks pages one at a time: a new page interrupts the current one, so lines never pile up.
@@ -33,7 +45,7 @@ public actor Narrator {
     }
 
     /// Starts speaking, interrupting whatever is playing. Returns once the new line has started.
-    public func say(_ text: String, voice: VoicePlan) async {
+    public func say(_ text: String, voice: VoicePlan, progress: @escaping @Sendable (Int) -> Void = { _ in }) async {
         await interrupt()
         generation += 1
         let token = generation
@@ -41,7 +53,7 @@ public actor Narrator {
         let rate = speed * voice.rate
         current = Task {
             do {
-                try await engine.speak(text, voice: voice, rate: rate)
+                try await engine.speak(text, voice: voice, rate: rate, progress: progress)
             } catch is CancellationError {
             } catch {
                 await self.engineFailed(engine, error: error, retry: text, voice: voice, token: token)

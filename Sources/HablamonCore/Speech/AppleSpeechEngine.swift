@@ -11,7 +11,11 @@
         private let synthesizer = AVSpeechSynthesizer()
         private let lock = NSLock()
         /// The utterance in flight and who's waiting for it. Callbacks for older utterances are ignored.
-        private var inFlight: (utterance: AVSpeechUtterance, done: CheckedContinuation<Void, Never>)?
+        private var inFlight:
+            (
+                utterance: AVSpeechUtterance, done: CheckedContinuation<Void, Never>,
+                progress: (@Sendable (Int) -> Void)?
+            )?
 
         public init(language: String = "es-ES") {
             self.language = language
@@ -22,6 +26,18 @@
         public func prepare() async throws {}
 
         public func speak(_ text: String, voice plan: VoicePlan, rate: Double) async throws {
+            try await speak(text, voice: plan, rate: rate, progress: nil)
+        }
+
+        public func speak(
+            _ text: String, voice plan: VoicePlan, rate: Double, progress: @escaping @Sendable (Int) -> Void
+        ) async throws {
+            try await speak(text, voice: plan, rate: rate, progress: Optional(progress))
+        }
+
+        private func speak(
+            _ text: String, voice plan: VoicePlan, rate: Double, progress: (@Sendable (Int) -> Void)?
+        ) async throws {
             try Task.checkCancellation()
             let utterance = AVSpeechUtterance(string: text)
             utterance.voice = Self.voice(for: plan, language: language)
@@ -30,7 +46,7 @@
             utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate, max(AVSpeechUtteranceMinimumSpeechRate, scaled))
             await withTaskCancellationHandler {
                 await withCheckedContinuation { continuation in
-                    lock.withLock { inFlight = (utterance, continuation) }
+                    lock.withLock { inFlight = (utterance, continuation, progress) }
                     synthesizer.speak(utterance)
                 }
             } onCancel: {
@@ -52,6 +68,14 @@
             _ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance
         ) {
             complete(utterance)
+        }
+
+        public nonisolated func speechSynthesizer(
+            _ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange,
+            utterance: AVSpeechUtterance
+        ) {
+            let progress = lock.withLock { inFlight?.utterance === utterance ? inFlight?.progress : nil }
+            progress?(characterRange.location)
         }
 
         private func complete(_ utterance: AVSpeechUtterance) {

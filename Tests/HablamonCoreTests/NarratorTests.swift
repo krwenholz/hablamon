@@ -41,6 +41,26 @@ actor FakeEngine: SpeechEngine {
     }
 }
 
+/// Reports fixed word offsets as it "speaks".
+struct ProgressEngine: SpeechEngine {
+    let id: SpeechEngineID = .apple
+    let offsets: [Int]
+
+    func prepare() async throws {}
+    func speak(_ text: String, voice: VoicePlan, rate: Double) async throws {}
+    func speak(_ text: String, voice: VoicePlan, rate: Double, progress: @escaping @Sendable (Int) -> Void)
+        async throws
+    {
+        for offset in offsets { progress(offset) }
+    }
+    func stop() async {}
+}
+
+actor OffsetLog {
+    var offsets: [Int] = []
+    func add(_ offset: Int) { offsets.append(offset) }
+}
+
 @Suite struct NarratorTests {
     let voice = VoicePlan(register: .female, voiceIdentifier: nil, pitch: 1.1, rate: 1.0)
 
@@ -73,5 +93,15 @@ actor FakeEngine: SpeechEngine {
         #expect(await apple.spoken == ["¿A que impresiona?"], "the line is not lost")
         #expect(await narrator.engine.id == .apple)
         #expect(await narrator.warnings.count == 1)
+    }
+
+    @Test func forwardsProgress() async {
+        let engine = ProgressEngine(offsets: [0, 3, 9])
+        let narrator = Narrator(engine: engine, fallback: engine)
+        let log = OffsetLog()
+        await narrator.say("Uno dos tres", voice: voice) { offset in Task { await log.add(offset) } }
+        await narrator.finish()
+        while await log.offsets.count < 3 { await Task.yield() }
+        #expect(await log.offsets.sorted() == [0, 3, 9])
     }
 }
