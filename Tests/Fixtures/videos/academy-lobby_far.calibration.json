@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "deviceID": "fixture:academy-lobby_far.mp4",
+  "deviceName": "Corners from Vision rectangle detection on the 30 s frame of academy-lobby_far.mp4",
+  "screenQuad": {
+    "topLeft": { "x": 428, "y": 167 },
+    "topRight": { "x": 1455, "y": 195 },
+    "bottomRight": { "x": 1497, "y": 763 },
+    "bottomLeft": { "x": 403, "y": 773 }
+  },
+  "zoomFactor": 1,
+  "referenceThumbnail": "none",
+  "calibratedAt": "2026-10-26T00:00:00-07:00"
+}

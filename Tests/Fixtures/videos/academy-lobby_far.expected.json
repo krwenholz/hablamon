@@ -1,0 +1,14 @@
+{
+  "video": "academy-lobby_far.mp4",
+  "notes": "Landscape, phone on the couch-side table (Kyle's real setup). Read from box crops. The first box is already fading as the video starts. Clavel's 'Está muy bien…' message scrolls onto a second page ('día, Miguel.').",
+  "lines": [
+    { "at": 5.9, "speaker": "Mencía", "certain": true, "text": "¡De nada! Si ya nos hemos hecho amigos y todo. ¿A que sí, Miguel?" },
+    { "at": 9.1, "speaker": "Mencía", "certain": true, "text": "¡Ah! Antes de que se me olvide... Nos hemos cruzado con dos miembros del Team Star." },
+    { "at": 15.7, "speaker": "Clavel", "certain": true, "text": "¿Cómo? ¡¿Dónde?!" },
+    { "at": 21.1, "speaker": "Mencía", "certain": true, "text": "Estaban acosando a una chica con una mochila de Eevee, frente a las escaleras de la entrada..." },
+    { "at": 24.3, "speaker": "Clavel", "certain": true, "text": "Gracias por avisarme de algo tan grave. ¿Sabes si siguen ahí?" },
+    { "at": 30.7, "speaker": "Mencía", "certain": true, "text": "Miguel los ha espantado por las malas." },
+    { "at": 37.9, "speaker": "Clavel", "certain": true, "text": "Está muy bien que quieras ayudar a los demás, pero no puedes meterte en líos ya en tu primer día, Miguel." },
+    { "at": 47.5, "speaker": "Clavel", "certain": true, "text": "Y tú, Mencía, si presencias algo así, lo que debes hacer es llamar de inmediato a un profesor." }
+  ]
+}

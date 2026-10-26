@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "deviceID": "fixture:classroom_far.mp4",
+  "deviceName": "Corners from Vision rectangle detection on the 8 s frame of classroom_far.mp4",
+  "screenQuad": {
+    "topLeft": { "x": 439, "y": 156 },
+    "topRight": { "x": 1467, "y": 214 },
+    "bottomRight": { "x": 1491, "y": 784 },
+    "bottomLeft": { "x": 396, "y": 760 }
+  },
+  "zoomFactor": 1,
+  "referenceThumbnail": "none",
+  "calibratedAt": "2026-10-26T00:00:00-07:00"
+}

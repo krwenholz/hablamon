@@ -1,0 +1,13 @@
+{
+  "video": "classroom_far.mp4",
+  "notes": "Landscape, Kyle's real setup. Read from box crops. The three classmate lines have no name tag, so their speaker is the narrator; as of Oct 26 the box detector misses all three.",
+  "lines": [
+    { "at": 1.1, "speaker": "Cinio", "certain": true, "text": "Hoy traigo un notición que seguro que os hace muchísima ilusión... ¿Queréis saber qué es?" },
+    { "at": 4.0, "speaker": "narrator", "certain": true, "text": "¡Pues claro! ¡¿Qué es?! ¡¿Qué es?!" },
+    { "at": 9.3, "speaker": "Cinio", "certain": true, "text": "Tendría que haberos avisado antes, pero a partir de hoy vamos a ser uno más en clase." },
+    { "at": 16.0, "speaker": "narrator", "certain": true, "text": "Anda, ¿quién será?" },
+    { "at": 19.0, "speaker": "narrator", "certain": true, "text": "¿Dónde está? ¿Dónde?" },
+    { "at": 22.7, "speaker": "Cinio", "certain": true, "text": "Adelante, ya puedes entrar." },
+    { "at": 30.7, "speaker": "Cinio", "certain": true, "text": "¿Por qué no les dices cómo te llamas?" }
+  ]
+}
