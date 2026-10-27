@@ -33,4 +33,15 @@ import Testing
         #expect(QualityGate.report(quad: quad, profile: profile, bodyCrop: body(255)).warnings.count == 1)
         #expect(QualityGate.report(quad: quad, profile: profile, bodyCrop: body(200)).warnings.isEmpty)
     }
+
+    @Test func meteringPointIsTheBoxCenterInCameraSpace() {
+        // Screen fills the right half of a 2000×1000 camera frame.
+        let quad = rect(1000, 0, 1000, 1000)
+        let point = QualityGate.meteringPoint(quad: quad, profile: profile, cameraWidth: 2000, cameraHeight: 1000)
+        let box = profile.regions.dialogueBox
+        let expectedX = (1000 + (Double(box.x) + Double(box.width) / 2) / 1280 * 1000) / 2000
+        let expectedY = (Double(box.y) + Double(box.height) / 2) / 720
+        #expect(abs(point.x - expectedX) < 0.001)
+        #expect(abs(point.y - expectedY) < 0.001)
+    }
 }

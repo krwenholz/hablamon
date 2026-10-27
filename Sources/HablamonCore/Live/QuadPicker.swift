@@ -27,6 +27,22 @@ extension Quad {
         return Point(x: points.map(\.x).reduce(0, +) / 4, y: points.map(\.y).reduce(0, +) / 4)
     }
 
+    /// Whether `point` is inside, for a convex quad.
+    public func contains(_ point: Point) -> Bool {
+        let points = corners
+        var sign = 0.0
+        for index in points.indices {
+            let a = points[index]
+            let b = points[(index + 1) % points.count]
+            let cross = (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x)
+            if cross != 0 {
+                if sign != 0 && (cross > 0) != (sign > 0) { return false }
+                sign = cross
+            }
+        }
+        return true
+    }
+
     /// Mean distance between matching corners.
     public func distance(to other: Quad) -> Double {
         zip(corners, other.corners).map { $0.distance(to: $1) }.reduce(0, +) / 4
@@ -50,6 +66,11 @@ public enum QuadPicker {
             aspectRange.contains($0.aspect) && $0.area >= frameArea * minimumAreaFraction
         }
         if let previous { return plausible.min { $0.distance(to: previous) < $1.distance(to: previous) } }
-        return plausible.max { $0.area < $1.area }
+        guard let largest = plausible.max(by: { $0.area < $1.area }) else { return nil }
+        // Vision often finds both the TV's outer frame and the picture inside it; the picture is the screen.
+        let inner = plausible.filter {
+            $0 != largest && largest.contains($0.center) && $0.area >= largest.area * 0.7
+        }
+        return inner.max { $0.area < $1.area } ?? largest
     }
 }

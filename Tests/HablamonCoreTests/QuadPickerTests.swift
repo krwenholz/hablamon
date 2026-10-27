@@ -40,6 +40,12 @@ func rect(_ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Quad {
         #expect(QuadPicker.pick([small, big], near: nil, frameArea: frameArea) == big)
     }
 
+    @Test func prefersScreenInsideBezel() {
+        let bezel = rect(395, 143, 1110, 650)
+        let screen = rect(428, 167, 1040, 596)
+        #expect(QuadPicker.pick([bezel, screen], near: nil, frameArea: frameArea) == screen)
+    }
+
     @Test func emptyGivesNil() {
         #expect(QuadPicker.pick([], near: nil, frameArea: frameArea) == nil)
     }

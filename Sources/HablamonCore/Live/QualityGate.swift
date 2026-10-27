@@ -32,12 +32,27 @@ public enum QualityGate {
         var warnings: [String] = []
         if textHeight < minimumTextHeight {
             warnings.append(
-                "El texto mide \(Int(textHeight.rounded())) px en la cámara; acerca el móvil o sube el zoom.")
+                "El texto mide \(Int(textHeight.rounded())) px en la cámara; acerca el móvil a la tele.")
         }
         if clipped > maximumClipped {
             warnings.append(
                 "La caja está sobreexpuesta (\(Int((clipped * 100).rounded())) %); baja el brillo o la exposición.")
         }
         return QualityReport(textHeight: textHeight, clipped: clipped, warnings: warnings)
+    }
+
+    /// Where the dialogue box's center falls in the camera frame, normalized 0–1 with a top-left
+    /// origin, for metering exposure on the box. Maps through the quad bilinearly.
+    public static func meteringPoint(quad: Quad, profile: GameProfile, cameraWidth: Double, cameraHeight: Double)
+        -> Point
+    {
+        let box = profile.regions.dialogueBox
+        let u = (Double(box.x) + Double(box.width) / 2) / Double(profile.frameSize.width)
+        let v = (Double(box.y) + Double(box.height) / 2) / Double(profile.frameSize.height)
+        func mix(_ a: Point, _ b: Point, _ t: Double) -> Point {
+            Point(x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t)
+        }
+        let point = mix(mix(quad.topLeft, quad.topRight, u), mix(quad.bottomLeft, quad.bottomRight, u), v)
+        return Point(x: point.x / cameraWidth, y: point.y / cameraHeight)
     }
 }
