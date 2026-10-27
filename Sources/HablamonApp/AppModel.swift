@@ -18,20 +18,27 @@
         var replayLag = 0.0
         var paused = false
         var source: String?
+        /// What the right-hand slot shows.
+        var side: SidePanel = .words
+        /// The latest camera frame and proposed corners, while calibrating.
+        var calibrationPreview: CalibrationPreview?
+        /// Why live mode isn't running yet, such as waiting for the iPhone.
+        var liveStatus: String?
 
         @ObservationIgnored let store: AppSupportStore
-        @ObservationIgnored private var characters: CharacterTable
+        @ObservationIgnored var characters: CharacterTable
         @ObservationIgnored private var known: KnownWords
-        @ObservationIgnored private let settings: Settings
+        @ObservationIgnored let settings: Settings
         @ObservationIgnored private var ranker: VocabRanker?
-        @ObservationIgnored private let narrator: Narrator
+        @ObservationIgnored let narrator: Narrator
         @ObservationIgnored private let voices = VoiceSelector()
         @ObservationIgnored private var replayTask: Task<Void, Never>?
         /// Decodes and reads the video; cancelled along with `replayTask` so an old replay stops.
         @ObservationIgnored private var replayProducer: Task<Void, Never>?
-        @ObservationIgnored private var transcript: TranscriptWriter?
-        @ObservationIgnored private var log: FileLog?
-        @ObservationIgnored private var sessionStart = Date()
+        @ObservationIgnored var transcript: TranscriptWriter?
+        @ObservationIgnored var log: FileLog?
+        @ObservationIgnored var sessionStart = Date()
+        @ObservationIgnored var live: LiveSession?
         /// Bumped per spoken line so late progress callbacks from an old line are ignored.
         @ObservationIgnored private var generation = 0
 
@@ -124,7 +131,15 @@
             case .finished(let error):
                 log?.write("replay finished \(error ?? "ok")")
                 if let error { issues.append("replay: \(error)") }
-            case .pipeline(.speak(let raw)):
+            case .pipeline(let event):
+                await apply(event)
+            }
+        }
+
+        /// A pipeline event from replay or the live camera.
+        func apply(_ event: PipelineEvent) async {
+            switch event {
+            case .speak(let raw):
                 let page = raw.reresolved(with: SpeakerResolver(table: characters), voices: voices)
                 state.apply(.pipeline(.speak(page)))
                 log?.write("line \(page.speaker.name): \(page.text)")
@@ -132,10 +147,10 @@
                 refreshWords()
                 await writeTranscript(page)
                 if !paused { await speak(page.text, voice: page.voice) }
-            case .pipeline(.pageChanged):
+            case .pageChanged:
                 state.apply(.pipeline(.pageChanged))
                 await narrator.interrupt()
-            case .pipeline(let event):
+            default:
                 state.apply(.pipeline(event))
             }
         }
@@ -192,9 +207,11 @@
             log?.write(message)
         }
 
-        /// Calibration arrives with the live camera (M2); until then this only notes the request.
+        /// Opens the calibration panel; in live mode it shows the camera with proposed corners.
         func recalibrate() {
-            log?.write("recalibrate requested (not available until the live camera)")
+            side = .calibration
+            live?.engine?.setWantsPreview(true)
+            log?.write("recalibrate requested")
         }
 
         func togglePause() {

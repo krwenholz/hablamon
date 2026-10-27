@@ -50,7 +50,7 @@
         }
 
         /// Decodes a video and hands over one frame per `interval` seconds, upright, with its origin at zero.
-        static func forEachFrame(
+        public static func forEachFrame(
             in url: URL,
             every interval: Double,
             realTime: Bool = false,

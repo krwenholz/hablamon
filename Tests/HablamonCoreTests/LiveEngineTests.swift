@@ -61,7 +61,7 @@
             try await feed(live, from: 8, seconds: 11)
             let proposal = try #require(
                 inbox.all.compactMap { message -> Quad? in
-                    if case .preview(_, let proposal, _) = message { proposal } else { nil }
+                    if case .preview(_, _, let proposal, _) = message { proposal } else { nil }
                 }.last)
             let distance = proposal.distance(to: try VideoFixtures.calibration("academy-lobby_far").screenQuad)
             #expect(distance < 25, "proposal \(proposal) is \(distance) px off")

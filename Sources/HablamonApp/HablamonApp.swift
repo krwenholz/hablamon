@@ -56,7 +56,6 @@
     struct HablamonApp: App {
         @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
         @State private var model: AppModel
-        @State private var side: SidePanel
         private let options: LaunchOptions
 
         init() {
@@ -64,12 +63,11 @@
             self.options = options
             _model = State(
                 initialValue: AppModel(store: options.root.map(AppSupportStore.init(root:)) ?? AppSupportStore()))
-            _side = State(initialValue: options.panel)
         }
 
         var body: some Scene {
             Window("Hablamon", id: "main") {
-                MainWindow(model: model, side: $side)
+                MainWindow(model: model)
                     .task { await start() }
             }
             .defaultSize(width: 1470, height: 956)
@@ -81,7 +79,7 @@
                 Button(text(.recalibrate, english: false)) { model.recalibrate() }
                 if !model.state.unknownSpeakers.isEmpty {
                     Button(unassignedVoices(model.state.unknownSpeakers.count, english: false)) {
-                        side = .speakers
+                        model.side = .speakers
                         NSApp.activate(ignoringOtherApps: true)
                     }
                 }
@@ -104,9 +102,16 @@
                 window.toggleFullScreen(nil)
             }
             if options.mute { model.paused = true }
+            model.side = options.panel
             if let video = options.replay {
-                model.startReplay(
-                    video: video, calibration: options.calibration ?? LaunchOptions.calibration(besides: video))
+                if options.panel == .calibration {
+                    model.previewCalibration(from: video)
+                } else {
+                    model.startReplay(
+                        video: video, calibration: options.calibration ?? LaunchOptions.calibration(besides: video))
+                }
+            } else {
+                model.startLive()
             }
             if let snapshot = options.snapshot {
                 try? await Task.sleep(for: .seconds(options.snapshotDelay))

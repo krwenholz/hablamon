@@ -14,9 +14,9 @@
             case frame(screenFound: Bool)
             case state(ConnectionMonitor.State)
             case effect(ConnectionMonitor.Effect)
-            /// About once a second while calibrating: a downscaled frame, the proposed corners in
-            /// camera pixels, and how readable text would be with them.
-            case preview(CGImage, proposal: Quad?, quality: QualityReport?)
+            /// About once a second while calibrating: a downscaled frame (`scale` preview pixels per
+            /// camera pixel), the proposed corners in camera pixels, and how readable text would be.
+            case preview(CGImage, scale: Double, proposal: Quad?, quality: QualityReport?)
             /// Corners confirmed; save them with this bezel reference.
             case calibrated(Quad, reference: GrayImage)
             /// Meter exposure here (0–1, top-left origin): the dialogue box.
@@ -182,7 +182,7 @@
                 }
                 return QualityGate.report(quad: quad, profile: profile, bodyCrop: body)
             }
-            onMessage(.preview(picture, proposal: proposal, quality: quality))
+            onMessage(.preview(picture, scale: Double(scale), proposal: proposal, quality: quality))
         }
     }
 #endif

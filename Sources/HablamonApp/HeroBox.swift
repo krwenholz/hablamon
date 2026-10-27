@@ -5,6 +5,8 @@
     /// The line being spoken, drawn like the game's own dialogue box. Words not yet spoken are dimmed.
     struct HeroBox: View {
         var page: SpokenPage?
+        /// Shown instead of a line before there is one, such as "Esperando el iPhone…".
+        var waiting: String? = nil
         var spokenUTF16: Int
         var pill: StatusPill
         var english: Bool
@@ -64,9 +66,9 @@
 
         private var attributedLine: AttributedString {
             guard let page else {
-                var waiting = AttributedString("…")
-                waiting.foregroundColor = Theme.unspoken
-                return waiting
+                var placeholder = AttributedString(waiting ?? "…")
+                placeholder.foregroundColor = Theme.unspoken
+                return placeholder
             }
             let utf16 = page.text.utf16
             let split = utf16.index(utf16.startIndex, offsetBy: min(spokenUTF16, utf16.count))
