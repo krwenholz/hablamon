@@ -20,6 +20,7 @@
     final class LiveSession {
         private(set) var engine: LiveEngine?
         private var camera: LiveCamera?
+        private var previewer: PreviewRenderer?
         private var device: CameraInfo?
         private var loop: Task<Void, Never>?
         private var ticker: Task<Void, Never>?
@@ -58,6 +59,11 @@
             loop?.cancel()
             ticker?.cancel()
             camera?.stop()
+        }
+
+        /// Draws the camera smoothly in the calibration panel only while it's showing.
+        func setPreviewing(_ on: Bool) {
+            previewer?.isEnabled = on
         }
 
         func confirm(_ quad: Quad) {
@@ -99,8 +105,15 @@
                 calibration: calibration.value?.screenQuad, reference: model.store.reference(),
                 settings: model.settings,
                 startingAt: Date(), onMessage: { continuation.yield($0) })
+            let previewer = PreviewRenderer { image, scale in
+                Task { @MainActor [weak model] in model?.showPreviewFrame(image, scale: scale) }
+            }
+            self.previewer = previewer
             let camera = LiveCamera()
-            camera.onFrame = { image, date in engine.feed(image, at: date) }
+            camera.onFrame = { image, date in
+                engine.feed(image, at: date)
+                previewer.offer(image, at: date)
+            }
             camera.onSignal = { signal, date in engine.signal(signal, at: date) }
             camera.onLog = { line in Task { @MainActor [weak model] in model?.note(line) } }
             do {
@@ -118,6 +131,7 @@
             if calibration.value == nil || model.store.reference() == nil {
                 model.side = .calibration
             }
+            setPreviewing(model.side == .calibration)
             loop = Task { [weak self] in
                 for await message in stream {
                     guard let self else { break }
@@ -147,8 +161,15 @@
             case .effect(let effect):
                 await model.perform(effect)
             case .preview(let image, let scale, let proposal, let quality):
-                model.calibrationPreview = CalibrationPreview(
-                    image: image, scale: scale, proposal: proposal, quality: quality)
+                // The engine's frame is up to a second old; keep the smoother camera frame if there is one.
+                if previewer?.isEnabled == true, var current = model.calibrationPreview {
+                    current.proposal = proposal
+                    current.quality = quality
+                    model.calibrationPreview = current
+                } else {
+                    model.calibrationPreview = CalibrationPreview(
+                        image: image, scale: scale, proposal: proposal, quality: quality)
+                }
             case .calibrated(let quad, let reference):
                 model.saveCalibration(
                     quad, reference: reference, deviceID: device?.id ?? "unknown", deviceName: device?.name)
@@ -177,6 +198,13 @@
     }
 
     extension AppModel {
+        /// A fresh camera frame for the calibration panel, keeping the proposed corners.
+        func showPreviewFrame(_ image: CGImage, scale: Double) {
+            calibrationPreview = CalibrationPreview(
+                image: image, scale: scale, proposal: calibrationPreview?.proposal, quality: calibrationPreview?.quality
+            )
+        }
+
         /// Watches the TV through the iPhone instead of a recording.
         func startLive() {
             live?.stop()

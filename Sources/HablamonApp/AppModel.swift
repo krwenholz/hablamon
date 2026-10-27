@@ -19,7 +19,9 @@
         var paused = false
         var source: String?
         /// What the right-hand slot shows.
-        var side: SidePanel = .words
+        var side: SidePanel = .words {
+            didSet { live?.setPreviewing(side == .calibration) }
+        }
         /// The latest camera frame and proposed corners, while calibrating.
         var calibrationPreview: CalibrationPreview?
         /// Why live mode isn't running yet, such as waiting for the iPhone.
