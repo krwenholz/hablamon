@@ -1,0 +1,26 @@
+/// A camera the Mac can see, reduced to what choosing one needs.
+public struct CameraInfo: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        case continuity, builtIn, external
+    }
+
+    public var id: String
+    public var name: String
+    public var kind: Kind
+
+    public init(id: String, name: String, kind: Kind) {
+        self.id = id
+        self.name = name
+        self.kind = kind
+    }
+}
+
+/// Picks the camera to watch the TV with. The built-in camera faces the player, so it's used only
+/// when settings allow it; and once a camera is pinned, nothing else replaces it.
+public enum CameraChooser {
+    public static func choose(from cameras: [CameraInfo], pinned: String?, allowBuiltIn: Bool) -> CameraInfo? {
+        if let pinned { return cameras.first { $0.id == pinned } }
+        return cameras.first { $0.kind == .continuity } ?? cameras.first { $0.kind == .external }
+            ?? (allowBuiltIn ? cameras.first { $0.kind == .builtIn } : nil)
+    }
+}
