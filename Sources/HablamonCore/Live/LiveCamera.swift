@@ -56,6 +56,16 @@
             }
         }
 
+        public static var authorizationDescription: String {
+            switch AVCaptureDevice.authorizationStatus(for: .video) {
+            case .authorized: "authorized"
+            case .notDetermined: "not asked yet"
+            case .denied: "denied"
+            case .restricted: "restricted"
+            @unknown default: "unknown"
+            }
+        }
+
         /// Asks for camera access if it hasn't been decided yet.
         public static func authorize() async -> Bool {
             switch AVCaptureDevice.authorizationStatus(for: .video) {

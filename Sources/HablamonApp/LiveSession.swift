@@ -25,24 +25,26 @@
         private var ticker: Task<Void, Never>?
         private var waiter: Task<Void, Never>?
         private weak var model: AppModel?
+        private var lastSeen: String?
 
         init(model: AppModel) {
             self.model = model
         }
 
         func start() {
-            model?.note("live mode: looking for the camera")
+            model?.note("live mode: camera permission \(LiveCamera.authorizationDescription)")
             waiter = Task { [weak self] in
-                // Wait for the pinned iPhone (or the first one, before any calibration). Listing
-                // cameras needs no permission, so the prompt only appears once there's one to use.
+                // Ask first: macOS may not list the iPhone to an app that hasn't been allowed the camera.
+                guard await LiveCamera.authorize() else {
+                    self?.model?.liveStatus = text(.cameraDenied, english: false)
+                    self?.model?.note("camera access denied")
+                    return
+                }
+                self?.model?.note("camera access granted; looking for the iPhone")
+                // Wait for the pinned iPhone (or the first one, before any calibration).
                 while !Task.isCancelled {
                     guard let self else { return }
                     if let choice = self.choose() {
-                        guard await LiveCamera.authorize() else {
-                            self.model?.liveStatus = text(.cameraDenied, english: false)
-                            self.model?.note("camera access denied")
-                            return
-                        }
                         self.begin(with: choice)
                         return
                     }
@@ -67,8 +69,14 @@
         private func choose() -> CameraInfo? {
             guard let model else { return nil }
             let pinned = model.store.calibration().value?.deviceID
+            let cameras = LiveCamera.available()
+            let seen = cameras.map { "\($0.name) [\($0.kind)]" }.joined(separator: ", ")
+            if seen != lastSeen {
+                lastSeen = seen
+                model.note("cameras: \(seen.isEmpty ? "none" : seen)")
+            }
             let choice = CameraChooser.choose(
-                from: LiveCamera.available(), pinned: pinned, allowBuiltIn: model.settings.allowBuiltInCamera)
+                from: cameras, pinned: pinned, allowBuiltIn: model.settings.allowBuiltInCamera)
             if choice == nil, model.liveStatus == nil {
                 model.liveStatus = text(.waitingForPhone, english: model.english)
                 model.note("waiting for the camera\(pinned.map { " \($0)" } ?? "")")

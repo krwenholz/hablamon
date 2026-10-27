@@ -46,7 +46,11 @@ public func text(_ label: LabelKey, english: Bool) -> String {
         case .glossHint: ("Sin significado en el glosario", "No meaning in the glossary")
         case .calibration: ("Calibración", "Calibration")
         case .useCorners: ("Usar estas esquinas", "Use these corners")
-        case .waitingForPhone: ("Esperando el iPhone…", "Waiting for the iPhone…")
+        case .waitingForPhone:
+            (
+                "Esperando el iPhone… Bloquéalo y colócalo en horizontal, quieto y cerca del Mac.",
+                "Waiting for the iPhone… Lock it and mount it in landscape, still and near the Mac."
+            )
         case .cameraDenied: ("Sin permiso para la cámara", "No camera permission")
         case .dragCorners: ("Arrastra las esquinas a la pantalla de la tele", "Drag the corners onto the TV screen")
         }
