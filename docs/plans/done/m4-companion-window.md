@@ -33,7 +33,7 @@ Launch flags for testing: `--windowed`, `--mute`, `--root <dir>`, `--panel speak
 
 ## Leftovers
 
-- **Boxes without a name tag aren't detected** (classmates in `classroom_far`, 3 of 7 lines missed; recorded as a known issue in the replay test). Item pickups and narration likely share this.
+- ~~Boxes without a name tag aren't detected~~: fixed Oct 26 by ending the profile's body region above the box's bottom border, which the landscape calibrations put inside it; `classroom_far` now reads 7 of 7.
 - Hotkeys register cleanly but weren't pressed in testing; check them in the play test.
 - First-sense glosses can mislead ("Gracias" → gracia, "grace"; "lío" → "bundle").
 - The status-states mockup is still in the rejected dark style; the recovery card is built in M2/M3.

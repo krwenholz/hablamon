@@ -100,7 +100,6 @@ The window, vocabulary, speakers panel, hotkeys, and menu bar are built and run 
 
 - **Calibration view** (with M2): live preview, proposed quad with draggable corners, quality-gate readout, zoom slider.
 - **Recovery card** (with M3): when the TV can't be re-found, saved view, current view, and proposed corners replace the words panel until resolved, styled like the main window ([status-states.png](mockups/status-states.png) shows the content in the old dark style).
-- **Boxes without a name tag** aren't detected yet (`classroom_far` misses 3 classmate lines), which will also hide item pickups and narration.
 - **CLI still to add:** `hablamon calibrate`, live `hablamon run`, and `hablamon voices design` (M5).
 
 ## Spike B and M5: second speech engine

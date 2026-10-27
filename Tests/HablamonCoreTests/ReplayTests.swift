@@ -109,7 +109,7 @@ enum VideoFixtures {
         }
 
         /// Videos whose misses are understood but not fixed yet.
-        static let knownMisses = ["classroom_far": "boxes without a name tag aren't detected yet"]
+        static let knownMisses: [String: String] = [:]
 
         /// Only downloaded videos run, so a checkout without them skips rather than fails.
         @Test(.timeLimit(.minutes(3)), arguments: VideoFixtures.names.filter(VideoFixtures.available))
