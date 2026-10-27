@@ -35,3 +35,7 @@ run = "scripts/verify.sh"
 [tasks.install]
 description = "Build Hablamon.app (release), install to ~/Applications, link the CLI"
 run = "scripts/install.sh"
+
+[tasks.update]
+description = "Pull the latest main, reinstall Hablamon.app, and relaunch it"
+run = "scripts/update.sh"

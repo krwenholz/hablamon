@@ -16,13 +16,13 @@ mise install        # the pinned Swift toolchain
 mise run install    # build Hablamon.app into ~/Applications and link the `hablamon` CLI
 ```
 
-To update later: `git pull && mise run install`. Your settings, characters, known words, calibration, transcripts, and logs live in `~/Library/Application Support/Hablamon` and are never touched by an install.
+To update later: `mise run update` pulls the latest main, reinstalls, and relaunches the app. Your settings, characters, known words, calibration, transcripts, and logs live in `~/Library/Application Support/Hablamon` and are never touched by an install.
 
 ## Play
 
 1. Mount the iPhone near the Mac with the whole TV in frame, landscape, screen locked. Continuity Camera only streams while the phone is locked and still.
-2. Open **Hablamon** from `~/Applications` (or `open ~/Applications/Hablamon.app`). It goes full screen and shows "Esperando el iPhone…" until the phone appears.
-3. Allow camera access when macOS asks.
+2. Open **Hablamon** from `~/Applications` (or `open ~/Applications/Hablamon.app`). It goes full screen and asks for camera access.
+3. Allow it. Until the phone appears, the top box says "Esperando el iPhone…".
 4. First time only: the right panel shows the camera with the TV's corners proposed in green. Drag any corner that's off onto the screen's edge, then **Usar estas esquinas** (⏎). It warns if text will be too small to read.
 5. Play. Each dialogue line appears at the top and is read aloud; earlier lines collect on the left, new words on the right (**Ya la sé** hides a word for good).
 
@@ -59,7 +59,7 @@ A recording plays in real time as if it were the camera; its calibration is read
 - **Stuck on "Esperando el iPhone…":** unlock and relock the phone, check it's on the same Wi-Fi and Apple Account with Bluetooth on, and look in the latest log for the cameras it saw.
 - **No camera prompt, or access denied:** System Settings › Privacy & Security › Camera › turn on Hablamon. Reinstalling keeps the permission because the app's identifier doesn't change.
 - **Text isn't read when the scene is bright:** note the time and send the log; exposure handling is still being tuned.
-- **Hotkeys don't respond:** the log's `hotkeys registered` line lists any that another app has taken.
+- **Hotkeys don't respond:** the log's `hotkeys registered` line lists any that another app has taken, and every press is logged. Hotkeys follow your keyboard layout (Dvorak included); while any app has secure keyboard input on (a password field, some terminals), macOS doesn't deliver them.
 
 ## Development
 

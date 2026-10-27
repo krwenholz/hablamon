@@ -16,6 +16,7 @@ mkdir -p "$staging/Contents/MacOS" "$staging/Contents/Resources"
 cp "$bin/HablamonApp" "$staging/Contents/MacOS/Hablamon"
 # SwiftPM resource bundles (glossary, character table, game profiles); Bundle.module finds them here.
 cp -R "$bin"/*.bundle "$staging/Contents/Resources/"
+cp Assets/AppIcon.icns "$staging/Contents/Resources/AppIcon.icns"
 
 version="$(git describe --always --dirty 2>/dev/null || echo dev)"
 cat >"$staging/Contents/Info.plist" <<PLIST
@@ -27,6 +28,7 @@ cat >"$staging/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key><string>Hablamon</string>
     <key>CFBundleDisplayName</key><string>Hablamon</string>
     <key>CFBundleExecutable</key><string>Hablamon</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>0.1</string>
     <key>CFBundleVersion</key><string>$version</string>
