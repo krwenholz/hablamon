@@ -32,9 +32,9 @@ Swift 6 on macOS with SwiftPM, using Apple frameworks only: AVFoundation (camera
 | --- | --- | --- |
 | Spike A: camera OCR | Done | [done/spike-a-ocr.md](done/spike-a-ocr.md) |
 | M1: offline replay | Done, with leftovers below | [done/m1-offline-replay.md](done/m1-offline-replay.md) |
-| M2: live Continuity Camera | Not started; after the window | This doc |
-| M3: disruption handling | State machine built and tested; not wired to a camera | This doc |
-| M4: characters and companion UI | Window built on replay; calibration view waits for M2 | [done/m4-companion-window.md](done/m4-companion-window.md) |
+| M2: live Continuity Camera | Built and unit-tested; awaiting a play test with the iPhone | [done/m2-live-camera.md](done/m2-live-camera.md) |
+| M3: disruption handling | Wired to the live camera; awaiting the play test | [done/m2-live-camera.md](done/m2-live-camera.md) |
+| M4: characters and companion UI | Window, calibration panel, and recovery built | [done/m4-companion-window.md](done/m4-companion-window.md) |
 | Spike B: Qwen3-TTS on the Air | Not started | This doc |
 | M5: second speech engine | Not started | This doc |
 
@@ -45,62 +45,15 @@ Built so far: the full pipeline from frame to transcript (perspective correction
 - Save box crops with transcript lines (the `crop` field stays empty today).
 - Decide on low-confidence re-reads once more video is available (Vision reports 0.5 even on correct reads).
 
-## M2: live Continuity Camera
+## M2 and M3: live camera and recovery
 
-The iPhone, via Continuity Camera, is the primary camera; the MacBook's built-in camera is never used as a silent fallback because it faces the player. Calibration turns whatever angle the phone has into the canonical 1280×720 frame the pipeline already consumes.
-
-**Camera selection**
-
-- Enumerate devices with `AVCaptureDevice.DiscoverySession` including `.continuityCamera`. Persist the chosen device's `uniqueID` in `calibration.json`.
-- Never auto-switch to another device. If the pinned device disappears, enter the Lost state (M3).
-- Request 1080p at 30 fps; the app samples far fewer frames than that.
-- Allow the built-in camera only when `settings.json` says so (useful for development).
-
-**Exposure control (new, from Spike A).** The phone's auto-exposure blows out the TV whenever the game scene brightens, and that caused every remaining replay error. Lower exposure on the pinned camera (`exposureTargetBias`, or a locked exposure tuned on the box) and re-check the far video's faint pages with it.
-
-**Calibration**
-
-1. Show the live preview in the main window.
-2. Run `VNDetectRectanglesRequest` to propose the TV screen quad. The user accepts it, or drags the four corners to fix it.
-3. Feed `ScreenCorrector` (already built) with that quad.
-4. Save the quad, device ID, zoom, and a small grayscale reference thumbnail of the corrected bezel.
-
-**Quality gate** (after calibration, shown in the UI)
-
-- Measure body-text cap height in camera pixels. Spike A read text correctly at about 10 px, so start the warning around 8 px rather than the 14 px first planned.
-- Run a test OCR on the next real dialogue box and show the result.
-- Expose `videoZoomFactor` as a setting so a far phone can zoom in.
-- Warn on clipped highlights inside the box region.
-
-**Adaptive sampling.** Idle: one box check every 2 s (setting: 1–3 s). Dialogue: about 4 per second, as in replay. Dialogue mode ends after the box has been absent for 3 s (`DialoguePresence` already does this).
-
-**App bundle and install** (`scripts/install.sh`, `mise run install`; built Oct 26)
-
-1. `swift build -c release`, assemble `Hablamon.app` with `Info.plist` (`NSCameraUsageDescription`) and resources.
-2. Ad-hoc codesign with the camera entitlement; a stable bundle ID keeps the permission across rebuilds.
-3. Copy to `~/Applications/` and symlink the CLI into `~/.local/bin/hablamon`.
-
-Gotchas: camera permission attaches to the app bundle, so live `hablamon run` should launch or talk to the bundled app rather than borrow Terminal's permission. Mark capture and OCR work `.utility` QoS so the Air prefers efficiency cores.
-
-## M3: disruption handling
-
-Picking up the phone is expected, not an error. `ConnectionMonitor` already turns signals into states and effects (stop the pipeline, log a gap with its first cause, log a recalibration, ask for help after 10 s). What's left is producing the signals and performing the effects:
-
-- **Paused:** key-value observe `AVCaptureDevice.isSuspended` on the pinned device; the monitor's frame timeout covers frames simply stopping.
-- **Lost / reconnected:** `wasDisconnectedNotification` / `wasConnectedNotification` for the pinned `uniqueID`.
-- **Phone bumped:** in Tracking, every ~10 s compare the corrected bezel against the reference thumbnail; a large mismatch, or box detection failing on every sample, is `screenMismatch`.
-- **Re-finding:** run rectangle detection on each sample; accept a ~16:9 quad whose corrected bezel matches the reference.
-- **Effects:** wire `stopPipeline` to `Narrator.interrupt()` and `DialoguePipeline.reset()`, the log effects to `TranscriptWriter`, and the cues to short, quiet system sounds (stopped watching, resumed, needs attention).
-
-Apple documents that the Continuity Camera feed pauses while the phone is in use and resumes once it is [locked and mounted again](https://support.apple.com/102546), and that macOS may switch cameras when the iPhone disconnects, which is why the device is pinned.
+Built and unit-tested; see the [record](done/m2-live-camera.md) for what changed from the original design (no exposure bias or zoom on macOS; exposure is metered on the dialogue box) and the play-test checklist. What's left depends on that play test: exposure if the box still blows out, and threshold tuning for the bezel check and rectangle picking on the Air.
 
 ## M4: characters and companion UI
 
 The window, vocabulary, speakers panel, hotkeys, and menu bar are built and run on replayed video; see the [M4 record](done/m4-companion-window.md) and the [design mockups](mockups/main-window.png). Still to do:
 
-- **Calibration view** (with M2): live preview, proposed quad with draggable corners, quality-gate readout, zoom slider.
-- **Recovery card** (with M3): when the TV can't be re-found, saved view, current view, and proposed corners replace the words panel until resolved, styled like the main window ([status-states.png](mockups/status-states.png) shows the content in the old dark style).
-- **CLI still to add:** `hablamon calibrate`, live `hablamon run`, and `hablamon voices design` (M5).
+- **CLI still to add:** `hablamon voices design` (M5). Calibration and live watching live in the app.
 
 ## Spike B and M5: second speech engine
 
