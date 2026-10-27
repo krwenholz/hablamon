@@ -70,8 +70,9 @@ public struct ConnectionMonitor: Sendable {
     /// When tracking stopped and why; becomes a gap entry once tracking resumes.
     private var outage: (since: Date, reason: TranscriptGap.Reason)?
 
-    public init(startingAt date: Date, configuration: Configuration = .init()) {
-        self.state = .tracking
+    /// Starts in `state`; `.recalibrating` when there's no calibration yet.
+    public init(startingAt date: Date, configuration: Configuration = .init(), state: State = .tracking) {
+        self.state = state
         self.configuration = configuration
         self.lastFrameAt = date
     }
