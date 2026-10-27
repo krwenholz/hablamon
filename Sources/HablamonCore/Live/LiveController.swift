@@ -35,6 +35,8 @@ public struct LiveController: Sendable {
     public private(set) var quad: Quad?
     /// The best candidate seen while uncalibrated, for the calibration panel.
     public private(set) var proposal: Quad?
+    /// The last bezel comparison, for the log while tuning the threshold.
+    public private(set) var lastBezelDifference: Double?
     private var reference: GrayImage?
     private var monitor: ConnectionMonitor
     private var scheduler: SampleScheduler
@@ -67,6 +69,9 @@ public struct LiveController: Sendable {
             case .refinding, .recalibrating:
                 if lastSearch.map({ time - $0 >= Self.searchInterval }) ?? true {
                     lastSearch = time
+                    // Try the saved corners first: the phone is often set back where it was,
+                    // and Vision may not find the screen in a dark scene.
+                    if let quad, reference != nil { outputs.append(.checkBezel(quad)) }
                     outputs.append(.findRectangles)
                 }
             case .paused, .lost:
@@ -86,7 +91,9 @@ public struct LiveController: Sendable {
 
         case .bezel(let checked, let thumbnail, let date):
             guard let reference else { return [] }
-            let matches = matcher.matches(reference, thumbnail)
+            let difference = matcher.difference(reference, thumbnail)
+            lastBezelDifference = difference
+            let matches = difference <= matcher.threshold
             switch monitor.state {
             case .tracking where checked == quad:
                 return matches ? [] : signal(.screenMismatch, at: date)

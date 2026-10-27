@@ -52,6 +52,20 @@
             #expect(live.state == .tracking, "same place the whole time")
         }
 
+        @Test func framesDroppedWhileBusyKeepTrackingAlive() async throws {
+            let inbox = Inbox()
+            let live = LiveEngine(
+                profile: try BundledData.profile("scarlet"), characters: CharacterTable(characters: [:]),
+                calibration: rect(400, 160, 1080, 608), reference: GrayImage(width: 128, height: 72, fill: 90),
+                settings: .defaults, startingAt: start, onMessage: inbox.add)
+            // A slow sample is still being read; frames keep arriving and are dropped.
+            live.noteArrival(start.addingTimeInterval(1.8))
+            live.tick(start.addingTimeInterval(2))
+            #expect(live.state == .tracking, "the camera is alive, just busy")
+            live.tick(start.addingTimeInterval(4))
+            #expect(live.state == .paused, "no frames at all for over a second is a pause")
+        }
+
         @Test(.enabled(if: VideoFixtures.available("academy-lobby_far")), .timeLimit(.minutes(2)))
         func calibratesFromScratch() async throws {
             let inbox = Inbox()

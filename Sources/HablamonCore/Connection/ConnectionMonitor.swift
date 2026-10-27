@@ -67,6 +67,8 @@ public struct ConnectionMonitor: Sendable {
     public private(set) var state: State
     public var configuration: Configuration
     private var lastFrameAt: Date
+    /// The camera says it's suspended; frames arriving meanwhile are leftovers, not a return.
+    private var suspended = false
     /// When tracking stopped and why; becomes a gap entry once tracking resumes.
     private var outage: (since: Date, reason: TranscriptGap.Reason)?
 
@@ -79,6 +81,8 @@ public struct ConnectionMonitor: Sendable {
 
     public mutating func handle(_ signal: Signal, at date: Date) -> [Effect] {
         if signal == .frameReceived { lastFrameAt = date }
+        if signal == .cameraSuspended { suspended = true }
+        if signal == .cameraResumed || signal == .cameraReconnected { suspended = false }
 
         switch (state, signal) {
         // Leaving tracking.
@@ -103,6 +107,8 @@ public struct ConnectionMonitor: Sendable {
             return []
 
         // Camera back: look for the screen again, since the phone may have moved.
+        case (.paused, .frameReceived) where suspended:
+            return []
         case (.paused, .cameraResumed), (.paused, .frameReceived), (.lost, .cameraReconnected):
             state = .refinding(since: date)
             return []
@@ -115,6 +121,9 @@ public struct ConnectionMonitor: Sendable {
             return [.showCalibration, .play(.needsAttention)]
         case (.recalibrating, .calibrationConfirmed), (.refinding, .calibrationConfirmed):
             return resumeTracking(at: date, recalibration: .manual)
+        // The player opened calibration on purpose and moved the corners.
+        case (.tracking, .calibrationConfirmed):
+            return [.logRecalibration(.manual), .play(.resumedWatching)]
 
         default:
             return []

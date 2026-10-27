@@ -21,6 +21,8 @@
             case calibrated(Quad, reference: GrayImage)
             /// Meter exposure here (0–1, top-left origin): the dialogue box.
             case meter(Point)
+            /// A line for the session log (bezel differences, slow samples, frame size).
+            case log(String)
         }
 
         private let queue = DispatchQueue(label: "hablamon.live", qos: .utility)
@@ -39,6 +41,9 @@
         private var lastState: ConnectionMonitor.State
         private let busy = NSLock()
         private var inFlight = false
+        /// When the camera last delivered a frame, including ones dropped while busy. Guarded by `busy`.
+        private var lastArrival: Date?
+        private var loggedSize = false
 
         public init(
             profile: GameProfile, characters: CharacterTable, calibration quad: Quad?, reference: GrayImage?,
@@ -58,15 +63,18 @@
         }
 
         /// The controller's state as of the last processed input.
+        /// Blocks until the queue is free; for tests, not the main thread.
         public var state: ConnectionMonitor.State { queue.sync { controller.state } }
 
         /// Hands over a frame. Frames arriving while the last one is still being analyzed are
         /// dropped; `wait` processes synchronously, for tests.
         public func feed(_ image: CIImage, at date: Date, wait: Bool = false) {
             if wait {
+                busy.withLock { lastArrival = date }
                 queue.sync { process(image, at: date) }
                 return
             }
+            noteArrival(date)
             let accepted = busy.withLock { () -> Bool in
                 if inFlight { return false }
                 inFlight = true
@@ -83,8 +91,21 @@
             queue.async { [self] in run(controller.handle(.camera(signal, date: date)), image: nil, at: date) }
         }
 
+        /// Records that the camera delivered a frame, whether or not it gets analyzed.
+        func noteArrival(_ date: Date) {
+            busy.withLock { lastArrival = date }
+        }
+
         public func tick(_ date: Date) {
-            queue.async { [self] in run(controller.handle(.tick(date)), image: nil, at: date) }
+            // Frames dropped while a slow sample was being read still prove the camera is alive,
+            // so a long OCR pass doesn't look like the phone being picked up.
+            let arrival = busy.withLock { lastArrival }
+            queue.async { [self] in
+                if let arrival {
+                    run(controller.handle(.camera(.frameReceived, date: arrival)), image: nil, at: arrival)
+                }
+                run(controller.handle(.tick(date)), image: nil, at: date)
+            }
         }
 
         /// The player accepted these corners on the latest frame.
@@ -116,6 +137,10 @@
         // MARK: On the queue
 
         private func process(_ image: CIImage, at date: Date) {
+            if !loggedSize {
+                loggedSize = true
+                onMessage(.log("first frame \(Int(image.extent.width))×\(Int(image.extent.height))"))
+            }
             lastImage = image
             let time = date.timeIntervalSince(start)
             run(
@@ -133,11 +158,14 @@
                     onMessage(.frame(screenFound: flat != nil))
                     guard let flat else { continue }
                     let frame = CorrectedFrame(image: flat, context: context, recognizer: recognizer)
+                    let started = ContinuousClock.now
                     do {
                         for event in try pipeline.process(frame, at: time) { onMessage(.pipeline(event)) }
                     } catch {
-                        continue
+                        onMessage(.log("pipeline error: \(error)"))
                     }
+                    let elapsed = (ContinuousClock.now - started) / .seconds(1)
+                    if elapsed > 0.5 { onMessage(.log(String(format: "slow sample: %.2f s", elapsed))) }
                 case .findRectangles:
                     guard let image, let candidates = try? finder.candidates(in: image) else { continue }
                     let area = Double(image.extent.width * image.extent.height)
@@ -145,7 +173,11 @@
                 case .checkBezel(let quad):
                     guard let image, let thumbnail = try? BezelThumbnail.make(from: image, quad: quad, context: context)
                     else { continue }
-                    run(controller.handle(.bezel(quad: quad, thumbnail: thumbnail, date: date)), image: image, at: date)
+                    let next = controller.handle(.bezel(quad: quad, thumbnail: thumbnail, date: date))
+                    if let difference = controller.lastBezelDifference {
+                        onMessage(.log(String(format: "bezel %.3f (%@)", difference, "\(controller.state)")))
+                    }
+                    run(next, image: image, at: date)
                 case .useQuad(let quad):
                     corrector = ScreenCorrector(quad: quad, size: profile.frameSize)
                     if let image {

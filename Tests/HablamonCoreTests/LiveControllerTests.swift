@@ -114,4 +114,25 @@ import Testing
         _ = live.handle(.rectangles([screen], frameArea: frameArea, date: date(2)))
         #expect(live.proposal == screen)
     }
+
+    @Test func setBackUnmovedWithoutRectanglesResumes() {
+        var live = controller()
+        _ = live.handle(.camera(.cameraSuspended, date: date(5)))
+        _ = live.handle(.camera(.cameraResumed, date: date(8)))
+        let outputs = frames(&live, from: 8, seconds: 1)
+        #expect(outputs.contains(.checkBezel(screen)), "the saved corners are tried first")
+        let back = live.handle(.bezel(quad: screen, thumbnail: reference, date: date(8.5)))
+        #expect(live.state == .tracking)
+        #expect(!back.contains(.effect(.logRecalibration(.automatic))))
+        #expect(back.contains(.effect(.logGap(reason: .cameraPaused, duration: 3.5))))
+    }
+
+    @Test func confirmingWhileTrackingLogsAManualRecalibration() {
+        var live = controller()
+        let corners = rect(410, 150, 1090, 610)
+        let outputs = live.handle(.calibrationConfirmed(corners, reference: reference, date: date(3)))
+        #expect(outputs.contains(.effect(.logRecalibration(.manual))))
+        #expect(live.state == .tracking)
+        #expect(live.quad == corners)
+    }
 }

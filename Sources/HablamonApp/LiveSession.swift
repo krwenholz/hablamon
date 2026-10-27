@@ -94,17 +94,20 @@
             let camera = LiveCamera()
             camera.onFrame = { image, date in engine.feed(image, at: date) }
             camera.onSignal = { signal, date in engine.signal(signal, at: date) }
+            camera.onLog = { line in Task { @MainActor [weak model] in model?.note(line) } }
             do {
                 try camera.start(deviceID: choice.id)
             } catch {
-                model.issues.append("camera: \(error)")
-                model.note("camera failed: \(error)")
+                // The phone may have gone away between choosing and starting; keep waiting for it.
+                model.note("camera failed: \(error); waiting again")
+                model.liveStatus = text(.waitingForPhone, english: model.english)
+                start()
                 return
             }
             self.engine = engine
             self.camera = camera
             model.startLiveTranscript()
-            if engine.state == .recalibrating {
+            if calibration.value == nil || model.store.reference() == nil {
                 model.side = .calibration
             }
             loop = Task { [weak self] in
@@ -141,6 +144,9 @@
             case .calibrated(let quad, let reference):
                 model.saveCalibration(
                     quad, reference: reference, deviceID: device?.id ?? "unknown", deviceName: device?.name)
+                if model.side == .calibration { model.side = .words }
+            case .log(let line):
+                model.note(line)
             case .meter(let point):
                 camera?.meterExposure(at: CGPoint(x: point.x, y: point.y))
             }

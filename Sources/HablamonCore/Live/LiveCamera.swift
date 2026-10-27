@@ -25,7 +25,10 @@
         public var onFrame: (@Sendable (CIImage, Date) -> Void)?
         /// Called with suspension and connection changes.
         public var onSignal: (@Sendable (ConnectionMonitor.Signal, Date) -> Void)?
+        /// Called with lines worth keeping in the session log.
+        public var onLog: (@Sendable (String) -> Void)?
 
+        // The session, `device`, and `suspension` belong to `queue`; `observers` to the main thread.
         private let session = AVCaptureSession()
         private let queue = DispatchQueue(label: "hablamon.camera", qos: .utility)
         private var device: AVCaptureDevice?
@@ -39,11 +42,15 @@
                 deviceTypes: [.continuityCamera, .builtInWideAngleCamera, .external], mediaType: .video,
                 position: .unspecified)
             return discovery.devices.map { device in
+                // Without the NSCameraUseContinuityCameraDeviceType Info.plist key, macOS reports an
+                // iPhone as a built-in wide-angle camera, so ask the device directly as well.
                 let kind: CameraInfo.Kind =
-                    switch device.deviceType {
-                    case .continuityCamera: .continuity
-                    case .builtInWideAngleCamera: .builtIn
-                    default: .external
+                    if device.deviceType == .continuityCamera || device.isContinuityCamera {
+                        .continuity
+                    } else if device.deviceType == .builtInWideAngleCamera {
+                        .builtIn
+                    } else {
+                        .external
                     }
                 return CameraInfo(id: device.uniqueID, name: device.localizedName, kind: kind)
             }
@@ -62,14 +69,22 @@
             guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else { throw Failure.notAuthorized }
             guard let device = AVCaptureDevice(uniqueID: deviceID) else { throw Failure.deviceMissing(deviceID) }
             self.deviceID = deviceID
-            try configure(device)
+            // Center Stage pans and crops the frame, which would look like the phone moving.
+            AVCaptureDevice.centerStageControlMode = .app
+            AVCaptureDevice.isCenterStageEnabled = false
+            onLog?(
+                "camera \(device.localizedName): type \(device.deviceType.rawValue), continuity \(device.isContinuityCamera)"
+            )
+            try queue.sync { try configure(device) }
             watchConnections()
             queue.async { [session] in session.startRunning() }
         }
 
         public func stop() {
-            queue.async { [session] in session.stopRunning() }
-            suspension = nil
+            queue.async { [self] in
+                session.stopRunning()
+                suspension = nil
+            }
             for observer in observers { NotificationCenter.default.removeObserver(observer) }
             observers = []
         }
@@ -78,15 +93,22 @@
         /// exposes for the bright box instead of blowing it out. macOS has no exposure bias or zoom
         /// for capture devices, so this is the one lever.
         public func meterExposure(at point: CGPoint) {
-            guard let device, device.isExposurePointOfInterestSupported,
-                device.isExposureModeSupported(.continuousAutoExposure),
-                (try? device.lockForConfiguration()) != nil
-            else { return }
-            device.exposurePointOfInterest = point
-            device.exposureMode = .continuousAutoExposure
-            device.unlockForConfiguration()
+            queue.async { [self] in
+                guard let device, device.isExposurePointOfInterestSupported,
+                    device.isExposureModeSupported(.continuousAutoExposure),
+                    (try? device.lockForConfiguration()) != nil
+                else {
+                    onLog?("exposure point not supported")
+                    return
+                }
+                device.exposurePointOfInterest = point
+                device.exposureMode = .continuousAutoExposure
+                device.unlockForConfiguration()
+                onLog?(String(format: "metering exposure at %.2f, %.2f", point.x, point.y))
+            }
         }
 
+        /// Runs on `queue`.
         private func configure(_ device: AVCaptureDevice) throws {
             session.beginConfiguration()
             defer { session.commitConfiguration() }
@@ -104,6 +126,7 @@
             if session.canAddOutput(output) { session.addOutput(output) }
             self.device = device
             suspension = device.observe(\.isSuspended, options: [.new]) { [weak self] device, _ in
+                self?.onLog?(device.isSuspended ? "camera suspended" : "camera resumed")
                 self?.onSignal?(device.isSuspended ? .cameraSuspended : .cameraResumed, Date())
             }
         }
@@ -115,6 +138,7 @@
                 center.addObserver(forName: AVCaptureDevice.wasDisconnectedNotification, object: nil, queue: nil) {
                     [weak self] note in
                     guard let self, (note.object as? AVCaptureDevice)?.uniqueID == self.deviceID else { return }
+                    self.onLog?("camera disconnected")
                     self.onSignal?(.cameraDisconnected, Date())
                 },
                 center.addObserver(forName: AVCaptureDevice.wasConnectedNotification, object: nil, queue: nil) {
@@ -122,11 +146,16 @@
                     guard let self, let device = note.object as? AVCaptureDevice, device.uniqueID == self.deviceID
                     else { return }
                     // The old input is dead once the device disconnects; rebuild the session on it.
-                    try? self.configure(device)
-                    self.queue.async { [session = self.session] in
-                        if !session.isRunning { session.startRunning() }
+                    self.queue.async {
+                        do {
+                            try self.configure(device)
+                            if !self.session.isRunning { self.session.startRunning() }
+                            self.onLog?("camera reconnected")
+                            self.onSignal?(.cameraReconnected, Date())
+                        } catch {
+                            self.onLog?("camera reconnect failed: \(error)")
+                        }
                     }
-                    self.onSignal?(.cameraReconnected, Date())
                 },
             ]
         }

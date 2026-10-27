@@ -108,4 +108,14 @@ import Testing
         #expect(monitor.state == .tracking)
         #expect(effects.isEmpty)
     }
+
+    @Test func framesWhileSuspendedDoNotEndThePause() {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        var monitor = ConnectionMonitor(startingAt: start)
+        _ = monitor.handle(.cameraSuspended, at: start.addingTimeInterval(1))
+        _ = monitor.handle(.frameReceived, at: start.addingTimeInterval(1.1))
+        #expect(monitor.state == .paused, "a trailing or frozen frame isn't the phone coming back")
+        _ = monitor.handle(.cameraResumed, at: start.addingTimeInterval(5))
+        if case .refinding = monitor.state {} else { Issue.record("expected refinding, got \(monitor.state)") }
+    }
 }

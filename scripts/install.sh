@@ -34,6 +34,7 @@ cat >"$staging/Contents/Info.plist" <<PLIST
     <key>LSApplicationCategoryType</key><string>public.app-category.education</string>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSCameraUsageDescription</key><string>Hablamon reads the game's dialogue boxes through your iPhone camera.</string>
+    <key>NSCameraUseContinuityCameraDeviceType</key><true/>
 </dict>
 </plist>
 PLIST
