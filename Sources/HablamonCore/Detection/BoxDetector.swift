@@ -119,6 +119,8 @@ public struct DialoguePresence: Sendable {
     public var exitDelay: Double
     public private(set) var isActive = false
     private var positives = 0
+    /// A box was seen on the last sample, even if not yet often enough to enter dialogue.
+    public var isTentative: Bool { positives > 0 }
     private var lastSeen: Double?
 
     public init(requiredPositives: Int = 2, exitDelay: Double = 3) {

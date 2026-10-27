@@ -143,4 +143,13 @@ struct FakeFrame: DialogueFrame {
         #expect(speakers.last?.name == "Clavel")
         if case .known = speakers.last {} else { Issue.record("expected Clavel to be known after the update") }
     }
+
+    @Test func oneSightingAsksForFasterSampling() throws {
+        var pipeline = pipeline
+        _ = try pipeline.process(page(1, tag: "Mencía", lines: ["Hola"])[0], at: 0)
+        #expect(!pipeline.isInDialogue, "one sample isn't enough to enter dialogue")
+        #expect(pipeline.wantsFastSampling, "but it's enough to look again soon")
+        _ = try pipeline.process(empty(1)[0], at: 2)
+        #expect(!pipeline.wantsFastSampling)
+    }
 }

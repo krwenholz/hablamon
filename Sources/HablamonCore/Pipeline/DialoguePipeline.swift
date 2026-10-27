@@ -54,6 +54,8 @@ public struct DialoguePipeline {
     }
 
     public var isInDialogue: Bool { presence.isActive }
+    /// In dialogue, or a box was just glimpsed: sample at the dialogue rate so it's confirmed quickly.
+    public var wantsFastSampling: Bool { presence.isActive || presence.isTentative }
 
     public mutating func process(_ frame: some DialogueFrame, at time: Double) throws -> [PipelineEvent] {
         let features = try frame.boxFeatures(profile)

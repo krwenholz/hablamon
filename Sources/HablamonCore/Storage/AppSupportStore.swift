@@ -28,6 +28,8 @@ public struct AppSupportStore: Sendable {
     var charactersURL: URL { root.appendingPathComponent("characters.json") }
     var settingsURL: URL { root.appendingPathComponent("settings.json") }
     var knownWordsURL: URL { root.appendingPathComponent("known-words.json") }
+    var calibrationURL: URL { root.appendingPathComponent("calibration.json") }
+    var referenceURL: URL { root.appendingPathComponent("reference.pgm") }
 
     /// Writes `characters.json` and `settings.json` from the bundled defaults if they don't exist yet.
     public func seedIfNeeded() throws {
@@ -56,6 +58,32 @@ public struct AppSupportStore: Sendable {
 
     public func knownWords() -> Loaded<KnownWords> {
         load(KnownWords.self, from: knownWordsURL) { KnownWords(lemmas: []) }
+    }
+
+    /// The saved calibration, or nil before the first one.
+    public func calibration() -> Loaded<Calibration?> {
+        guard exists(calibrationURL) else { return Loaded(value: nil, issue: nil) }
+        do {
+            let text = try String(contentsOf: calibrationURL, encoding: .utf8)
+            return Loaded(value: try DocumentLoader.load(Calibration.self, from: text), issue: nil)
+        } catch {
+            return Loaded(value: nil, issue: "calibration.json: \(error)")
+        }
+    }
+
+    public func save(_ calibration: Calibration) throws {
+        try write(calibration, to: calibrationURL)
+    }
+
+    /// The bezel thumbnail saved with the calibration.
+    public func reference() -> GrayImage? {
+        guard let data = FileManager.default.contents(atPath: referenceURL.path) else { return nil }
+        return try? GrayImage(pgm: [UInt8](data))
+    }
+
+    public func save(reference: GrayImage) throws {
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try Data(reference.pgm).write(to: referenceURL, options: .atomic)
     }
 
     public func save(_ table: CharacterTable) throws {

@@ -81,4 +81,23 @@ import Testing
         try Data([0xFF, 0xFE, 0x00]).write(to: root.appendingPathComponent("known-words.json"))
         #expect(store.knownWords().issue != nil)
     }
+
+    @Test func missingCalibrationIsNil() {
+        #expect(store.calibration().value == nil)
+        #expect(store.reference() == nil)
+    }
+
+    @Test func calibrationRoundTrips() throws {
+        let calibration = Calibration(
+            deviceID: "iphone-1", deviceName: "iPhone de Kyle", screenQuad: rect(10, 20, 1600, 900), zoomFactor: 1,
+            referenceThumbnail: "reference.pgm", calibratedAt: "2026-10-26T12:00:00-07:00")
+        try store.save(calibration)
+        #expect(store.calibration().value == calibration)
+    }
+
+    @Test func referenceRoundTrips() throws {
+        let image = GrayImage(width: 128, height: 72, fill: 77)
+        try store.save(reference: image)
+        #expect(store.reference() == image)
+    }
 }
