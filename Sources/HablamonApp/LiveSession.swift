@@ -235,9 +235,8 @@
                 try? await Replay.forEachFrame(in: video, every: 0.5) { image, t in
                     if frame == nil, t >= time { frame = image }
                 }
-                guard let image = frame else { return }
+                guard let image = frame, let profile = try? BundledData.profile("scarlet") else { return }
                 let context = CIContext()
-                let profile = try BundledData.profile("scarlet")
                 let candidates = (try? RectangleFinder().candidates(in: image)) ?? []
                 let proposal = QuadPicker.pick(
                     candidates, near: nil, frameArea: Double(image.extent.width * image.extent.height))
