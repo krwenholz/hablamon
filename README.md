@@ -6,7 +6,9 @@ Live Spanish audio for Pokémon Scarlet. Hablamon is a native macOS app that wat
 
 ## Install on your Mac
 
-You need macOS 14+ on Apple Silicon, Xcode or the Command Line Tools (`xcode-select --install`), [mise](https://mise.jdx.dev) (`brew install mise`), and an iPhone signed in to the same Apple Account with Continuity Camera on.
+You need macOS 14+ on Apple Silicon, Xcode or the Command Line Tools (`xcode-select --install`), [mise](https://mise.jdx.dev) (`brew install mise`), and an iPhone signed in to the same Apple Account.
+
+**Turn on Continuity Camera on the iPhone first:** Settings › General › AirPlay & Continuity › Continuity Camera. It can be off by default, and without it the Mac never sees the phone.
 
 ```sh
 git clone git@github.com:krwenholz/hablamon.git ~/Source/hablamon
@@ -56,7 +58,7 @@ A recording plays in real time as if it were the camera; its calibration is read
 
 ## Troubleshooting
 
-- **Stuck on "Esperando el iPhone…":** unlock and relock the phone, check it's on the same Wi-Fi and Apple Account with Bluetooth on, and look in the latest log for the cameras it saw.
+- **Stuck on "Esperando el iPhone…":** check the phone shows up in Photo Booth's Camera menu. If it doesn't, the Mac can't see it at all: turn on Continuity Camera on the iPhone (Settings › General › AirPlay & Continuity), use the same Apple Account with Wi-Fi and Bluetooth on, and lock the phone and hold it still. A USB cable also works. The log's `cameras:` line lists what the app sees.
 - **No camera prompt, or access denied:** System Settings › Privacy & Security › Camera › turn on Hablamon. Reinstalling keeps the permission because the app's identifier doesn't change.
 - **Text isn't read when the scene is bright:** note the time and send the log; exposure handling is still being tuned.
 - **Hotkeys don't respond:** the log's `hotkeys registered` line lists any that another app has taken, and every press is logged. Hotkeys follow your keyboard layout (Dvorak included); while any app has secure keyboard input on (a password field, some terminals), macOS doesn't deliver them.
