@@ -10,7 +10,7 @@
         var spokenUTF16: Int
         var pill: StatusPill
         var english: Bool
-        var hotkeys: (repeatLine: String, slow: String)
+        var keys: (repeatLine: String, slow: String)
 
         var body: some View {
             ZStack(alignment: .topLeading) {
@@ -22,8 +22,8 @@
                 HStack(spacing: 8) {
                     Spacer()
                     if pill == .speaking { Badge(text: "▶ " + text(LabelKey.speaking, english: english), filled: true) }
-                    Badge(text: "↻ \(hotkeys.repeatLine)", filled: false)
-                    Badge(text: "\(text(.slow, english: english)) \(hotkeys.slow)", filled: false)
+                    Badge(text: "↻ \(keys.repeatLine)", filled: false)
+                    Badge(text: "\(text(.slow, english: english)) \(keys.slow)", filled: false)
                 }
                 .padding(.trailing, 16)
             }

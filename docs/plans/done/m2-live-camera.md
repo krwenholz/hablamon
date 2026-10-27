@@ -37,7 +37,7 @@ Fed a fixture video as if it were the camera, the live engine reads the lines in
 - [ ] Pick up the phone mid-conversation: a soft tick, speech stops; put it back: a pop and a "Móvil en uso · N s" note.
 - [ ] Nudge the phone: it re-finds the TV without asking. Move it a lot: after 10 s, a chime and the calibration panel.
 - [ ] Is the dialogue box readable when the scene is bright? If not, exposure needs a different approach.
-- [ ] Hotkeys work with another app focused (⌥⌘R, ⌥⇧⌘R, ⌥⌘S, ⌥⌘P, ⌥⌘C, hold ⌥⌘E).
+- [ ] Keys work with Hablamon in front (R, ⇧R, S, Space, C, hold E). Global ⌥⌘ hotkeys were dropped on Oct 27: Kyle keeps the app in front, and modifier hotkeys could clash with other apps.
 - Logs are in `~/Library/Application Support/Hablamon/logs/` if anything goes wrong.
 
 ## Leftovers

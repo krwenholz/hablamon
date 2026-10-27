@@ -18,9 +18,7 @@
                     page: model.state.current, waiting: model.liveStatus, spokenUTF16: model.state.spokenUTF16,
                     pill: model.state.pill,
                     english: model.english,
-                    hotkeys: (
-                        HotkeyText.symbols(model.hotkeys.repeatLast), HotkeyText.symbols(model.hotkeys.repeatLastSlowly)
-                    ))
+                    keys: (KeyMap.label(model.keys.repeatLast), KeyMap.label(model.keys.repeatLastSlowly)))
                 HStack(spacing: 22) {
                     ConversationPanel(
                         items: model.state.conversation, lineCount: model.state.lineCount, english: model.english
@@ -29,7 +27,7 @@
                 }
                 StatusStrip(
                     state: model.state, english: model.english, voiceSummary: model.voiceSummary,
-                    hotkeys: (model.hotkeys.togglePause, model.hotkeys.recalibrate),
+                    keys: (model.keys.togglePause, model.keys.recalibrate),
                     onSpeakers: { model.side = side == .speakers ? .words : .speakers },
                     onDiagnostics: { model.side = side == .diagnostics ? .words : .diagnostics })
             }

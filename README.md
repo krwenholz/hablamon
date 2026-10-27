@@ -30,16 +30,16 @@ To update later: `mise run update` pulls the latest main, reinstalls, and relaun
 
 Picking up the phone is fine: speech stops with a soft tick, and when the phone is back in place a pop means it's watching again. If it can't find the TV after 10 s it chimes and shows the corners again.
 
-**Hotkeys** (work with any app focused):
+**Keys** (while Hablamon is in front; they follow your keyboard layout and can be changed in `settings.json`):
 
-| Keys | Does |
+| Key | Does |
 | --- | --- |
-| ⌥⌘R | Repeat the last line |
-| ⌥⇧⌘R | Repeat it slowly |
-| ⌥⌘S | Switch between slow (0.85×) and normal speed |
-| ⌥⌘P | Pause or resume speech |
-| ⌥⌘C | Recalibrate (show the corners) |
-| Hold ⌥⌘E | Show labels in English |
+| R | Repeat the last line |
+| ⇧R | Repeat it slowly |
+| S | Switch between slow (0.85×) and normal speed |
+| Space | Pause or resume speech |
+| C | Recalibrate (show the corners) |
+| Hold E | Show labels in English |
 
 Click a line to hear it again. "N voces sin asignar" in the bottom strip opens the speakers nobody has tagged yet; pick a voice for each, or edit `characters.json` by hand. "Diagnóstico" shows the data folder and any file problems.
 
@@ -61,7 +61,7 @@ A recording plays in real time as if it were the camera; its calibration is read
 - **Stuck on "Esperando el iPhone…":** check the phone shows up in Photo Booth's Camera menu. If it doesn't, the Mac can't see it at all: turn on Continuity Camera on the iPhone (Settings › General › AirPlay & Continuity), use the same Apple Account with Wi-Fi and Bluetooth on, and lock the phone and hold it still. A USB cable also works. The log's `cameras:` line lists what the app sees.
 - **No camera prompt, or access denied:** System Settings › Privacy & Security › Camera › turn on Hablamon. Reinstalling keeps the permission because the app's identifier doesn't change.
 - **Text isn't read when the scene is bright:** note the time and send the log; exposure handling is still being tuned.
-- **Hotkeys don't respond:** the log's `hotkeys registered` line lists any that another app has taken, and every press is logged. Hotkeys follow your keyboard layout (Dvorak included); while any app has secure keyboard input on (a password field, some terminals), macOS doesn't deliver them.
+- **Keys don't respond:** click the Hablamon window first; keys only work while it's the front app. Every handled key is logged.
 
 ## Development
 

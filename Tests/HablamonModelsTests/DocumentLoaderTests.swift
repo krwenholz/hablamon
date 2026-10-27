@@ -51,12 +51,25 @@ import Testing
         #expect(table.schemaURI == "schemas/characters.schema.json")
     }
 
-    @Test func rejectsBadHotkey() {
+    @Test func rejectsModifierKeys() {
         var settings = Settings.defaults
-        settings.hotkeys.repeatLast = "cmd+r"
+        settings.keys.repeatLast = "cmd+r"
         #expect(throws: DocumentError.self) {
             try DocumentLoader.load(Settings.self, from: try encode(settings))
         }
+    }
+
+    @Test func migratesVersionOneHotkeysToPlainKeys() throws {
+        let v1 = #"""
+            {"schemaVersion": 1, "engine": "apple", "speed": 0.9, "idleSampleInterval": 2, "dialogueSampleRate": 4,
+             "speakBattleText": false, "allowBuiltInCamera": false,
+             "hotkeys": {"repeatLast": "opt+cmd+R", "repeatLastSlowly": "opt+shift+cmd+R", "toggleSpeed": "opt+cmd+S",
+                         "togglePause": "opt+cmd+P", "recalibrate": "opt+cmd+C", "holdForEnglish": "opt+cmd+E"}}
+            """#
+        let settings = try DocumentLoader.load(Settings.self, from: v1)
+        #expect(settings.schemaVersion == 2)
+        #expect(settings.keys == Keys.defaults)
+        #expect(settings.speed == 0.9, "other settings survive")
     }
 }
 

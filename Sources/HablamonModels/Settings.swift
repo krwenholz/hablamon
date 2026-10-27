@@ -1,10 +1,11 @@
+import JSONSchema
 import JSONSchemaBuilder
 
 /// `settings.json`: user preferences.
 @Schemable
 @ObjectOptions(.additionalProperties(false))
 public struct Settings: VersionedDocument, Equatable {
-    public static let currentVersion = 1
+    public static let currentVersion = 2
     public static let schemaName = "settings"
 
     public var schemaURI: String?
@@ -22,12 +23,28 @@ public struct Settings: VersionedDocument, Equatable {
     public var speakBattleText: Bool
     /// The built-in camera faces the player, so it is only allowed when chosen explicitly.
     public var allowBuiltInCamera: Bool
-    public var hotkeys: Hotkeys
+    public var keys: Keys
 
     enum CodingKeys: String, CodingKey {
         case schemaURI = "$schema"
         case schemaVersion, engine, speed, idleSampleInterval, dialogueSampleRate
-        case speakBattleText, allowBuiltInCamera, hotkeys
+        case speakBattleText, allowBuiltInCamera, keys
+    }
+
+    /// Version 1 had global ⌥⌘ hotkeys; version 2 has plain keys that work while the app is in front.
+    public static func migrate(_ json: JSONValue, from version: Int) throws(DocumentError) -> JSONValue {
+        guard version == 1, case .object(var object) = json else { throw .noMigration(from: version) }
+        object.removeValue(forKey: "hotkeys")
+        object["keys"] = .object([
+            "repeatLast": .string(Keys.defaults.repeatLast),
+            "repeatLastSlowly": .string(Keys.defaults.repeatLastSlowly),
+            "toggleSpeed": .string(Keys.defaults.toggleSpeed),
+            "togglePause": .string(Keys.defaults.togglePause),
+            "recalibrate": .string(Keys.defaults.recalibrate),
+            "holdForEnglish": .string(Keys.defaults.holdForEnglish),
+        ])
+        object["schemaVersion"] = .numberLiteral(JSONNumberLiteral(2))
+        return .object(object)
     }
 
     public static let defaults = Settings(
@@ -39,7 +56,7 @@ public struct Settings: VersionedDocument, Equatable {
         dialogueSampleRate: 4,
         speakBattleText: false,
         allowBuiltInCamera: false,
-        hotkeys: .defaults
+        keys: .defaults
     )
 
     public init(
@@ -51,7 +68,7 @@ public struct Settings: VersionedDocument, Equatable {
         dialogueSampleRate: Double,
         speakBattleText: Bool,
         allowBuiltInCamera: Bool,
-        hotkeys: Hotkeys
+        keys: Keys
     ) {
         self.schemaURI = schemaURI
         self.schemaVersion = schemaVersion
@@ -61,7 +78,7 @@ public struct Settings: VersionedDocument, Equatable {
         self.dialogueSampleRate = dialogueSampleRate
         self.speakBattleText = speakBattleText
         self.allowBuiltInCamera = allowBuiltInCamera
-        self.hotkeys = hotkeys
+        self.keys = keys
     }
 }
 
@@ -72,33 +89,34 @@ public enum SpeechEngineID: String, Codable, Sendable, CaseIterable {
     case kokoro
 }
 
-/// Global hotkeys, written as modifiers and a key joined by `+`, such as `opt+cmd+R`.
+/// Keys that work while Hablamon is the front app: a letter, digit, or `space`, optionally with
+/// `shift+`. No ⌘ or ⌥, so they never clash with other apps' shortcuts.
 @Schemable
 @ObjectOptions(.additionalProperties(false))
-public struct Hotkeys: Codable, Sendable, Equatable {
-    @StringOptions(.pattern(Hotkeys.pattern))
+public struct Keys: Codable, Sendable, Equatable {
+    @StringOptions(.pattern(Keys.pattern))
     public var repeatLast: String
-    @StringOptions(.pattern(Hotkeys.pattern))
+    @StringOptions(.pattern(Keys.pattern))
     public var repeatLastSlowly: String
-    @StringOptions(.pattern(Hotkeys.pattern))
+    @StringOptions(.pattern(Keys.pattern))
     public var toggleSpeed: String
-    @StringOptions(.pattern(Hotkeys.pattern))
+    @StringOptions(.pattern(Keys.pattern))
     public var togglePause: String
-    @StringOptions(.pattern(Hotkeys.pattern))
+    @StringOptions(.pattern(Keys.pattern))
     public var recalibrate: String
     /// Held down, shows the labels in English.
-    @StringOptions(.pattern(Hotkeys.pattern))
+    @StringOptions(.pattern(Keys.pattern))
     public var holdForEnglish: String
 
-    public static let pattern = "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+    public static let pattern = "^(shift\\+)?([a-z0-9]|space)$"
 
-    public static let defaults = Hotkeys(
-        repeatLast: "opt+cmd+R",
-        repeatLastSlowly: "opt+shift+cmd+R",
-        toggleSpeed: "opt+cmd+S",
-        togglePause: "opt+cmd+P",
-        recalibrate: "opt+cmd+C",
-        holdForEnglish: "opt+cmd+E"
+    public static let defaults = Keys(
+        repeatLast: "r",
+        repeatLastSlowly: "shift+r",
+        toggleSpeed: "s",
+        togglePause: "space",
+        recalibrate: "c",
+        holdForEnglish: "e"
     )
 
     public init(

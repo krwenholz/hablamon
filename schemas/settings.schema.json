@@ -10,7 +10,7 @@
     "dialogueSampleRate",
     "speakBattleText",
     "allowBuiltInCamera",
-    "hotkeys"
+    "keys"
   ],
   "properties" : {
     "$schema" : {
@@ -55,7 +55,7 @@
       "type" : "boolean",
       "description" : "The built-in camera faces the player, so it is only allowed when chosen explicitly."
     },
-    "hotkeys" : {
+    "keys" : {
       "type" : "object",
       "required" : [
         "repeatLast",
@@ -68,27 +68,27 @@
       "properties" : {
         "repeatLast" : {
           "type" : "string",
-          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$"
         },
         "repeatLastSlowly" : {
           "type" : "string",
-          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$"
         },
         "toggleSpeed" : {
           "type" : "string",
-          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$"
         },
         "togglePause" : {
           "type" : "string",
-          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$"
         },
         "recalibrate" : {
           "type" : "string",
-          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$"
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$"
         },
         "holdForEnglish" : {
           "type" : "string",
-          "pattern" : "^((ctrl|opt|shift|cmd)\\+)+[A-Z0-9]$",
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$",
           "description" : "Held down, shows the labels in English."
         }
       },

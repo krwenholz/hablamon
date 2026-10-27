@@ -97,7 +97,7 @@
         }
 
         @MainActor private func start() async {
-            model.registerHotkeys()
+            model.installKeyHandler()
             if !options.windowed, let window = NSApp.windows.first, !window.styleMask.contains(.fullScreen) {
                 window.toggleFullScreen(nil)
             }

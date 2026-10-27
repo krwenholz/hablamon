@@ -140,7 +140,9 @@ import Testing
         }
     }
 
-    @Test func settingsDefaultsIncludeHoldForEnglish() {
-        #expect(Settings.defaults.hotkeys.holdForEnglish == "opt+cmd+E")
+    @Test func defaultKeysArePlain() {
+        let keys = Settings.defaults.keys
+        #expect([keys.repeatLast, keys.repeatLastSlowly, keys.toggleSpeed] == ["r", "shift+r", "s"])
+        #expect([keys.togglePause, keys.recalibrate, keys.holdForEnglish] == ["space", "c", "e"])
     }
 }

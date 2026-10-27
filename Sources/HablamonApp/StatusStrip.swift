@@ -2,12 +2,12 @@
     import HablamonCore
     import SwiftUI
 
-    /// The bottom strip: state, the five pipeline lights, voice, and hotkey hints.
+    /// The bottom strip: state, the five pipeline lights, voice, and key hints.
     struct StatusStrip: View {
         var state: CompanionState
         var english: Bool
         var voiceSummary: String
-        var hotkeys: (pause: String, recalibrate: String)
+        var keys: (pause: String, recalibrate: String)
         var onSpeakers: () -> Void
         var onDiagnostics: () -> Void
 
@@ -37,8 +37,8 @@
                     Text(text(.diagnostics, english: english)).foregroundStyle(Color(hex: 0x9A98A8))
                 }
                 .buttonStyle(.plain)
-                hint(.pause, hotkeys.pause)
-                hint(.recalibrate, hotkeys.recalibrate)
+                hint(.pause, keys.pause)
+                hint(.recalibrate, keys.recalibrate)
             }
             .font(Theme.menu(13, heavy: false))
             .padding(.horizontal, 10)
@@ -57,23 +57,8 @@
         private func hint(_ label: LabelKey, _ key: String) -> some View {
             HStack(spacing: 4) {
                 Text(text(label, english: english)).foregroundStyle(Color(hex: 0x9A98A8))
-                Text(HotkeyText.symbols(key)).foregroundStyle(.white)
+                Text(KeyMap.label(key)).foregroundStyle(.white)
             }
-        }
-    }
-
-    enum HotkeyText {
-        /// `opt+shift+cmd+R` → `⌥⇧⌘R`.
-        static func symbols(_ hotkey: String) -> String {
-            hotkey.split(separator: "+").map { part in
-                switch part {
-                case "ctrl": "⌃"
-                case "opt": "⌥"
-                case "shift": "⇧"
-                case "cmd": "⌘"
-                default: String(part)
-                }
-            }.joined()
         }
     }
 #endif

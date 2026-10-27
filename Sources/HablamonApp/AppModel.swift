@@ -10,7 +10,7 @@
     final class AppModel {
         var state = CompanionState()
         var words: [VocabEntry] = []
-        /// Labels in English while the hotkey is held.
+        /// Labels in English while the English key is held.
         var english = false
         /// Problems loading files, shown in diagnostics.
         var issues: [String] = []
@@ -41,6 +41,7 @@
         @ObservationIgnored var log: FileLog?
         @ObservationIgnored var sessionStart = Date()
         @ObservationIgnored var live: LiveSession?
+        @ObservationIgnored var keyMonitor: Any?
         /// Bumped per spoken line so late progress callbacks from an old line are ignored.
         @ObservationIgnored private var generation = 0
 
@@ -65,7 +66,7 @@
         }
 
         var voiceSummary: String { "Apple · \(String(format: "%.2g", settings.speed))×" }
-        var hotkeys: Hotkeys { settings.hotkeys }
+        var keys: Keys { settings.keys }
 
         // MARK: Replay
 
