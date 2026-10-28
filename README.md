@@ -87,3 +87,7 @@ swift run HablamonApp --replay Tests/Fixtures/videos/classroom_far.mp4 --windowe
 ```
 
 `HablamonApp` also takes `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
+
+## Notes
+
+Hablamon is a personal fan project for language practice. It isn't affiliated with or endorsed by Nintendo, Game Freak, Creatures, or The Pokémon Company; Pokémon and the Poké Ball are their trademarks. The test fixtures are short photos and recordings of the game played on the author's own TV. The bundled Spanish–English glossary is adapted from Wiktionary under [CC BY-SA 4.0](Sources/HablamonCore/Resources/dictionary/README.md).
