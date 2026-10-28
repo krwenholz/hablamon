@@ -35,8 +35,10 @@ Swift 6 on macOS with SwiftPM, using Apple frameworks only: AVFoundation (camera
 | M2: live Continuity Camera | Built and unit-tested; awaiting a play test with the iPhone | [done/m2-live-camera.md](done/m2-live-camera.md) |
 | M3: disruption handling | Wired to the live camera; awaiting the play test | [done/m2-live-camera.md](done/m2-live-camera.md) |
 | M4: characters and companion UI | Window, calibration panel, and recovery built | [done/m4-companion-window.md](done/m4-companion-window.md) |
-| Spike B: Qwen3-TTS on the Air | Not started | This doc |
-| M5: second speech engine | Not started | This doc |
+| Spike B: better voices | Run on the Mac Studio; samples waiting on Kyle's ears | [voices.md](voices.md) |
+| M5: second speech engine | Planned, route depends on Spike B | [voices.md](voices.md) |
+| Translation and focused window | Built (Oct 27): line + English + key words; recap behind H | [README](../../README.md) |
+| Whole-screen translation | Spec only | [spec-screen-translation.md](spec-screen-translation.md) |
 
 Built so far: the full pipeline from frame to transcript (perspective correction, box detection, settle, OCR, scroll-aware page sequencing, speaker matching, voice choice, Apple speech, JSONL transcript), the data-file types and schemas, the Scarlet profile and character table, `hablamon run --replay`, `ocr`, `export`, and `schema export`, and macOS CI. The [M1 record](done/m1-offline-replay.md) lists what lives where and how it differs from the first design.
 
