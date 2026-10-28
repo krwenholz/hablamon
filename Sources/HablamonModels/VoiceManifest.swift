@@ -31,16 +31,20 @@ public struct DesignedVoice: Codable, Sendable, Equatable {
     public var prompt: String
     @StringOptions(.format("date-time"))
     public var createdAt: String
+    /// What the clip says, for cloning that uses the transcript. Optional so older manifests load.
+    public var referenceText: String?
 
     public init(
         engine: SpeechEngineID,
         referenceClip: String,
         prompt: String,
-        createdAt: String
+        createdAt: String,
+        referenceText: String? = nil
     ) {
         self.engine = engine
         self.referenceClip = referenceClip
         self.prompt = prompt
         self.createdAt = createdAt
+        self.referenceText = referenceText
     }
 }

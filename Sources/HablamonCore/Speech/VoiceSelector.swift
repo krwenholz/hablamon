@@ -14,6 +14,8 @@ public struct VoicePlan: Equatable, Sendable {
     public var voiceIdentifier: String?
     public var pitch: Double
     public var rate: Double
+    /// The designed voice clip to clone (a `voices/manifest.json` key), for engines that clone.
+    public var clip: String? = nil
 
     /// Short form for the transcript's `voice` field, e.g. `es-ES female p1.12 r1.00`.
     public var summary: String {
@@ -34,15 +36,46 @@ public struct VoicePlan: Equatable, Sendable {
 public struct VoiceSelector: Sendable {
     /// Maximum pitch nudge either way for characters without an explicit pitch.
     public var spread: Double
+    /// Names of the designed voice clips available; empty when no cloning engine is in use.
+    public var clips: Set<String>
     /// Base pitch for neutral and unknown speakers. Apple's es-ES voices are male or female,
     /// so "neutral" is a slightly lowered female voice.
     public static let neutralPitch = 0.92
 
-    public init(spread: Double = 0.08) {
+    public init(spread: Double = 0.08, clips: Set<String> = []) {
         self.spread = spread
+        self.clips = clips
+    }
+
+    /// The character's own clip if it has one, otherwise a generic voice of the same gender and age.
+    func clip(name: String?, gender: Gender, age: AgeGroup?) -> String? {
+        if let name, clips.contains(name) { return name }
+        let generic: String =
+            switch (gender, age) {
+            case (_, .child?): "generic-child"
+            case (.female, .teen?): "generic-girl"
+            case (.male, .teen?): "generic-boy"
+            case (.female, .elder?): "generic-older-woman"
+            case (.male, .elder?): "generic-older-man"
+            case (.female, _): "generic-woman"
+            case (.male, _): "generic-man"
+            case (.neutral, _), (.unknown, _): "generic-neutral"
+            }
+        return clips.contains(generic) ? generic : nil
     }
 
     public func plan(for speaker: ResolvedSpeaker) -> VoicePlan {
+        var plan = basePlan(for: speaker)
+        plan.clip =
+            switch speaker {
+            case .narrator: clips.contains("narrator") ? "narrator" : clip(name: nil, gender: .female, age: .adult)
+            case .known(let name, let character): clip(name: name, gender: character.gender, age: character.ageGroup)
+            case .unknown: clip(name: nil, gender: .neutral, age: nil)
+            }
+        return plan
+    }
+
+    private func basePlan(for speaker: ResolvedSpeaker) -> VoicePlan {
         switch speaker {
         case .narrator:
             return VoicePlan(register: .female, voiceIdentifier: nil, pitch: 1.0, rate: 1.0)

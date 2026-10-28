@@ -130,6 +130,15 @@ import Testing
         )
     }
 
+    @Test func designedVoiceKeepsReferenceText() throws {
+        try roundTrip(
+            VoiceManifest(voices: [
+                "Clavel": DesignedVoice(
+                    engine: .qwen3, referenceClip: "voices/clavel.m4a", prompt: "An adult man",
+                    createdAt: "2026-10-28T04:00:00Z", referenceText: "¡Hola!")
+            ]))
+    }
+
     @Test func knownWords() throws {
         try roundTrip(KnownWords(schemaURI: "hablamon:known-words", lemmas: ["travesía", "vestíbulo"]))
     }

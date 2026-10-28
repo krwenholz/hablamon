@@ -74,4 +74,34 @@ import Testing
         #expect(plan.register == .female)
         #expect(abs(plan.pitch - VoiceSelector.neutralPitch) <= selector.spread + 0.005)
     }
+
+    @Test func designedCharactersUseTheirOwnClip() {
+        let selector = VoiceSelector(clips: ["Clavel", "narrator", "generic-man"])
+        #expect(selector.plan(for: resolver.resolve(tag: "Clavel")).clip == "Clavel")
+        #expect(selector.plan(for: .narrator).clip == "narrator")
+    }
+
+    @Test func othersUseAGenericClipByGenderAndAge() {
+        let clips: Set<String> = [
+            "generic-woman", "generic-man", "generic-girl", "generic-boy", "generic-older-woman",
+            "generic-older-man", "generic-child", "generic-neutral",
+        ]
+        let selector = VoiceSelector(clips: clips)
+        func clip(_ gender: Gender, _ age: AgeGroup?) -> String? {
+            selector.plan(for: .known(name: "Someone", speaker: Speaker(gender: gender, ageGroup: age))).clip
+        }
+        #expect(clip(.male, .adult) == "generic-man")
+        #expect(clip(.female, nil) == "generic-woman")
+        #expect(clip(.female, .teen) == "generic-girl")
+        #expect(clip(.male, .teen) == "generic-boy")
+        #expect(clip(.female, .elder) == "generic-older-woman")
+        #expect(clip(.male, .elder) == "generic-older-man")
+        #expect(clip(.male, .child) == "generic-child")
+        #expect(clip(.neutral, .adult) == "generic-neutral")
+        #expect(selector.plan(for: .unknown(tag: "Recluta")).clip == "generic-neutral")
+    }
+
+    @Test func noClipsMeansNoClip() {
+        #expect(VoiceSelector().plan(for: resolver.resolve(tag: "Clavel")).clip == nil)
+    }
 }

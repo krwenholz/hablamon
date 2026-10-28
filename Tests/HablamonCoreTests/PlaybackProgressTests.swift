@@ -1,0 +1,30 @@
+import Testing
+
+@testable import HablamonCore
+
+@Suite struct PlaybackProgressTests {
+    let text = "Hola, Miguel. ¿Qué tal?"
+
+    @Test func startAndEnd() {
+        #expect(PlaybackProgress.offset(fraction: 0, in: text) == 0)
+        #expect(PlaybackProgress.offset(fraction: 1, in: text) == text.utf16.count)
+        #expect(PlaybackProgress.offset(fraction: 1.4, in: text) == text.utf16.count)
+    }
+
+    @Test func snapsToTheStartOfTheCurrentWord() {
+        // Halfway lands inside "Miguel." or the following space; the offset is a word start.
+        let offset = PlaybackProgress.offset(fraction: 0.5, in: text)
+        let starts = [0, 6, 14, 19]  // "Hola,", "Miguel.", "¿Qué", "tal?"
+        #expect(starts.contains(offset))
+        #expect(offset > 0 && offset < text.utf16.count)
+    }
+
+    @Test func neverGoesBackwardsAsPlaybackAdvances() {
+        var last = 0
+        for step in 0...20 {
+            let offset = PlaybackProgress.offset(fraction: Double(step) / 20, in: text)
+            #expect(offset >= last)
+            last = offset
+        }
+    }
+}

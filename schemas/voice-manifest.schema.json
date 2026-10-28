@@ -41,6 +41,13 @@
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "referenceText" : {
+            "type" : [
+              "string",
+              "null"
+            ],
+            "description" : "What the clip says, for cloning that uses the transcript. Optional so older manifests load."
           }
         },
         "additionalProperties" : false
