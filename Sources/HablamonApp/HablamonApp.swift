@@ -6,6 +6,7 @@
 
     /// Launch options, read from the command line:
     /// `--replay <video> [--calibration <file>]` plays a recording as if live;
+    /// `--camera mac` watches through the Mac's own camera instead of the iPhone;
     /// `--windowed` skips full screen; `--mute` starts with speech paused; `--root <dir>` uses another
     /// data folder instead of Application Support; `--panel speakers|diagnostics` opens that panel;
     /// `--snapshot <png> --after <seconds>` saves the window and quits.
@@ -14,6 +15,7 @@
         var calibration: URL?
         var windowed = false
         var mute = false
+        var camera: CameraSource = .iphone
         var root: URL?
         var panel: SidePanel = .words
         var snapshot: URL?
@@ -27,6 +29,7 @@
                 case "--calibration": calibration = iterator.next().map { URL(fileURLWithPath: $0) }
                 case "--windowed": windowed = true
                 case "--mute": mute = true
+                case "--camera": camera = iterator.next().flatMap(CameraSource.init(rawValue:)) ?? camera
                 case "--root": root = iterator.next().map { URL(fileURLWithPath: $0, isDirectory: true) }
                 case "--panel": panel = iterator.next().flatMap(SidePanel.init(rawValue:)) ?? panel
                 case "--snapshot": snapshot = iterator.next().map { URL(fileURLWithPath: $0) }
@@ -77,6 +80,11 @@
                 Button(model.paused ? "Reanudar" : "Pausa") { model.togglePause() }
                 Button("Abrir ventana") { NSApp.activate(ignoringOtherApps: true) }
                 Button(text(.recalibrate, english: false)) { model.recalibrate() }
+                if model.source != nil || model.liveStatus != nil {
+                    Button(model.cameraSource == .iphone ? "Usar la cámara del Mac" : "Usar el iPhone") {
+                        model.useCamera(model.cameraSource == .iphone ? .mac : .iphone)
+                    }
+                }
                 if !model.state.unknownSpeakers.isEmpty {
                     Button(unassignedVoices(model.state.unknownSpeakers.count, english: false)) {
                         model.side = .speakers
@@ -111,6 +119,7 @@
                         video: video, calibration: options.calibration ?? LaunchOptions.calibration(besides: video))
                 }
             } else {
+                model.cameraSource = options.camera
                 model.startLive()
             }
             if let snapshot = options.snapshot {

@@ -10,7 +10,7 @@ public enum LabelKey: CaseIterable, Sendable {
     case diagnostics
     case gapPaused, gapLost, gapScreen
     case glossHint
-    case calibration, useCorners, waitingForPhone, cameraDenied, dragCorners
+    case calibration, useCorners, waitingForPhone, waitingForMacCamera, cameraDenied, dragCorners
 }
 
 public func text(_ label: LabelKey, english: Bool) -> String {
@@ -51,6 +51,7 @@ public func text(_ label: LabelKey, english: Bool) -> String {
                 "Esperando el iPhone… Bloquéalo y colócalo en horizontal, quieto y cerca del Mac.",
                 "Waiting for the iPhone… Lock it and mount it in landscape, still and near the Mac."
             )
+        case .waitingForMacCamera: ("Esperando la cámara del Mac…", "Waiting for the Mac's camera…")
         case .cameraDenied: ("Sin permiso para la cámara", "No camera permission")
         case .dragCorners: ("Arrastra las esquinas a la pantalla de la tele", "Drag the corners onto the TV screen")
         }

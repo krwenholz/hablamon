@@ -83,21 +83,38 @@ import Testing
     }
 
     @Test func missingCalibrationIsNil() {
-        #expect(store.calibration().value == nil)
-        #expect(store.reference() == nil)
+        #expect(store.calibration(for: .iphone).value == nil)
+        #expect(store.reference(for: .iphone) == nil)
     }
 
     @Test func calibrationRoundTrips() throws {
         let calibration = Calibration(
             deviceID: "iphone-1", deviceName: "iPhone de Kyle", screenQuad: rect(10, 20, 1600, 900), zoomFactor: 1,
             referenceThumbnail: "reference.pgm", calibratedAt: "2026-10-26T12:00:00-07:00")
-        try store.save(calibration)
-        #expect(store.calibration().value == calibration)
+        try store.save(calibration, for: .iphone)
+        #expect(store.calibration(for: .iphone).value == calibration)
     }
 
     @Test func referenceRoundTrips() throws {
         let image = GrayImage(width: 128, height: 72, fill: 77)
-        try store.save(reference: image)
-        #expect(store.reference() == image)
+        try store.save(reference: image, for: .iphone)
+        #expect(store.reference(for: .iphone) == image)
+    }
+
+    @Test func macCameraHasItsOwnCalibration() throws {
+        let iphone = Calibration(
+            deviceID: "iphone-1", screenQuad: rect(10, 20, 1600, 900), zoomFactor: 1,
+            referenceThumbnail: "reference.pgm", calibratedAt: "2026-10-26T12:00:00-07:00")
+        let mac = Calibration(
+            deviceID: "facetime", screenQuad: rect(300, 200, 600, 340), zoomFactor: 1,
+            referenceThumbnail: "reference-mac.pgm", calibratedAt: "2026-10-27T12:00:00-07:00")
+        try store.save(iphone, for: .iphone)
+        try store.save(mac, for: .mac)
+        try store.save(reference: GrayImage(width: 128, height: 72, fill: 1), for: .iphone)
+        try store.save(reference: GrayImage(width: 128, height: 72, fill: 2), for: .mac)
+        #expect(store.calibration(for: .iphone).value == iphone)
+        #expect(store.calibration(for: .mac).value == mac)
+        #expect(store.reference(for: .mac)?.pixels.first == 2)
+        #expect(store.reference(for: .iphone)?.pixels.first == 1)
     }
 }

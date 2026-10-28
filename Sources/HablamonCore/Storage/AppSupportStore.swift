@@ -28,8 +28,14 @@ public struct AppSupportStore: Sendable {
     var charactersURL: URL { root.appendingPathComponent("characters.json") }
     var settingsURL: URL { root.appendingPathComponent("settings.json") }
     var knownWordsURL: URL { root.appendingPathComponent("known-words.json") }
-    var calibrationURL: URL { root.appendingPathComponent("calibration.json") }
-    var referenceURL: URL { root.appendingPathComponent("reference.pgm") }
+    /// Each camera source keeps its own calibration, so trying the Mac camera doesn't undo the iPhone's.
+    func calibrationURL(_ source: CameraSource) -> URL {
+        root.appendingPathComponent(source == .iphone ? "calibration.json" : "calibration-mac.json")
+    }
+
+    func referenceURL(_ source: CameraSource) -> URL {
+        root.appendingPathComponent(source == .iphone ? "reference.pgm" : "reference-mac.pgm")
+    }
 
     /// Writes `characters.json` and `settings.json` from the bundled defaults if they don't exist yet.
     public func seedIfNeeded() throws {
@@ -61,29 +67,30 @@ public struct AppSupportStore: Sendable {
     }
 
     /// The saved calibration, or nil before the first one.
-    public func calibration() -> Loaded<Calibration?> {
-        guard exists(calibrationURL) else { return Loaded(value: nil, issue: nil) }
+    public func calibration(for source: CameraSource) -> Loaded<Calibration?> {
+        let url = calibrationURL(source)
+        guard exists(url) else { return Loaded(value: nil, issue: nil) }
         do {
-            let text = try String(contentsOf: calibrationURL, encoding: .utf8)
+            let text = try String(contentsOf: url, encoding: .utf8)
             return Loaded(value: try DocumentLoader.load(Calibration.self, from: text), issue: nil)
         } catch {
-            return Loaded(value: nil, issue: "calibration.json: \(error)")
+            return Loaded(value: nil, issue: "\(url.lastPathComponent): \(error)")
         }
     }
 
-    public func save(_ calibration: Calibration) throws {
-        try write(calibration, to: calibrationURL)
+    public func save(_ calibration: Calibration, for source: CameraSource) throws {
+        try write(calibration, to: calibrationURL(source))
     }
 
     /// The bezel thumbnail saved with the calibration.
-    public func reference() -> GrayImage? {
-        guard let data = FileManager.default.contents(atPath: referenceURL.path) else { return nil }
+    public func reference(for source: CameraSource) -> GrayImage? {
+        guard let data = FileManager.default.contents(atPath: referenceURL(source).path) else { return nil }
         return try? GrayImage(pgm: [UInt8](data))
     }
 
-    public func save(reference: GrayImage) throws {
+    public func save(reference: GrayImage, for source: CameraSource) throws {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        try Data(reference.pgm).write(to: referenceURL, options: .atomic)
+        try Data(reference.pgm).write(to: referenceURL(source), options: .atomic)
     }
 
     public func save(_ table: CharacterTable) throws {

@@ -26,4 +26,18 @@ import Testing
     @Test func pinnedMissingDoesNotSwitch() {
         #expect(CameraChooser.choose(from: [other, builtIn], pinned: "iphone-1", allowBuiltIn: true) == nil)
     }
+
+    @Test func macModePicksTheBuiltInCamera() {
+        #expect(
+            CameraChooser.choose(from: [iphone, builtIn], source: .mac, pinned: nil, allowBuiltIn: false) == builtIn)
+    }
+
+    @Test func macModeWithoutABuiltInCameraWaits() {
+        #expect(CameraChooser.choose(from: [iphone], source: .mac, pinned: nil, allowBuiltIn: false) == nil)
+    }
+
+    @Test func iphoneModeIsTheDefaultBehavior() {
+        #expect(
+            CameraChooser.choose(from: [builtIn, iphone], source: .iphone, pinned: nil, allowBuiltIn: false) == iphone)
+    }
 }

@@ -47,6 +47,16 @@ Click a line to hear it again. "N voces sin asignar" in the bottom strip opens t
 
 **Better voices:** install an Enhanced or Premium Spanish (Spain) voice in System Settings › Accessibility › Spoken Content › System Voice › Manage Voices. The best installed one is used.
 
+## Use the Mac's camera instead
+
+To try a placement with the Mac's own camera, start it with:
+
+```sh
+open ~/Applications/Hablamon.app --args --camera mac
+```
+
+or switch while it's running from the menu bar icon ("Usar la cámara del Mac" / "Usar el iPhone"). Each camera keeps its own calibration (`calibration-mac.json` and `reference-mac.pgm` for the Mac), so switching back to the iPhone needs no recalibration.
+
 ## Try it without the iPhone
 
 ```sh

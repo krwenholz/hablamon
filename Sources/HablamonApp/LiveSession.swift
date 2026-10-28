@@ -74,7 +74,7 @@
         /// The camera to use, or nil (and a waiting message) if it isn't there yet.
         private func choose() -> CameraInfo? {
             guard let model else { return nil }
-            let pinned = model.store.calibration().value?.deviceID
+            let pinned = model.store.calibration(for: model.cameraSource).value?.deviceID
             let cameras = LiveCamera.available()
             let seen = cameras.map { "\($0.name) [\($0.kind)]" }.joined(separator: ", ")
             if seen != lastSeen {
@@ -82,9 +82,11 @@
                 model.note("cameras: \(seen.isEmpty ? "none" : seen)")
             }
             let choice = CameraChooser.choose(
-                from: cameras, pinned: pinned, allowBuiltIn: model.settings.allowBuiltInCamera)
+                from: cameras, source: model.cameraSource, pinned: pinned,
+                allowBuiltIn: model.settings.allowBuiltInCamera)
             if choice == nil, model.liveStatus == nil {
-                model.liveStatus = text(.waitingForPhone, english: model.english)
+                model.liveStatus = text(
+                    model.cameraSource == .iphone ? .waitingForPhone : .waitingForMacCamera, english: model.english)
                 model.note("waiting for the camera\(pinned.map { " \($0)" } ?? "")")
             }
             return choice
@@ -92,7 +94,7 @@
 
         private func begin(with choice: CameraInfo) {
             guard let model else { return }
-            let calibration = model.store.calibration()
+            let calibration = model.store.calibration(for: model.cameraSource)
             if let issue = calibration.issue { model.issues.append(issue) }
             model.liveStatus = nil
             device = choice
@@ -102,7 +104,7 @@
             let (stream, continuation) = AsyncStream.makeStream(of: LiveEngine.Message.self)
             let engine = LiveEngine(
                 profile: (try? BundledData.profile("scarlet"))!, characters: model.characters,
-                calibration: calibration.value?.screenQuad, reference: model.store.reference(),
+                calibration: calibration.value?.screenQuad, reference: model.store.reference(for: model.cameraSource),
                 settings: model.settings,
                 startingAt: Date(), onMessage: { continuation.yield($0) })
             let previewer = PreviewRenderer { image, scale in
@@ -121,14 +123,15 @@
             } catch {
                 // The phone may have gone away between choosing and starting; keep waiting for it.
                 model.note("camera failed: \(error); waiting again")
-                model.liveStatus = text(.waitingForPhone, english: model.english)
+                model.liveStatus = text(
+                    model.cameraSource == .iphone ? .waitingForPhone : .waitingForMacCamera, english: model.english)
                 start()
                 return
             }
             self.engine = engine
             self.camera = camera
             model.startLiveTranscript()
-            if calibration.value == nil || model.store.reference() == nil {
+            if calibration.value == nil || model.store.reference(for: model.cameraSource) == nil {
                 model.side = .calibration
             }
             setPreviewing(model.side == .calibration)
@@ -206,6 +209,17 @@
         }
 
         /// Watches the TV through the iPhone instead of a recording.
+        /// Switches between the iPhone and the Mac's camera, restarting live mode.
+        func useCamera(_ source: CameraSource) {
+            guard source != cameraSource || live == nil else { return }
+            cameraSource = source
+            note("camera source: \(source.rawValue)")
+            calibrationPreview = nil
+            state = CompanionState()
+            side = .words
+            startLive()
+        }
+
         func startLive() {
             live?.stop()
             let session = LiveSession(model: self)
@@ -248,8 +262,8 @@
                 deviceID: deviceID, deviceName: deviceName, screenQuad: quad, zoomFactor: 1,
                 referenceThumbnail: "reference.pgm", calibratedAt: formatter.string(from: Date()))
             do {
-                try store.save(calibration)
-                try store.save(reference: reference)
+                try store.save(calibration, for: cameraSource)
+                try store.save(reference: reference, for: cameraSource)
                 note("calibrated \(quad)")
             } catch {
                 issues.append("calibration.json: \(error)")

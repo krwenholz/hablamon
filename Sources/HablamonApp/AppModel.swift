@@ -26,6 +26,8 @@
         var calibrationPreview: CalibrationPreview?
         /// Why live mode isn't running yet, such as waiting for the iPhone.
         var liveStatus: String?
+        /// The iPhone normally; the Mac's own camera for trying a placement.
+        var cameraSource: CameraSource = .iphone
 
         @ObservationIgnored let store: AppSupportStore
         @ObservationIgnored var characters: CharacterTable
