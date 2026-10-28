@@ -49,3 +49,20 @@ Either way it goes behind the existing `SpeechEngine` protocol and `Narrator` (A
 3. Is a one-time multi-GB download acceptable for designing character voices?
 
 Sources: [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS), [Qwen3-TTS technical report](https://arxiv.org/html/2601.15621v1), [mlx-audio](https://github.com/Blaizzy/mlx-audio), [speech-swift](https://github.com/soniqo/speech-swift), [Best local TTS for Mac 2026](https://www.promptquorum.com/power-local-llm/best-local-tts-mac), [Best free and local TTS models 2026](https://openvoxai.com/blog/best-free-local-tts-models-2026).
+
+## Kokoro blending (Oct 28)
+
+Kyle asked whether Kokoro's voice blending could make good custom voices if Qwen3 is too slow. Kokoro voices are style vectors and a blend is their average (mlx-audio takes `"a,b,c"`; repeat a voice to weight it). Spanish has only three native voices (ef_dora, em_alex, em_santa), so character variety comes from blending one with non-Spanish voices for timbre while Spanish phonemization keeps the accent.
+
+Six blends of Clavel's long line are in [voice-samples/](voice-samples/) as `kokoro_blend_*.m4a`; Whisper understood all six perfectly, and each took about 0.2 s on the M2 Max (5–8× faster than Qwen3):
+
+| Sample | Blend |
+| --- | --- |
+| `clavel_deep` | em_alex ×2 + am_onyx |
+| `clavel_theatrical` | em_santa + em_alex + bm_george |
+| `mencia_bright` | ef_dora ×2 + af_heart |
+| `mencia_young` | ef_dora + af_sky |
+| `narrator_warm` | ef_dora + bf_emma |
+| `older_man` | em_santa ×2 + bm_lewis |
+
+**Trade-offs against Qwen3:** much faster and lighter (82M parameters, and speech-swift already has a `KokoroTTS` module, so it stays native); but fewer starting voices, so characters sound more alike, and Kokoro's Spanish phonemes come from espeak's Spain Spanish (`es`), so it leans Castilian unless the phonemizer is switched to Latin American (`es-419`, untested). A blend recipe per character could live next to each Qwen clip in the manifest, so switching engines keeps every character's identity.
