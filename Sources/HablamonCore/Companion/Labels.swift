@@ -10,6 +10,7 @@ public enum LabelKey: CaseIterable, Sendable {
     case diagnostics
     case gapPaused, gapLost, gapScreen
     case glossHint
+    case wordsInLine, recap, translationUnavailable
     case calibration, useCorners, waitingForPhone, waitingForMacCamera, cameraDenied, dragCorners
 }
 
@@ -44,6 +45,9 @@ public func text(_ label: LabelKey, english: Bool) -> String {
         case .gapLost: ("Cámara perdida", "Camera lost")
         case .gapScreen: ("Tele perdida", "TV lost")
         case .glossHint: ("Sin significado en el glosario", "No meaning in the glossary")
+        case .wordsInLine: ("Palabras de esta frase", "Words in this line")
+        case .recap: ("Repaso", "Recap")
+        case .translationUnavailable: ("Traducción no disponible", "Translation unavailable")
         case .calibration: ("Calibración", "Calibration")
         case .useCorners: ("Usar estas esquinas", "Use these corners")
         case .waitingForPhone:

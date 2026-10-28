@@ -85,19 +85,37 @@ public struct VocabRanker: Sendable {
         known.insert(lemma.lowercased())
     }
 
+    /// The words worth a card in one line, best first: new to the player, frequent in the game,
+    /// and carrying meaning. Known words, names, and function words are left out.
+    public func keyWords(in line: String, limit: Int = 4) -> [VocabEntry] {
+        var seen = Set<String>()
+        var entries: [VocabEntry] = []
+        for word in Self.contentWords(analyzer.analyze(line), in: line, names: names)
+        where !known.contains(word.lemma) && seen.insert(word.lemma).inserted {
+            entries.append(entry(for: word, in: line))
+        }
+        return Array(
+            entries.enumerated().sorted { a, b in
+                a.element.score != b.element.score ? a.element.score > b.element.score : a.offset < b.offset
+            }.map(\.element).prefix(limit))
+    }
+
+    private func entry(for word: AnalyzedWord, in line: String) -> VocabEntry {
+        let seenBefore = history[word.lemma] != nil
+        let frequency = (history[word.lemma] ?? 0) + (session[word.lemma] ?? 0)
+        let score = (seenBefore ? 0 : 2.0) + log(1 + Double(frequency)) + (Self.classWeights[word.wordClass] ?? 0)
+        return VocabEntry(
+            lemma: word.lemma, surface: word.surface, wordClass: word.wordClass,
+            gloss: glosses.gloss(for: word.lemma, as: word.wordClass), sentence: line, score: score)
+    }
+
     public func top(_ count: Int = 5) -> [VocabEntry] {
         var entries: [String: VocabEntry] = [:]
         var lastSeen: [String: Int] = [:]
         for (index, (line, words)) in recent.enumerated() {
             for word in words where !known.contains(word.lemma) {
-                let seenBefore = history[word.lemma] != nil
-                let frequency = (history[word.lemma] ?? 0) + (session[word.lemma] ?? 0)
-                let score =
-                    (seenBefore ? 0 : 2.0) + log(1 + Double(frequency)) + (Self.classWeights[word.wordClass] ?? 0)
                 // Later lines overwrite earlier ones, so the sentence is the most recent use.
-                entries[word.lemma] = VocabEntry(
-                    lemma: word.lemma, surface: word.surface, wordClass: word.wordClass,
-                    gloss: glosses.gloss(for: word.lemma, as: word.wordClass), sentence: line, score: score)
+                entries[word.lemma] = entry(for: word, in: line)
                 lastSeen[word.lemma] = index
             }
         }

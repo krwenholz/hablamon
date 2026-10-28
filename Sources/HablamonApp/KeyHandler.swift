@@ -34,6 +34,8 @@
             case .togglePause: togglePause()
             case .recalibrate: recalibrate()
             case .holdForEnglish: break
+            case .toggleCamera: toggleCamera()
+            case .toggleRecap: showRecap.toggle()
             }
         }
     }

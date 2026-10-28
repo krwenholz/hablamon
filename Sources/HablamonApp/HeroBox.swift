@@ -5,6 +5,8 @@
     /// The line being spoken, drawn like the game's own dialogue box. Words not yet spoken are dimmed.
     struct HeroBox: View {
         var page: SpokenPage?
+        /// The line in English, once translated.
+        var translation: String? = nil
         /// Shown instead of a line before there is one, such as "Esperando el iPhone…".
         var waiting: String? = nil
         var spokenUTF16: Int
@@ -38,18 +40,23 @@
         private var box: some View {
             VStack(alignment: .leading, spacing: 14) {
                 Text(attributedLine)
-                    .font(Theme.dialogue(38))
+                    .font(Theme.dialogue(44))
                     .lineSpacing(6)
                     .lineLimit(3)
                     .minimumScaleFactor(0.6)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                // Reserved for the English translation (v2).
-                Text(" ").font(Theme.menu(22, heavy: false)).hidden()
+                Text(page == nil ? " " : translation ?? "…")
+                    .font(Theme.menu(30, heavy: false))
+                    .italic()
+                    .foregroundStyle(Theme.navy.opacity(translation == nil ? 0.35 : 0.85))
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.leading, 52)
             .padding(.trailing, 100)
             .padding(.vertical, 34)
-            .frame(maxWidth: .infinity, minHeight: 230, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 330, maxHeight: .infinity, alignment: .topLeading)
             .background(Theme.paper)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(alignment: .topLeading) { Tick().padding(.leading, 18).padding(.top, 20) }

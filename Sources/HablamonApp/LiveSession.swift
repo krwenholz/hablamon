@@ -209,6 +209,12 @@
         }
 
         /// Watches the TV through the iPhone instead of a recording.
+        /// Flips between the iPhone and the Mac's camera; does nothing while replaying a recording.
+        func toggleCamera() {
+            guard live != nil else { return }
+            useCamera(cameraSource == .iphone ? .mac : .iphone)
+        }
+
         /// Switches between the iPhone and the Mac's camera, restarting live mode.
         func useCamera(_ source: CameraSource) {
             guard source != cameraSource || live == nil else { return }

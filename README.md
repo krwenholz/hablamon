@@ -26,7 +26,9 @@ To update later: `mise run update` pulls the latest main, reinstalls, and relaun
 2. Open **Hablamon** from `~/Applications` (or `open ~/Applications/Hablamon.app`). It goes full screen and asks for camera access.
 3. Allow it. Until the phone appears, the top box says "Esperando el iPhone…".
 4. First time only: the right panel shows the camera with the TV's corners proposed in green. Drag any corner that's off onto the screen's edge, then **Usar estas esquinas** (⏎). It warns if text will be too small to read.
-5. Play. Each dialogue line appears at the top and is read aloud; earlier lines collect on the left, new words on the right (**Ya la sé** hides a word for good).
+5. Play. Each dialogue line appears at the top with its English translation and is read aloud; below it are definitions for the line's key words (**Ya la sé** hides a word for good). The conversation so far and the session's words are in the recap (**H**).
+
+Translation runs on the Mac with Apple's Translation framework. The first time, macOS asks to download Spanish and English; if the prompt doesn't appear, add them in System Settings › General › Language & Region › Translation Languages.
 
 Picking up the phone is fine: speech stops with a soft tick, and when the phone is back in place a pop means it's watching again. If it can't find the TV after 10 s it chimes and shows the corners again.
 
@@ -40,6 +42,8 @@ Picking up the phone is fine: speech stops with a soft tick, and when the phone 
 | Space | Pause or resume speech |
 | C | Recalibrate (show the corners) |
 | Hold E | Show labels in English |
+| M | Switch between the iPhone and the Mac's camera |
+| H | Open or close the recap (conversation and session words) |
 
 Click a line to hear it again. "N voces sin asignar" in the bottom strip opens the speakers nobody has tagged yet; pick a voice for each, or edit `characters.json` by hand. "Diagnóstico" shows the data folder and any file problems.
 
@@ -55,7 +59,7 @@ To try a placement with the Mac's own camera, start it with:
 open ~/Applications/Hablamon.app --args --camera mac
 ```
 
-or switch while it's running from the menu bar icon ("Usar la cámara del Mac" / "Usar el iPhone"). Each camera keeps its own calibration (`calibration-mac.json` and `reference-mac.pgm` for the Mac), so switching back to the iPhone needs no recalibration.
+or switch while it's running with **M**, the camera name in the bottom strip, or the menu bar icon. Each camera keeps its own calibration (`calibration-mac.json` and `reference-mac.pgm` for the Mac), so switching back to the iPhone needs no recalibration.
 
 ## Try it without the iPhone
 

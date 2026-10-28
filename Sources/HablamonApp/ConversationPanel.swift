@@ -8,6 +8,7 @@
         var items: [ConversationItem]
         var lineCount: Int
         var english: Bool
+        var translation: (String) -> String? = { _ in nil }
         var onReplay: (SpokenPage) -> Void
 
         var body: some View {
@@ -32,7 +33,8 @@
         @ViewBuilder private func row(_ item: ConversationItem) -> some View {
             switch item {
             case .line(_, let page):
-                LineRow(page: page, english: english).onTapGesture { onReplay(page) }
+                LineRow(page: page, english: english, translation: translation(page.text))
+                    .onTapGesture { onReplay(page) }
             case .gap(_, let reason, let seconds):
                 Text("\(text(gapLabel(reason), english: english)) · \(Int(seconds.rounded())) s")
                     .font(Theme.menu(12, heavy: false))
@@ -55,6 +57,7 @@
     struct LineRow: View {
         var page: SpokenPage
         var english: Bool
+        var translation: String? = nil
 
         private var name: String {
             if case .narrator = page.speaker { return text(.narrator, english: english) }
@@ -73,6 +76,11 @@
                     Text(name.uppercased()).font(Theme.menu(12)).foregroundStyle(Theme.navy)
                     Text(page.text).font(Theme.dialogue(19)).foregroundStyle(Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let translation {
+                        Text(translation).font(Theme.menu(14, heavy: false)).italic()
+                            .foregroundStyle(Theme.navy.opacity(0.7))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .padding(.horizontal, 14).padding(.top, 8).padding(.bottom, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)

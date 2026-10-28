@@ -29,4 +29,17 @@ import Testing
         #expect(KeyMap.label("space") == "␣")
         #expect(KeyMap.label("c") == "C")
     }
+
+    @Test func cameraAndRecapKeysDefaultWhenAbsent() {
+        #expect(Keys.defaults.toggleCamera == nil, "optional, so older settings files still load")
+        #expect(map.command(for: "m", shift: false) == .toggleCamera)
+        #expect(map.command(for: "h", shift: false) == .toggleRecap)
+    }
+
+    @Test func cameraAndRecapKeysCanBeChanged() {
+        var keys = Keys.defaults
+        keys.toggleCamera = "k"
+        #expect(KeyMap(keys).command(for: "k", shift: false) == .toggleCamera)
+        #expect(KeyMap(keys).command(for: "m", shift: false) == nil)
+    }
 }

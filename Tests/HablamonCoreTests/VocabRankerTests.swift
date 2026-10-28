@@ -119,6 +119,21 @@ struct FakeGlosses: GlossProvider {
         #expect(vocab.top().map(\.lemma) == ["travesía", "vestíbulo"])
     }
 
+    @Test func keyWordsComeFromOneLineOnly() {
+        var vocab = ranker(history: ["la academia", "la academia"])
+        vocab.add(line: "vestíbulo")
+        let words = vocab.keyWords(in: "la academia y la travesía")
+        #expect(words.map(\.lemma) == ["travesía", "academia"], "new words first; only this line")
+        #expect(words.allSatisfy { $0.sentence == "la academia y la travesía" })
+    }
+
+    @Test func keyWordsSkipKnownAndLimitCount() {
+        var vocab = ranker(known: ["academia"])
+        vocab.add(line: "x")
+        #expect(vocab.keyWords(in: "academia travesía vestíbulo combatir", limit: 2).map(\.lemma).count == 2)
+        #expect(!vocab.keyWords(in: "academia travesía").map(\.lemma).contains("academia"))
+    }
+
     @Test func topLimitsCount() {
         var vocab = ranker()
         vocab.add(line: "travesía academia vestíbulo combatir rápido")

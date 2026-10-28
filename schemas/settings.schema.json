@@ -90,6 +90,22 @@
           "type" : "string",
           "pattern" : "^(shift\\+)?([a-z0-9]|space)$",
           "description" : "Held down, shows the labels in English."
+        },
+        "toggleCamera" : {
+          "type" : [
+            "string",
+            "null"
+          ],
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$",
+          "description" : "Switches between the iPhone and the Mac's camera; `m` when absent. New keys are optional so\nexisting settings files keep loading without a migration."
+        },
+        "toggleRecap" : {
+          "type" : [
+            "string",
+            "null"
+          ],
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$",
+          "description" : "Opens or closes the recap (conversation and session words); `h` when absent."
         }
       },
       "additionalProperties" : false

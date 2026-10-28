@@ -9,7 +9,16 @@
     @MainActor @Observable
     final class AppModel {
         var state = CompanionState()
+        /// The session's words, for the recap.
         var words: [VocabEntry] = []
+        /// Key words of the line on screen.
+        var keyWords: [VocabEntry] = []
+        /// The conversation and session words, instead of the key words.
+        var showRecap = false
+        /// The Spanish–English languages are installed and translating works.
+        @ObservationIgnored var translationReady = false
+        /// The last translation failed, so the English slot says so instead of waiting.
+        var translationProblem = false
         /// Labels in English while the English key is held.
         var english = false
         /// Problems loading files, shown in diagnostics.
@@ -253,8 +262,15 @@
             }
         }
 
+        var currentTranslation: String? {
+            guard let current = state.current else { return nil }
+            return state.translation(of: current.text)
+                ?? (translationProblem ? text(.translationUnavailable, english: english) : nil)
+        }
+
         private func refreshWords() {
-            words = ranker?.top(5) ?? []
+            words = ranker?.top(8) ?? []
+            keyWords = state.current.map { ranker?.keyWords(in: $0.text) ?? [] } ?? []
         }
 
         func markKnown(_ lemma: String) {

@@ -112,4 +112,15 @@ func spokenPage(_ text: String, speaker: ResolvedSpeaker = .narrator, at time: D
         state.apply(.pipeline(.speak(spokenPage("Hola"))))
         #expect(state.lastConfidence == 0.5)
     }
+
+    @Test func translationsAttachToLinesByText() {
+        var state = CompanionState()
+        state.apply(.pipeline(.speak(spokenPage("Hola"))))
+        #expect(state.pendingTranslation == ["Hola"])
+        state.apply(.translated(source: "Hola", english: "Hello"))
+        #expect(state.translation(of: "Hola") == "Hello")
+        #expect(state.pendingTranslation.isEmpty)
+        state.apply(.pipeline(.speak(spokenPage("Hola"))))
+        #expect(state.pendingTranslation.isEmpty, "a repeated line is already translated")
+    }
 }

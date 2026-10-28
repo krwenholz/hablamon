@@ -11,16 +11,39 @@
 
         var body: some View {
             InkCard(title: text(.words, english: english), detail: nil) {
-                VStack(spacing: 0) {
-                    ForEach(Array(words.enumerated()), id: \.element.id) { index, word in
-                        WordCard(word: word, english: english, onKnown: onKnown)
-                        if index < words.count - 1 {
-                            Rectangle().fill(Color(hex: 0xE6E3D6)).frame(height: 2)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(Array(words.enumerated()), id: \.element.id) { index, word in
+                            WordCard(word: word, english: english, onKnown: onKnown)
+                            if index < words.count - 1 {
+                                Rectangle().fill(Color(hex: 0xE6E3D6)).frame(height: 2)
+                            }
                         }
                     }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 6)
                 }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 6)
+            }
+        }
+    }
+
+    /// Definitions for the key words of the line on screen, two columns.
+    struct KeyWordsPanel: View {
+        var words: [VocabEntry]
+        var english: Bool
+        var onKnown: (String) -> Void
+
+        var body: some View {
+            InkCard(title: text(.wordsInLine, english: english), detail: nil) {
+                LazyVGrid(
+                    columns: [GridItem(.flexible(), spacing: 28), GridItem(.flexible(), spacing: 28)], spacing: 4
+                ) {
+                    ForEach(words) { word in
+                        WordCard(word: word, english: english, showsSentence: false, large: true, onKnown: onKnown)
+                    }
+                }
+                .padding(.horizontal, 22)
+                .padding(.vertical, 8)
             }
         }
     }
@@ -28,12 +51,14 @@
     struct WordCard: View {
         var word: VocabEntry
         var english: Bool
+        var showsSentence = true
+        var large = false
         var onKnown: (String) -> Void
 
         var body: some View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(word.lemma).font(Theme.dialogue(23, bold: true)).foregroundStyle(Theme.ink)
+                    Text(word.lemma).font(Theme.dialogue(large ? 28 : 23, bold: true)).foregroundStyle(Theme.ink)
                     Text(classBadge)
                         .font(Theme.menu(11))
                         .foregroundStyle(.white)
@@ -48,9 +73,11 @@
                         .background(Capsule().stroke(Theme.ink, lineWidth: 2))
                 }
                 Text(word.gloss ?? text(.glossHint, english: english))
-                    .font(Theme.menu(15, heavy: false))
+                    .font(Theme.menu(large ? 18 : 15, heavy: false))
                     .foregroundStyle(word.gloss == nil ? Theme.muted : Color(hex: 0x45444C))
-                Text(context).font(Theme.dialogue(13)).foregroundStyle(Color(hex: 0x8A8892)).lineLimit(1)
+                if showsSentence {
+                    Text(context).font(Theme.dialogue(13)).foregroundStyle(Color(hex: 0x8A8892)).lineLimit(1)
+                }
             }
             .padding(.vertical, 10)
         }

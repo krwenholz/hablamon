@@ -107,6 +107,13 @@ public struct Keys: Codable, Sendable, Equatable {
     /// Held down, shows the labels in English.
     @StringOptions(.pattern(Keys.pattern))
     public var holdForEnglish: String
+    /// Switches between the iPhone and the Mac's camera; `m` when absent. New keys are optional so
+    /// existing settings files keep loading without a migration.
+    @StringOptions(.pattern(Keys.pattern))
+    public var toggleCamera: String?
+    /// Opens or closes the recap (conversation and session words); `h` when absent.
+    @StringOptions(.pattern(Keys.pattern))
+    public var toggleRecap: String?
 
     public static let pattern = "^(shift\\+)?([a-z0-9]|space)$"
 
@@ -125,7 +132,9 @@ public struct Keys: Codable, Sendable, Equatable {
         toggleSpeed: String,
         togglePause: String,
         recalibrate: String,
-        holdForEnglish: String
+        holdForEnglish: String,
+        toggleCamera: String? = nil,
+        toggleRecap: String? = nil
     ) {
         self.repeatLast = repeatLast
         self.repeatLastSlowly = repeatLastSlowly
@@ -133,5 +142,7 @@ public struct Keys: Codable, Sendable, Equatable {
         self.togglePause = togglePause
         self.recalibrate = recalibrate
         self.holdForEnglish = holdForEnglish
+        self.toggleCamera = toggleCamera
+        self.toggleRecap = toggleRecap
     }
 }

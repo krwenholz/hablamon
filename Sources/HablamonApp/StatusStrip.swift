@@ -7,9 +7,15 @@
         var state: CompanionState
         var english: Bool
         var voiceSummary: String
+        /// The live camera in use, or nil when replaying.
+        var camera: CameraSource?
         var keys: (pause: String, recalibrate: String)
+        var recapKey: String
+        var cameraKey: String
         var onSpeakers: () -> Void
         var onDiagnostics: () -> Void
+        var onRecap: () -> Void
+        var onCamera: () -> Void
 
         var body: some View {
             HStack(spacing: 14) {
@@ -25,7 +31,23 @@
                 light(.voice, state.lights.voice)
                 Rectangle().fill(Color(hex: 0x3A3A46)).frame(width: 1, height: 22)
                 Text(voiceSummary).foregroundStyle(Color(hex: 0xC9C8D2))
+                if let camera {
+                    Button(action: onCamera) {
+                        HStack(spacing: 4) {
+                            Text(camera == .iphone ? "iPhone" : "Mac").foregroundStyle(.white)
+                            Text("⇄ " + KeyMap.label(cameraKey)).foregroundStyle(Color(hex: 0x9A98A8))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
                 Spacer()
+                Button(action: onRecap) {
+                    HStack(spacing: 4) {
+                        Text(text(.recap, english: english)).foregroundStyle(Color(hex: 0x9A98A8))
+                        Text(KeyMap.label(recapKey)).foregroundStyle(.white)
+                    }
+                }
+                .buttonStyle(.plain)
                 if !state.unknownSpeakers.isEmpty {
                     Button(action: onSpeakers) {
                         Text(unassignedVoices(state.unknownSpeakers.count, english: english))

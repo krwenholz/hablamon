@@ -54,6 +54,8 @@ public enum CompanionEvent: Sendable {
     case gap(TranscriptGap.Reason, seconds: Double)
     /// The player chose a voice for this unknown speaker.
     case speakerTagged(key: String)
+    /// An English translation of a line's text arrived.
+    case translated(source: String, english: String)
 }
 
 /// Everything the companion window shows, updated one event at a time.
@@ -68,6 +70,9 @@ public struct CompanionState: Equatable, Sendable {
     public var lights = Lights()
     public var lastConfidence: Double?
     public var lineCount = 0
+    /// Line texts waiting for an English translation, oldest first.
+    public var pendingTranslation: [String] = []
+    private var translations: [String: String] = [:]
 
     private var inDialogue = false
     private var speaking = false
@@ -75,6 +80,10 @@ public struct CompanionState: Equatable, Sendable {
     private var nextID = 0
 
     public init() {}
+
+    public func translation(of text: String) -> String? {
+        translations[text]
+    }
 
     public var pill: StatusPill {
         switch connection {
@@ -106,6 +115,9 @@ public struct CompanionState: Equatable, Sendable {
             lastConfidence = page.confidence.mean
             lights.text = .ok
             if case .unknown(let tag) = page.speaker { noteUnknown(tag: tag, page: page) }
+            if translations[page.text] == nil && !pendingTranslation.contains(page.text) {
+                pendingTranslation.append(page.text)
+            }
         case .frame(let screenFound):
             lights.camera = .ok
             lights.tv = screenFound ? .ok : .bad
@@ -129,6 +141,9 @@ public struct CompanionState: Equatable, Sendable {
             conversation.append(.gap(id: takeID(), reason: reason, seconds: seconds))
         case .speakerTagged(let key):
             unknownSpeakers.removeAll { $0.key == key }
+        case .translated(let source, let english):
+            translations[source] = english
+            pendingTranslation.removeAll { $0 == source }
         }
     }
 
