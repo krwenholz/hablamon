@@ -39,3 +39,31 @@ import Testing
         #expect(long < 12 * 40)
     }
 }
+
+@Suite struct SpeechChunkerTests {
+    @Test func splitsSentences() {
+        #expect(
+            SpeechChunker.chunks("¡Ah! Antes de que se me olvide... Nos hemos cruzado con dos miembros del Team Star.")
+                == ["¡Ah! Antes de que se me olvide...", "Nos hemos cruzado con dos miembros del Team Star."])
+        #expect(SpeechChunker.chunks("¿Cómo? ¡¿Dónde?!") == ["¿Cómo? ¡¿Dónde?!"], "tiny sentences stay together")
+    }
+
+    @Test func splitsLongSentencesAtACommaNearTheMiddle() {
+        let line =
+            "Está muy bien que quieras ayudar a los demás, pero no puedes meterte en líos ya en tu primer día, Miguel."
+        let chunks = SpeechChunker.chunks(line)
+        #expect(chunks.count == 2)
+        #expect(chunks[0] == "Está muy bien que quieras ayudar a los demás,")
+    }
+
+    @Test func shortLinesAreOneChunk() {
+        #expect(SpeechChunker.chunks("Hola, Miguel.") == ["Hola, Miguel."])
+    }
+
+    @Test func chunksRebuildTheLine() {
+        let line =
+            "Gracias por avisarme de algo tan grave. ¿Sabes si siguen ahí? Bueno, como ves, de aquí a la academia aún hay un buen trecho."
+        #expect(SpeechChunker.chunks(line).joined(separator: " ") == line)
+        #expect(SpeechChunker.offsets(of: SpeechChunker.chunks(line), in: line).first == 0)
+    }
+}

@@ -42,7 +42,6 @@
         private let player = AVAudioPlayerNode()
         private let timePitch = AVAudioUnitTimePitch()
         private let format = AVAudioFormat(standardFormatWithSampleRate: 24_000, channels: 1)!
-        private var finished: CheckedContinuation<Void, Never>?
 
         public init(library: VoiceLibrary, fallback: any SpeechEngine, modelsDirectory: URL) {
             self.library = library
@@ -125,25 +124,54 @@
                 try await fallback.speak(text, voice: voice, rate: rate, progress: progress)
                 return
             }
+            // Generate sentence by sentence and start playing the first while the rest generate.
+            let chunks = SpeechChunker.chunks(text)
+            let offsets = SpeechChunker.offsets(of: chunks, in: text)
             let started = Date()
-            let samples = try await generate(text, clip: clip, name: name)
-            if Task.isCancelled {
-                onLog?(String(format: "qwen3 %@: interrupted after %.2f s", name, Date().timeIntervalSince(started)))
-                throw CancellationError()
+            let playback = Playback(text: text, chunks: chunks, offsets: offsets)
+            player.stop()
+            timePitch.rate = Float(min(max(rate, 0.5), 2.0))
+            if !audio.isRunning { try? audio.start() }
+            let ticker = Task { [self] in
+                while !Task.isCancelled {
+                    if let nodeTime = player.lastRenderTime, let time = player.playerTime(forNodeTime: nodeTime) {
+                        progress(playback.offset(atSample: Int(time.sampleTime)))
+                    }
+                    try? await Task.sleep(for: .milliseconds(100))
+                }
             }
-            let seconds = Double(samples.count) / Self.sampleRate
+            defer { ticker.cancel() }
+            var firstAudio: TimeInterval?
+            for (index, chunk) in chunks.enumerated() {
+                let samples = try await generate(chunk, clip: clip, name: name)
+                if Task.isCancelled {
+                    player.stop()
+                    onLog?(
+                        String(format: "qwen3 %@: interrupted after %.2f s", name, Date().timeIntervalSince(started)))
+                    throw CancellationError()
+                }
+                schedule(samples, last: index == chunks.count - 1, playback: playback)
+                if firstAudio == nil {
+                    firstAudio = Date().timeIntervalSince(started)
+                    player.play()
+                }
+            }
             onLog?(
-                String(format: "qwen3 %@: %.2f s to make %.2f s", name, Date().timeIntervalSince(started), seconds))
-            await play(samples, rate: rate, text: text, progress: progress)
+                String(
+                    format: "qwen3 %@: first audio after %.2f s, %d part(s), %.2f s generating", name, firstAudio ?? 0,
+                    chunks.count, Date().timeIntervalSince(started)))
+            await withTaskCancellationHandler {
+                await playback.finished()
+            } onCancel: { [self] in
+                player.stop()
+                playback.finish()
+            }
+            progress(text.utf16.count)
         }
 
         public func stop() async {
+            // Stopping the player calls the queued buffers' completions, which finishes the line.
             player.stop()
-            let waiting = lock.withLock { () -> CheckedContinuation<Void, Never>? in
-                defer { finished = nil }
-                return finished
-            }
-            waiting?.resume()
             await fallback.stop()
         }
 
@@ -179,51 +207,84 @@
 
         // MARK: Playback
 
-        /// Plays at `rate` without changing pitch, reporting word progress until done or stopped.
-        private func play(_ samples: [Float], rate: Double, text: String, progress: @escaping @Sendable (Int) -> Void)
-            async
-        {
+        /// Queues a generated piece after whatever is already playing.
+        private func schedule(_ samples: [Float], last: Bool, playback: Playback) {
             guard !samples.isEmpty,
                 let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count))
-            else { return }
+            else {
+                if last { playback.finish() }
+                return
+            }
             buffer.frameLength = AVAudioFrameCount(samples.count)
             samples.withUnsafeBufferPointer { source in
                 buffer.floatChannelData![0].update(from: source.baseAddress!, count: samples.count)
             }
-            timePitch.rate = Float(min(max(rate, 0.5), 2.0))
-            if !audio.isRunning { try? audio.start() }
+            playback.add(samples: samples.count)
+            player.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { _ in
+                if last { playback.finish() }
+            }
+        }
 
-            let total = Double(samples.count)
-            let ticker = Task { [self] in
-                while !Task.isCancelled {
-                    if let nodeTime = player.lastRenderTime, let time = player.playerTime(forNodeTime: nodeTime) {
-                        progress(PlaybackProgress.offset(fraction: Double(time.sampleTime) / total, in: text))
+        /// Tracks the pieces of one line as they're queued, to map playback position to a word and to
+        /// know when the last piece has played.
+        final class Playback: @unchecked Sendable {
+            private let lock = NSLock()
+            private let text: String
+            private let chunks: [String]
+            private let offsets: [Int]
+            private var ends: [Int] = []
+            private var done = false
+            private var waiting: CheckedContinuation<Void, Never>?
+
+            init(text: String, chunks: [String], offsets: [Int]) {
+                self.text = text
+                self.chunks = chunks
+                self.offsets = offsets
+            }
+
+            func add(samples: Int) {
+                lock.withLock { ends.append((ends.last ?? 0) + samples) }
+            }
+
+            /// The word being spoken at `sample` samples into the line.
+            func offset(atSample sample: Int) -> Int {
+                lock.withLock {
+                    guard let index = ends.firstIndex(where: { sample < $0 }), index < chunks.count else {
+                        return ends.count == chunks.count ? text.utf16.count : (offsets[safe: ends.count] ?? 0)
                     }
-                    try? await Task.sleep(for: .milliseconds(100))
+                    let start = index == 0 ? 0 : ends[index - 1]
+                    let fraction = Double(sample - start) / Double(max(1, ends[index] - start))
+                    return offsets[index] + PlaybackProgress.offset(fraction: fraction, in: chunks[index])
                 }
             }
-            await withTaskCancellationHandler {
+
+            func finish() {
+                let continuation = lock.withLock { () -> CheckedContinuation<Void, Never>? in
+                    done = true
+                    defer { waiting = nil }
+                    return waiting
+                }
+                continuation?.resume()
+            }
+
+            func finished() async {
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                    lock.withLock { finished = continuation }
-                    player.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { [weak self] _ in
-                        guard let self else { return }
-                        let waiting = self.lock.withLock { () -> CheckedContinuation<Void, Never>? in
-                            defer { self.finished = nil }
-                            return self.finished
-                        }
-                        waiting?.resume()
+                    let alreadyDone = lock.withLock { () -> Bool in
+                        if done { return true }
+                        waiting = continuation
+                        return false
                     }
-                    player.play()
+                    if alreadyDone { continuation.resume() }
                 }
-            } onCancel: { [self] in
-                player.stop()
             }
-            ticker.cancel()
-            progress(text.utf16.count)
         }
 
         private func report(_ status: Status) {
             onStatus?(status)
         }
+    }
+
+    extension Array {
+        subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
     }
 #endif
