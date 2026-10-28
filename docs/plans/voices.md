@@ -1,6 +1,6 @@
 # Better voices
 
-Oct 28, 2026 · spike run on the Mac Studio (M2 Max); decision waiting on Kyle's ears · replaces "Spike B and M5" in [init.md](init.md)
+Oct 28, 2026 · spike run on the Mac Studio (M2 Max) · decided: Qwen3, design once and clone natively with speech-swift; see [m5-qwen-voices.md](m5-qwen-voices.md) · replaces "Spike B and M5" in [init.md](init.md)
 
 ## Why the current voices sound bad
 
@@ -21,6 +21,7 @@ Samples are in [voice-samples/](voice-samples/) (AAC, about 1 MB in all). Listen
 | Qwen3-TTS 0.6B, preset voices | `qwen06custom_serena_*`, `qwen06custom_ryan_*` | 1.4–1.7 s (RTF 0.24) | ~1 GB (8-bit) | 9 presets, accent may drift Latin American |
 | Qwen3-TTS 1.7B, designed voices | `qwen17design_*` | 2.5 s (RTF 0.41) | ~4 GB (bf16) | a voice per character from a written description |
 | Qwen3-TTS 0.6B Base, cloned | `qwen06clone_*` | 1.3–1.5 s (RTF 0.28) | ~1 GB (8-bit) | clones the designed voice from a short clip |
+| Same, native Swift (speech-swift) | `swift_clone_*` | 1.1–1.9 s (RTF 0.27–0.32) | ~1 GB (8-bit) | plain cloning (`xvector`) and cloning with the clip's text (`icl`) |
 
 The designed voices came from descriptions like "Un director de escuela de mediana edad de España, voz grave y teatral, acento castellano". `qwen06clone_X` is the designed voice of X saying a *different* line, the way the app would use it: design each character once offline, then clone at runtime.
 
