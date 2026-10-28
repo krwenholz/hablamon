@@ -5,6 +5,7 @@
 - [m2-live-camera.md](m2-live-camera.md): the plan the live camera and recovery were built from (done; see its record).
 - [voices.md](voices.md): better voices: spike results, samples, and the plan.
 - [spec-screen-translation.md](spec-screen-translation.md): idea spec for translating menus and battles on demand.
+- [spike-ios.md](spike-ios.md): research on running Hablamon as a personal iPhone app.
 - [done/](done/): finished milestones and spikes, kept as records of what was built and what was learned.
 - [mockups/](mockups/): UI mockups as PNGs, with the HTML they were rendered from (headless Chrome at 1470×956, 2×).
 
