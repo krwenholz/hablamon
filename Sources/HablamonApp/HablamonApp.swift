@@ -7,6 +7,7 @@
     /// Launch options, read from the command line:
     /// `--replay <video> [--calibration <file>]` plays a recording as if live;
     /// `--camera mac` watches through the Mac's own camera instead of the iPhone;
+    /// `--translate-image <file>` opens the whole-screen translation on a picture;
     /// `--windowed` skips full screen; `--mute` starts with speech paused; `--root <dir>` uses another
     /// data folder instead of Application Support; `--panel speakers|diagnostics` opens that panel;
     /// `--snapshot <png> --after <seconds>` saves the window and quits.
@@ -16,6 +17,7 @@
         var windowed = false
         var mute = false
         var camera: CameraSource = .iphone
+        var translateImage: URL?
         var root: URL?
         var panel: SidePanel = .words
         var snapshot: URL?
@@ -30,6 +32,7 @@
                 case "--windowed": windowed = true
                 case "--mute": mute = true
                 case "--camera": camera = iterator.next().flatMap(CameraSource.init(rawValue:)) ?? camera
+                case "--translate-image": translateImage = iterator.next().map { URL(fileURLWithPath: $0) }
                 case "--root": root = iterator.next().map { URL(fileURLWithPath: $0, isDirectory: true) }
                 case "--panel": panel = iterator.next().flatMap(SidePanel.init(rawValue:)) ?? panel
                 case "--snapshot": snapshot = iterator.next().map { URL(fileURLWithPath: $0) }
@@ -111,7 +114,9 @@
             }
             if options.mute { model.paused = true }
             model.side = options.panel
-            if let video = options.replay {
+            if let file = options.translateImage {
+                model.openScreen(file: file)
+            } else if let video = options.replay {
                 if options.panel == .calibration {
                     model.previewCalibration(from: video)
                 } else {

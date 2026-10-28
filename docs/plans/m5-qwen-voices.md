@@ -6,7 +6,7 @@ Oct 28, 2026 · built; awaiting Kyle's ears on the Air · Kyle chose Qwen3 ("the
 
 **Design once, clone at runtime.**
 
-1. **Design (offline, by a script, committed):** `scripts/design-voices.py` runs Qwen3-TTS 1.7B VoiceDesign through mlx-audio (Python, uv) on a Spanish voice prompt built from each character's `gender`, `ageGroup`, `role`, and `description` in `characters.default.json`, plus a few generic voices for unknown speakers (young woman, young man, older woman, older man, child, neutral). Each prompt asks for *español latinoamericano neutro*. It writes a ~6 s reference clip per voice (the same Spanish sentence for all, chosen to cover common sounds) to `Sources/HablamonVoices/Resources/voices/<slug>.m4a` and `voices/manifest.json` (a `VoiceManifest`, now with each clip's `referenceText`). About 50 clips, a few MB, bundled in the app. No Python at runtime.
+1. **Design (offline, by a script, committed):** `scripts/design-voices.py` runs Qwen3-TTS 1.7B VoiceDesign through mlx-audio (Python, uv) on a Spanish voice prompt built from each character's `gender`, `ageGroup`, `role`, and `description` in `characters.default.json`, plus a few generic voices for unknown speakers (young woman, young man, older woman, older man, child, neutral). Each prompt (in English, which the model follows best) asks for neutral Latin American Spanish. It writes a ~6 s reference clip per voice (the same Spanish sentence for all, chosen to cover common sounds) to `Sources/HablamonVoices/Resources/voices/<slug>.m4a` and `voices/manifest.json` (a `VoiceManifest`, now with each clip's `referenceText`). About 50 clips, a few MB, bundled in the app. No Python at runtime.
 2. **Runtime (native):** [speech-swift](https://github.com/soniqo/speech-swift)'s `Qwen3TTS` with `aufklarer/Qwen3-TTS-12Hz-0.6B-Base-MLX-8bit` clones from the clip (`synthesizeWithVoiceClone`; the transcript-guided `…ICL` variant was slower and once ran on to 16 s, so each line is also capped at about twice its expected length). Measured natively on the M2 Max: 1.1–1.9 s per line warm (RTF ~0.3); expect ~2–3× on the Air. Weights (~1 GB) download once into `~/Library/Application Support/Hablamon/models`, then load with `offlineMode`.
 
 ## Pieces
@@ -15,7 +15,7 @@ Oct 28, 2026 · built; awaiting Kyle's ears on the Air · Kyle chose Qwen3 ("the
 | --- | --- | --- |
 | Voice design | `scripts/design-voices.py`, `Sources/HablamonVoices/Resources/voices/` | Re-runnable; `--only Clavel` to redo one voice; prompts printed and saved in the manifest |
 | Manifest | `VoiceManifest` + `DesignedVoice.referenceText` (optional, so old files load) | `schemas/voice-manifest.schema.json` regenerated |
-| Which clip | `VoiceSelector` → `VoicePlan.character` (manifest key) | Known character with a clip → its clip; others → generic clip by gender and age; narrator → narrator clip |
+| Which clip | `VoiceSelector` → `VoicePlan.clip` (manifest key) | Known character with a clip → its clip; others → generic clip by gender and age; narrator → narrator clip |
 | Engine | New target `HablamonVoices` (macOS only): `Qwen3SpeechEngine: SpeechEngine` | Loads lazily; synthesizes then plays through `AVAudioEngine`; word progress estimated from playback position; `stop()` halts playback and generation |
 | Fallback | `Narrator` | Apple speaks while the model downloads or loads, or if it fails |
 | Download | First launch with `engine: qwen3` | Status strip shows "Descargando voces… 45 %"; Apple meanwhile |

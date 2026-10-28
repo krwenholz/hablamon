@@ -1,4 +1,5 @@
 #if canImport(SwiftUI) && canImport(AVFoundation)
+    import CoreGraphics
     import Foundation
     import HablamonCore
     import HablamonModels
@@ -16,6 +17,13 @@
         var keyWords: [VocabEntry] = []
         /// The conversation and session words, instead of the key words.
         var showRecap = false
+        /// The whole-screen translation popup (T).
+        var screenOpen = false
+        var screenReading = false
+        var screenImage: CGImage?
+        var screenTranslation: ScreenTranslation?
+        @ObservationIgnored let frameBox = FrameBox()
+        @ObservationIgnored let gameTerms = try? GameTerms.bundled()
         /// The Spanish–English languages are installed and translating works.
         @ObservationIgnored var translationReady = false
         /// The last translation failed, so the English slot says so instead of waiting.
@@ -138,6 +146,7 @@
 
             let (stream, continuation) = AsyncStream.makeStream(of: ReplayMessage.self)
             let characters = self.characters
+            let frameBox = self.frameBox
             let started = ContinuousClock.now
             let producer = Task.detached(priority: .utility) {
                 do {
@@ -148,6 +157,7 @@
                             let lag = (ContinuousClock.now - started) / .seconds(1) - time
                             continuation.yield(.frame(found, lag: lag))
                         },
+                        onCorrected: { image in frameBox.latest = image },
                         onEvent: { event, _ in continuation.yield(.pipeline(event)) })
                     continuation.yield(.finished(nil))
                 } catch is CancellationError {

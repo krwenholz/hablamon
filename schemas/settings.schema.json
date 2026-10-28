@@ -106,6 +106,14 @@
           ],
           "pattern" : "^(shift\\+)?([a-z0-9]|space)$",
           "description" : "Opens or closes the recap (conversation and session words); `h` when absent."
+        },
+        "translateScreen" : {
+          "type" : [
+            "string",
+            "null"
+          ],
+          "pattern" : "^(shift\\+)?([a-z0-9]|space)$",
+          "description" : "Opens the whole-screen translation (Escape or the same key closes it); `t` when absent."
         }
       },
       "additionalProperties" : false

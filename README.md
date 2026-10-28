@@ -44,6 +44,7 @@ Picking up the phone is fine: speech stops with a soft tick, and when the phone 
 | Hold E | Show labels in English |
 | M | Switch between the iPhone and the Mac's camera |
 | H | Open or close the recap (conversation and session words) |
+| T | Translate the whole screen: menus, moves, descriptions, drawn in English over the picture (Esc or T closes) |
 
 Click a line to hear it again. "N voces sin asignar" in the bottom strip opens the speakers nobody has tagged yet; pick a voice for each, or edit `characters.json` by hand. "Diagnóstico" shows the data folder and any file problems.
 
@@ -86,7 +87,7 @@ mise tasks         # list all tasks
 swift run HablamonApp --replay Tests/Fixtures/videos/classroom_far.mp4 --windowed --mute
 ```
 
-Running the app with `swift run` needs MLX's Metal shaders once per build: `mise run metallib` (`mise run install` does this itself, downloading Xcode's Metal Toolchain if needed). `HablamonApp` also takes `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
+Running the app with `swift run` needs MLX's Metal shaders once per build: `mise run metallib` (`mise run install` does this itself, downloading Xcode's Metal Toolchain if needed). `HablamonApp` also takes `--translate-image <picture>` (open the whole-screen translation on a screenshot), `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
 
 ## Notes
 

@@ -48,6 +48,9 @@
                 if empty && side == .speakers { model.side = .words }
             }
             .modifier(TranslationDriver(model: model))
+            .overlay {
+                if model.screenOpen { ScreenTranslationView(model: model) }
+            }
             .background {
                 ZStack {
                     Theme.background

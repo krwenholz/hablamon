@@ -12,6 +12,11 @@
                 let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
                 if !modifiers.isDisjoint(with: [.command, .option, .control]) { return event }
                 if NSApp.keyWindow?.firstResponder is NSText { return event }
+                // Escape closes the whole-screen translation.
+                if event.keyCode == 53, screenOpen {
+                    if event.type == .keyDown { closeScreen() }
+                    return nil
+                }
                 guard let characters = event.charactersIgnoringModifiers,
                     let command = map.command(for: characters, shift: modifiers.contains(.shift))
                 else { return event }
@@ -36,6 +41,7 @@
             case .holdForEnglish: break
             case .toggleCamera: toggleCamera()
             case .toggleRecap: showRecap.toggle()
+            case .translateScreen: toggleScreenTranslation()
             }
         }
     }

@@ -121,6 +121,9 @@ public struct Keys: Codable, Sendable, Equatable {
     /// Opens or closes the recap (conversation and session words); `h` when absent.
     @StringOptions(.pattern(Keys.pattern))
     public var toggleRecap: String?
+    /// Opens the whole-screen translation (Escape or the same key closes it); `t` when absent.
+    @StringOptions(.pattern(Keys.pattern))
+    public var translateScreen: String?
 
     public static let pattern = "^(shift\\+)?([a-z0-9]|space)$"
 
@@ -141,7 +144,8 @@ public struct Keys: Codable, Sendable, Equatable {
         recalibrate: String,
         holdForEnglish: String,
         toggleCamera: String? = nil,
-        toggleRecap: String? = nil
+        toggleRecap: String? = nil,
+        translateScreen: String? = nil
     ) {
         self.repeatLast = repeatLast
         self.repeatLastSlowly = repeatLastSlowly
@@ -151,5 +155,6 @@ public struct Keys: Codable, Sendable, Equatable {
         self.holdForEnglish = holdForEnglish
         self.toggleCamera = toggleCamera
         self.toggleRecap = toggleRecap
+        self.translateScreen = translateScreen
     }
 }

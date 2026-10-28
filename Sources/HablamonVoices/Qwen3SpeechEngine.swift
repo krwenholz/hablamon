@@ -66,6 +66,13 @@
                 return true
             }
             guard start else { return }
+            // MLX aborts the whole process if its shaders are missing, so check before touching it.
+            guard Self.metalLibraryAvailable() else {
+                let reason = "MLX's Metal shaders are missing (run `mise run metallib`, or reinstall)"
+                lock.withLock { status = .failed(reason) }
+                report(.failed(reason))
+                throw CocoaError(.fileNoSuchFile, userInfo: [NSLocalizedDescriptionKey: reason])
+            }
             report(.loading)
             let marker = modelsDirectory.appendingPathComponent(".qwen3-ready")
             let cached = FileManager.default.fileExists(atPath: marker.path)
@@ -88,6 +95,23 @@
                 report(.failed("\(error)"))
                 throw error
             }
+        }
+
+        /// Whether MLX will find its shaders: next to the executable, in `Resources/` beside it, or as
+        /// `default.metallib` in MLX's resource bundle inside the app (where the install puts them).
+        static func metalLibraryAvailable() -> Bool {
+            let executable = Bundle.main.executableURL?.deletingLastPathComponent()
+            var candidates = [
+                executable?.appendingPathComponent("mlx.metallib"),
+                executable?.appendingPathComponent("Resources/mlx.metallib"),
+            ]
+            for bundle in [Bundle.main] + Bundle.allBundles {
+                candidates.append(
+                    bundle.resourceURL?.appendingPathComponent(
+                        "mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib"))
+                candidates.append(bundle.resourceURL?.appendingPathComponent("mlx-swift_Cmlx.bundle/default.metallib"))
+            }
+            return candidates.compactMap { $0 }.contains { FileManager.default.fileExists(atPath: $0.path) }
         }
 
         public func speak(_ text: String, voice: VoicePlan, rate: Double) async throws {

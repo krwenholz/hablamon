@@ -87,6 +87,15 @@
             }
         }
 
+        /// The latest frame, flattened with the calibrated corners when there are any, for reading
+        /// the whole screen.
+        public func snapshot(_ completion: @escaping @Sendable (CIImage?) -> Void) {
+            queue.async { [self] in
+                guard let image = lastImage else { return completion(nil) }
+                completion(corrector?.correct(image) ?? image)
+            }
+        }
+
         public func signal(_ signal: ConnectionMonitor.Signal, at date: Date) {
             queue.async { [self] in run(controller.handle(.camera(signal, date: date)), image: nil, at: date) }
         }

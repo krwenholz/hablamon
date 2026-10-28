@@ -29,6 +29,7 @@
             realTime: Bool = false,
             onProgress: ((_ videoTime: Double, _ frames: Int) -> Void)? = nil,
             onFrame: ((_ screenFound: Bool, _ videoTime: Double) -> Void)? = nil,
+            onCorrected: ((CIImage) -> Void)? = nil,
             onEvent: (PipelineEvent, Double) throws -> Void
         ) async throws {
             let corrector = ScreenCorrector(quad: calibration.screenQuad, size: profile.frameSize)
@@ -42,6 +43,7 @@
                 let flat = corrector.correct(image)
                 onFrame?(flat != nil, time)
                 guard let flat else { return }
+                onCorrected?(flat)
                 let frame = CorrectedFrame(image: flat, context: context, recognizer: recognizer)
                 for event in try pipeline.process(frame, at: time) {
                     try onEvent(event, time)

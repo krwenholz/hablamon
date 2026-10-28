@@ -1,6 +1,6 @@
 # Spec: translate the whole screen
 
-Oct 28, 2026 · idea, not scheduled · Kyle's request: a translation view for menus, battles, and anything outside dialogue boxes
+Oct 28, 2026 · first version built; tuning waits on menu and battle screenshots · Kyle chose T, English drawn over the picture in a full-screen popup closed with Escape, and no speaking
 
 ## The idea
 
@@ -46,3 +46,11 @@ A panel in the bottom-left that takes over the key-words area while it's open, a
 1. Is T a good key, and should holding it keep refreshing?
 2. Numbered list first, or is drawing English over the picture worth the extra work up front?
 3. Should it also speak anything (say, the highlighted menu item), or stay silent?
+
+## Built (Oct 28)
+
+- **T** snapshots the screen (live: the latest camera frame, flattened; replay: the latest frame) and opens a full-window popup with the frame and a paper label of English over each block; Escape or T closes it. Screenshot: [built-screen-translation.png](mockups/built-screen-translation.png).
+- Game terms come from `Resources/game-terms/terms.tsv` (4,456 official names from PokéAPI, BSD 3-Clause, built by `scripts/build-game-terms.py`); everything else goes through the on-device Translation framework.
+- Blocks: wrapped lines join only when the upper line is wide enough to have wrapped, so menu rows stay separate; non-Latin and symbol-heavy text (scenery glyphs) is dropped. Reading a whole frame took 0.4 s on the M2 Max.
+- `--translate-image <picture>` opens the popup on any screenshot, for testing.
+- **Waiting on Kyle's screenshots:** scenery words still slip through ("NO TRON" from a chalkboard), and menu highlights and battle layouts are untested.

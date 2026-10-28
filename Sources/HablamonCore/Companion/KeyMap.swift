@@ -3,7 +3,7 @@ import HablamonModels
 /// What a key does in the window.
 public enum KeyCommand: Equatable, Sendable {
     case repeatLast, repeatLastSlowly, toggleSpeed, togglePause, recalibrate, holdForEnglish
-    case toggleCamera, toggleRecap
+    case toggleCamera, toggleRecap, translateScreen
 }
 
 /// Matches typed keys against `settings.json`'s `keys`. Keys arrive as typed characters, so they
@@ -22,6 +22,7 @@ public struct KeyMap: Sendable {
             parse(keys.toggleSpeed, .toggleSpeed), parse(keys.togglePause, .togglePause),
             parse(keys.recalibrate, .recalibrate), parse(keys.holdForEnglish, .holdForEnglish),
             parse(keys.toggleCamera ?? "m", .toggleCamera), parse(keys.toggleRecap ?? "h", .toggleRecap),
+            parse(keys.translateScreen ?? "t", .translateScreen),
         ]
     }
 
