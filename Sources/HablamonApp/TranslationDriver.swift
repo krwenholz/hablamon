@@ -2,6 +2,9 @@
     import HablamonCore
     import SwiftUI
     import Translation
+    // The SwiftUI overlay that adds `.translationTask`; Xcode's toolchain imports it implicitly,
+    // the swift.org toolchain mise pins doesn't.
+    import _Translation_SwiftUI
 
     /// Translates spoken lines to English on the device with Apple's Translation framework. The first
     /// time, macOS asks to download the Spanish–English languages; after that it works offline.
