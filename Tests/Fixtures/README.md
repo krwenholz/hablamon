@@ -25,4 +25,5 @@ Phone photos embed GPS location. Run `scripts/photo-privacy.py strip Tests/Fixtu
 
 - iPhone photos are stored sideways with an EXIF orientation flag (value 6 here). Anything that loads them must honor it, or the TV looks rotated 90°.
 - Expected text and speakers go in an `expected.json` next to the images once the OCR spike starts.
+- `screens.expected.json` lists text the whole-screen reader must find on the menu, banner, battle, bubble, and subtitle screenshots; the party menu is left out because glare hides the TV's edge from rectangle detection.
 - Not every box is the standard white one. `buenas-cinio-shout_*` is a spiky shout box with no name tag, `casiopea-call_*` is a dark phone-call box with green text, and `director-announcement_*` is a pale blue PA announcement with no name tag.

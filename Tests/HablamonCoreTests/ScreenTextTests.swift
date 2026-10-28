@@ -20,6 +20,14 @@ import Testing
         #expect(abs(blocks[0].box.height - 0.085) < 0.001)
     }
 
+    @Test func shortBubbleLinesJoinWhenTheSentenceContinues() {
+        let blocks = ScreenText.blocks(from: [
+            line("¿Se acabaron las", x: 0.47, y: 0.30, width: 0.12),
+            line("clases por hoy?", x: 0.47, y: 0.345, width: 0.12),
+        ])
+        #expect(blocks.map(\.text) == ["¿Se acabaron las clases por hoy?"])
+    }
+
     @Test func menuRowsStaySeparate() {
         let blocks = ScreenText.blocks(from: [
             line("Arañazo", x: 0.70, y: 0.50, width: 0.10),

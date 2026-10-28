@@ -43,7 +43,9 @@
         func openScreen(file: URL) {
             screenOpen = true
             screenReading = true
-            readScreen(CIImage(contentsOf: file))
+            // A photo of the room is flattened to the TV first, as the camera would be.
+            readScreen(
+                CIImage(contentsOf: file, options: [.applyOrientationProperty: true]).map { ScreenReader.flatten($0) })
         }
 
         private func readScreen(_ frame: CIImage?) {

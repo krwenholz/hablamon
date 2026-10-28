@@ -1,0 +1,14 @@
+{
+  "notes": "Text the whole-screen reader must find on each screenshot (after flattening the TV), as substrings of some block. Taken with afternoon glare across the top of the TV.",
+  "screens": {
+    "map-ciudad-meseta_far_straight-glare.jpeg": ["Mapa", "Ciudad Meseta", "Seleccionar"],
+    "map-menu-pokedex_far_straight-glare.jpeg": ["Pokédex", "Perfil"],
+    "subtitle-proyecto_far_straight.jpeg": ["proyecto extracurricular"],
+    "subtitle-crecer_far_straight-glare.jpeg": ["crecer y madurar"],
+    "npc-bubble-clases_far_straight-glare.jpeg": ["acabaron las clases por hoy"],
+    "casiopea-stardust_far_straight-glare.jpeg": ["Casiopea", "Operación Stardust"],
+    "banner-ciudad-meseta_far_straight-glare.jpeg": ["Ciudad Meseta", "aplicación mapa"],
+    "banner-clase-hogar_far_straight-glare.jpeg": ["clase de Hogar"],
+    "battle-menu-lechonk_far_straight-glare.jpeg": ["Luchar", "Bolsa", "Lechonk"]
+  }
+}

@@ -40,8 +40,10 @@ public enum ScreenText {
         let gap = next.box.y - (last.box.y + last.box.height)
         let height = max(last.box.height, next.box.height)
         let overlap = min(last.box.x + last.box.width, next.box.x + next.box.width) - max(last.box.x, next.box.x)
-        return last.box.width >= minimumWrappingWidth && gap < height * 0.6 && gap > -height * 0.5
-            && abs(next.box.x - last.box.x) < height * 1.5 && overlap > 0
+        guard gap < height * 0.6, gap > -height * 0.5, overlap > 0 else { return false }
+        // A line starting in lowercase continues the sentence above, however short (speech bubbles).
+        if next.text.first(where: \.isLetter)?.isLowercase == true { return true }
+        return last.box.width >= minimumWrappingWidth && abs(next.box.x - last.box.x) < height * 1.5
     }
 
     /// Real Spanish words: Latin letters only (scenery script often reads as Cyrillic or Greek),
