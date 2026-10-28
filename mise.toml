@@ -32,6 +32,10 @@ run = "scripts/fetch-fixtures.sh"
 description = "Lint, build, and test; writes reports/verify.md"
 run = "scripts/verify.sh"
 
+[tasks.metallib]
+description = "Build MLX's Metal shaders for the voices (after a debug build; install does this itself)"
+run = "scripts/build-metallib.sh debug"
+
 [tasks.install]
 description = "Build Hablamon.app (release), install to ~/Applications, link the CLI"
 run = "scripts/install.sh"

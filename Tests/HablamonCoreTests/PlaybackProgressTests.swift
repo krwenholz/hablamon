@@ -28,3 +28,14 @@ import Testing
         }
     }
 }
+
+@Suite struct SpeechBudgetTests {
+    @Test func capGrowsWithTextAndLeavesRoom() {
+        let short = SpeechBudget.maxFrames(for: "¿Cómo?")
+        let long = SpeechBudget.maxFrames(for: String(repeating: "palabra ", count: 20))
+        #expect(short >= 24 + 12, "even a one-word line gets a couple of seconds")
+        #expect(long > short)
+        // ~160 characters is about 13 s spoken; the cap allows double plus two seconds, not minutes.
+        #expect(long < 12 * 40)
+    }
+}

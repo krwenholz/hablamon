@@ -49,7 +49,7 @@ Click a line to hear it again. "N voces sin asignar" in the bottom strip opens t
 
 **Files** in `~/Library/Application Support/Hablamon`: `settings.json` (hotkeys, speed, sampling), `characters.json`, `known-words.json`, `calibration.json` and `reference.pgm` (delete both to calibrate from scratch or pin a different phone), `sessions/` (transcripts), `logs/` (one per launch; attach the latest when something goes wrong).
 
-**Better voices:** install an Enhanced or Premium Spanish (Spain) voice in System Settings › Accessibility › Spoken Content › System Voice › Manage Voices. The best installed one is used.
+**Voices:** every character has its own voice, designed once with Qwen3-TTS and cloned on the Mac's GPU as each line is spoken. The first launch downloads the voice model (about 1 GB) into `~/Library/Application Support/Hablamon/models`; until it's ready, the bottom strip says "Voces: descargando…" and the Apple voice speaks. To use only the Apple voice, set `"engine": "apple"` in `settings.json`. To redesign a voice, edit the character's `description` and run `scripts/design-voices.py --only <Name>` (needs [uv](https://docs.astral.sh/uv/)).
 
 ## Use the Mac's camera instead
 
@@ -86,7 +86,7 @@ mise tasks         # list all tasks
 swift run HablamonApp --replay Tests/Fixtures/videos/classroom_far.mp4 --windowed --mute
 ```
 
-`HablamonApp` also takes `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
+Running the app with `swift run` needs MLX's Metal shaders once per build: `mise run metallib` (`mise run install` does this itself, downloading Xcode's Metal Toolchain if needed). `HablamonApp` also takes `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
 
 ## Notes
 

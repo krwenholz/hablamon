@@ -110,7 +110,7 @@
 
         /// The player accepted these corners on the latest frame.
         public func confirm(_ quad: Quad, at date: Date, wait: Bool = false) {
-            let work = { [self] in
+            let work: @Sendable () -> Void = { [self] in
                 guard let image = lastImage,
                     let reference = try? BezelThumbnail.make(from: image, quad: quad, context: context)
                 else { return }

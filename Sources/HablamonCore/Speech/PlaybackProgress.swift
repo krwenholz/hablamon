@@ -17,3 +17,15 @@ public enum PlaybackProgress {
         unit == 0x20 || unit == 0x0A || unit == 0x09
     }
 }
+
+/// Limits how much audio a generative voice may produce for a line, so a model that keeps talking
+/// can't run on. Spanish is spoken at roughly 12 characters a second; the cap is twice that plus two
+/// seconds, in the model's 12-per-second codec frames.
+public enum SpeechBudget {
+    public static let framesPerSecond = 12
+
+    public static func maxFrames(for text: String) -> Int {
+        let expectedSeconds = Double(text.count) / 12
+        return Int((expectedSeconds * 2 + 2) * Double(framesPerSecond))
+    }
+}

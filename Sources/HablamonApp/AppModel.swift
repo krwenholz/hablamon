@@ -2,6 +2,7 @@
     import Foundation
     import HablamonCore
     import HablamonModels
+    import HablamonVoices
     import Observation
 
     /// What the window shows and the actions it can take. Replay events arrive on a stream and are
@@ -44,7 +45,9 @@
         @ObservationIgnored let settings: Settings
         @ObservationIgnored private var ranker: VocabRanker?
         @ObservationIgnored let narrator: Narrator
-        @ObservationIgnored private let voices = VoiceSelector()
+        @ObservationIgnored private var voices = VoiceSelector()
+        /// The Qwen3 character voices' state, for the status strip.
+        var voiceStatus: Qwen3SpeechEngine.Status?
         @ObservationIgnored private var replayTask: Task<Void, Never>?
         /// Decodes and reads the video; cancelled along with `replayTask` so an old replay stops.
         @ObservationIgnored private var replayProducer: Task<Void, Never>?
@@ -67,16 +70,48 @@
             self.settings = settings.value
             self.known = known.value
             let apple = AppleSpeechEngine()
-            narrator = Narrator(engine: apple, fallback: apple, speed: settings.value.speed)
+            var qwen: Qwen3SpeechEngine?
+            if settings.value.engine == .qwen3, let library = try? VoiceLibrary.bundled() {
+                qwen = Qwen3SpeechEngine(
+                    library: library, fallback: apple,
+                    modelsDirectory: store.root.appendingPathComponent("models", isDirectory: true))
+                voices = VoiceSelector(clips: library.names)
+            }
+            narrator = Narrator(engine: qwen ?? apple, fallback: apple, speed: settings.value.speed)
             issues = problems + [characters.issue, settings.issue, known.issue].compactMap { $0 }
             log = try? FileLog(
                 directory: store.logsDirectory, name: TranscriptWriter.sessionName(startingAt: sessionStart))
             log?.write("launched; root \(store.root.path)")
             for issue in issues { log?.write("issue: \(issue)") }
             loadVocabulary()
+            if let qwen { loadVoices(qwen) }
         }
 
-        var voiceSummary: String { "Apple · \(String(format: "%.2g", settings.speed))×" }
+        /// Downloads (the first time) and loads the character voices; Apple speaks meanwhile.
+        private func loadVoices(_ engine: Qwen3SpeechEngine) {
+            voiceStatus = .notLoaded
+            engine.onStatus = { status in Task { @MainActor [weak self] in self?.voiceStatus = status } }
+            engine.onLog = { line in Task { @MainActor [weak self] in self?.note(line) } }
+            Task.detached(priority: .utility) { [weak self] in
+                do {
+                    try await engine.prepare()
+                    await self?.note("qwen3 voices ready")
+                } catch {
+                    await self?.note("qwen3 voices failed to load: \(error)")
+                }
+            }
+        }
+
+        var voiceSummary: String {
+            let speed = "\(String(format: "%.2g", settings.speed))×"
+            switch voiceStatus {
+            case nil: return "Apple · \(speed)"
+            case .ready?: return "Qwen3 · \(speed)"
+            case .downloading(let fraction)?: return "Voces: descargando \(Int(fraction * 100)) %"
+            case .notLoaded?, .loading?: return "Voces: cargando…"
+            case .failed?: return "Apple · \(speed) (voces no disponibles)"
+            }
+        }
         var keys: Keys { settings.keys }
 
         // MARK: Replay
@@ -154,7 +189,9 @@
         func apply(_ event: PipelineEvent) async {
             switch event {
             case .speak(let raw):
-                let page = raw.reresolved(with: SpeakerResolver(table: characters), voices: voices)
+                var page = raw.reresolved(with: SpeakerResolver(table: characters), voices: voices)
+                // The pipeline picks pitch and rate; the character's designed clip comes from here.
+                page.voice.clip = voices.plan(for: page.speaker).clip
                 state.apply(.pipeline(.speak(page)))
                 log?.write("line \(page.speaker.name): \(page.text)")
                 ranker?.add(line: page.text)

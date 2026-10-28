@@ -11,11 +11,16 @@ staging="$(mktemp -d)/Hablamon.app"
 
 swift build -c release
 bin="$(swift build -c release --show-bin-path)"
+scripts/build-metallib.sh release
 
 mkdir -p "$staging/Contents/MacOS" "$staging/Contents/Resources"
 cp "$bin/HablamonApp" "$staging/Contents/MacOS/Hablamon"
+
 # SwiftPM resource bundles (glossary, character table, game profiles); Bundle.module finds them here.
 cp -R "$bin"/*.bundle "$staging/Contents/Resources/"
+# MLX's Metal shaders for the voices; MLX finds them as default.metallib in its own resource bundle.
+mkdir -p "$staging/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources"
+cp -L "$bin/mlx.metallib" "$staging/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib"
 cp Assets/AppIcon.icns "$staging/Contents/Resources/AppIcon.icns"
 
 version="$(git describe --always --dirty 2>/dev/null || echo dev)"

@@ -67,9 +67,29 @@ import Testing
                          "togglePause": "opt+cmd+P", "recalibrate": "opt+cmd+C", "holdForEnglish": "opt+cmd+E"}}
             """#
         let settings = try DocumentLoader.load(Settings.self, from: v1)
-        #expect(settings.schemaVersion == 2)
+        #expect(settings.schemaVersion == Settings.currentVersion)
         #expect(settings.keys == Keys.defaults)
         #expect(settings.speed == 0.9, "other settings survive")
+    }
+}
+
+extension DocumentLoaderTests {
+    @Test func versionTwoMovesToQwenVoicesOnce() throws {
+        var old = Settings.defaults
+        old.engine = .apple
+        old.schemaVersion = 2
+        let migrated = try DocumentLoader.load(Settings.self, from: try encode(old))
+        #expect(migrated.engine == .qwen3, "apple was only ever the old default")
+        #expect(migrated.schemaVersion == 3)
+
+        var chosen = Settings.defaults
+        chosen.engine = .apple
+        let kept = try DocumentLoader.load(Settings.self, from: try encode(chosen))
+        #expect(kept.engine == .apple, "a version 3 file that says apple was chosen on purpose")
+    }
+
+    @Test func qwenIsTheDefaultEngine() {
+        #expect(Settings.defaults.engine == .qwen3)
     }
 }
 
