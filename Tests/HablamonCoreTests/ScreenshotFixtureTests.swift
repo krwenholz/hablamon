@@ -34,5 +34,33 @@
                     texts.contains { $0.localizedCaseInsensitiveContains(phrase) }, "\(name) should show “\(phrase)”")
             }
         }
+
+        /// Which screenshots show speech without a dialogue box, and which must not be mistaken for it.
+        @Test(
+            arguments: [
+                ("subtitle-proyecto_far_straight.jpeg", "subtitle", nil),
+                ("subtitle-crecer_far_straight-glare.jpeg", "subtitle", nil),
+                ("npc-bubble-clases_far_straight-glare.jpeg", "bubble", nil),
+                ("casiopea-stardust_far_straight-glare.jpeg", "subtitle", "Casiopea"),
+                ("banner-ciudad-meseta_far_straight-glare.jpeg", "none", nil),
+                ("banner-clase-hogar_far_straight-glare.jpeg", "none", nil),
+                ("map-ciudad-meseta_far_straight-glare.jpeg", "none", nil),
+                ("map-menu-pokedex_far_straight-glare.jpeg", "none", nil),
+                ("battle-menu-lechonk_far_straight-glare.jpeg", "none", nil),
+                ("party-menu_far_straight-glare.jpeg", "none", nil),
+            ] as [(String, String, String?)])
+        func findsSpeechWithoutABox(_ name: String, _ kind: String, _ speaker: String?) throws {
+            let url = Self.directory.appendingPathComponent(name)
+            let image = try #require(CIImage(contentsOf: url, options: [.applyOrientationProperty: true]))
+            let found = try ScreenReader().freeSpeech(in: ScreenReader.flatten(image), context: CIContext())
+            print("[free] \(name): \(found.map { "\($0.kind) \($0.speaker ?? "-"): \($0.text)" })")
+            if kind == "none" {
+                #expect(found.isEmpty)
+            } else {
+                #expect(found.count == 1)
+                #expect(found.first.map { "\($0.kind)" } == kind)
+                #expect(found.first?.speaker == speaker)
+            }
+        }
     }
 #endif

@@ -39,6 +39,15 @@
         private var lastPreview: Date?
         private var wantsPreview = false
         private var lastState: ConnectionMonitor.State
+        // Speech without a dialogue box (subtitles, bubbles) is read on its own queue every
+        // `freeSpeechInterval`, so the whole-frame OCR doesn't hold up dialogue detection.
+        public static let freeSpeechInterval = 1.5
+        private let freeQueue = DispatchQueue(label: "hablamon.free-speech", qos: .utility)
+        private let reader = ScreenReader()
+        private var freeTracker = FreeSpeechTracker()
+        private var lastFreeCheck: Double?
+        private var freeBusy = false
+        private let voices = VoiceSelector()
         private let busy = NSLock()
         private var inFlight = false
         /// When the camera last delivered a frame, including ones dropped while busy. Guarded by `busy`.
@@ -155,6 +164,7 @@
             run(
                 controller.handle(.frame(time: time, date: date, inDialogue: pipeline.wantsFastSampling)), image: image,
                 at: date)
+            checkFreeSpeechIfDue(image, time: time)
             sendPreviewIfDue(image, at: date)
         }
 
@@ -169,7 +179,10 @@
                     let frame = CorrectedFrame(image: flat, context: context, recognizer: recognizer)
                     let started = ContinuousClock.now
                     do {
-                        for event in try pipeline.process(frame, at: time) { onMessage(.pipeline(event)) }
+                        for event in try pipeline.process(frame, at: time) {
+                            if case .speak(let page) = event { freeTracker.alreadySaid(page.text) }
+                            onMessage(.pipeline(event))
+                        }
                     } catch {
                         onMessage(.log("pipeline error: \(error)"))
                     }
@@ -205,6 +218,38 @@
                 lastState = controller.state
                 onMessage(.state(controller.state))
             }
+        }
+
+        private func checkFreeSpeechIfDue(_ image: CIImage, time: Double) {
+            guard controller.state == .tracking, !pipeline.wantsFastSampling, !freeBusy, let corrector,
+                lastFreeCheck.map({ time - $0 >= Self.freeSpeechInterval }) ?? true,
+                let flat = corrector.correct(image)
+            else { return }
+            lastFreeCheck = time
+            freeBusy = true
+            freeQueue.async { [self] in
+                let found = (try? reader.freeSpeech(in: flat, context: context)) ?? []
+                queue.async { [self] in
+                    freeBusy = false
+                    // A dialogue box may have appeared meanwhile; it has the line then.
+                    guard !pipeline.wantsFastSampling else { return }
+                    for line in freeTracker.observe(found, at: time) {
+                        let speaker: ResolvedSpeaker = line.speaker.map { .unknown(tag: $0) } ?? .narrator
+                        onMessage(
+                            .pipeline(
+                                .speak(
+                                    SpokenPage(
+                                        time: time, speaker: speaker, speakerRaw: line.speaker, text: line.text,
+                                        confidence: OCRConfidence(mean: 1, min: 1), voice: voices.plan(for: speaker)))))
+                    }
+                }
+            }
+        }
+
+        /// Waits for any whole-frame read in progress, for tests.
+        func waitForFreeSpeech() {
+            freeQueue.sync {}
+            queue.sync {}
         }
 
         private func sendPreviewIfDue(_ image: CIImage, at date: Date) {

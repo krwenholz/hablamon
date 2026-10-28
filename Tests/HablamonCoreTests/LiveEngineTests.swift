@@ -52,6 +52,32 @@
             #expect(live.state == .tracking, "same place the whole time")
         }
 
+        @Test(.timeLimit(.minutes(1)))
+        func speaksSubtitlesWithoutABox() async throws {
+            let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("Fixtures/photos/subtitle-proyecto_far_straight.jpeg")
+            let photo = try #require(CIImage(contentsOf: url, options: [.applyOrientationProperty: true]))
+            let area = Double(photo.extent.width * photo.extent.height)
+            let quad = try #require(
+                QuadPicker.pick(try RectangleFinder().candidates(in: photo), near: nil, frameArea: area))
+            let inbox = Inbox()
+            let live = LiveEngine(
+                profile: try BundledData.profile("scarlet"), characters: try BundledData.defaultCharacters(),
+                calibration: quad, reference: try BezelThumbnail.make(from: photo, quad: quad, context: CIContext()),
+                settings: .defaults, startingAt: start, onMessage: inbox.add)
+            // The same cutscene frame for four seconds, as the camera would see it.
+            for index in 0..<40 {
+                live.feed(photo, at: start.addingTimeInterval(Double(index) * 0.1), wait: true)
+                live.waitForFreeSpeech()
+            }
+            let spoken = inbox.all.compactMap { message -> SpokenPage? in
+                if case .pipeline(.speak(let page)) = message { page } else { nil }
+            }
+            #expect(spoken.count == 1, "said once, not every check")
+            #expect(spoken.first?.text.contains("proyecto extracurricular") == true)
+            #expect(spoken.first?.speaker == .narrator)
+        }
+
         @Test func framesDroppedWhileBusyKeepTrackingAlive() async throws {
             let inbox = Inbox()
             let live = LiveEngine(
