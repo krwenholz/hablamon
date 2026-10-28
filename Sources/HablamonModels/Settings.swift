@@ -5,7 +5,7 @@ import JSONSchemaBuilder
 @Schemable
 @ObjectOptions(.additionalProperties(false))
 public struct Settings: VersionedDocument, Equatable {
-    public static let currentVersion = 3
+    public static let currentVersion = 4
     public static let schemaName = "settings"
 
     public var schemaURI: String?
@@ -15,7 +15,7 @@ public struct Settings: VersionedDocument, Equatable {
     @NumberOptions(.minimum(0.5), .maximum(2.0))
     public var speed: Double
     /// Seconds between checks while no dialogue box is visible.
-    @NumberOptions(.minimum(1), .maximum(3))
+    @NumberOptions(.minimum(0.25), .maximum(3))
     public var idleSampleInterval: Double
     /// Samples per second while a dialogue box is visible.
     @NumberOptions(.minimum(1), .maximum(10))
@@ -34,10 +34,19 @@ public struct Settings: VersionedDocument, Equatable {
     /// Version 1 had global ⌥⌘ hotkeys; version 2 has plain keys that work while the app is in front.
     /// Version 3 makes the Qwen3 character voices the default: "apple" in an older file was only the
     /// old default, never a choice.
+    /// Version 4 checks for dialogue twice a second when idle; 2 s in an older file was the old default.
     public static func migrate(_ json: JSONValue, from version: Int) throws(DocumentError) -> JSONValue {
+        if version == 3, case .object(var object) = json {
+            if case .numberLiteral(let interval) = object["idleSampleInterval"], interval == JSONNumberLiteral(2) {
+                object["idleSampleInterval"] = .numberLiteral(try! JSONNumberLiteral(0.5))
+            }
+            object["schemaVersion"] = .numberLiteral(JSONNumberLiteral(4))
+            return .object(object)
+        }
         if version == 2, case .object(var object) = json {
             object["engine"] = .string(SpeechEngineID.qwen3.rawValue)
             object["schemaVersion"] = .numberLiteral(JSONNumberLiteral(3))
+            return .object(object)
             return .object(object)
         }
         guard version == 1, case .object(var object) = json else { throw .noMigration(from: version) }
@@ -59,7 +68,7 @@ public struct Settings: VersionedDocument, Equatable {
         schemaVersion: currentVersion,
         engine: .qwen3,
         speed: 0.85,
-        idleSampleInterval: 2,
+        idleSampleInterval: 0.5,
         dialogueSampleRate: 4,
         speakBattleText: false,
         allowBuiltInCamera: false,

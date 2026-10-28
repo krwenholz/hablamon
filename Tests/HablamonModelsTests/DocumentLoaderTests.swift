@@ -80,12 +80,25 @@ extension DocumentLoaderTests {
         old.schemaVersion = 2
         let migrated = try DocumentLoader.load(Settings.self, from: try encode(old))
         #expect(migrated.engine == .qwen3, "apple was only ever the old default")
-        #expect(migrated.schemaVersion == 3)
+        #expect(migrated.schemaVersion == Settings.currentVersion)
 
         var chosen = Settings.defaults
         chosen.engine = .apple
         let kept = try DocumentLoader.load(Settings.self, from: try encode(chosen))
         #expect(kept.engine == .apple, "a version 3 file that says apple was chosen on purpose")
+    }
+
+    @Test func versionThreeSamplesTwiceASecondWhenIdle() throws {
+        var old = Settings.defaults
+        old.idleSampleInterval = 2
+        old.schemaVersion = 3
+        #expect(try DocumentLoader.load(Settings.self, from: try encode(old)).idleSampleInterval == 0.5)
+
+        var custom = Settings.defaults
+        custom.idleSampleInterval = 1.5
+        custom.schemaVersion = 3
+        #expect(try DocumentLoader.load(Settings.self, from: try encode(custom)).idleSampleInterval == 1.5)
+        #expect(Settings.defaults.idleSampleInterval == 0.5)
     }
 
     @Test func qwenIsTheDefaultEngine() {

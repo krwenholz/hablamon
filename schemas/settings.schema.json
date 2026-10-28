@@ -38,7 +38,7 @@
     },
     "idleSampleInterval" : {
       "type" : "number",
-      "minimum" : 1.0,
+      "minimum" : 0.25,
       "maximum" : 3.0,
       "description" : "Seconds between checks while no dialogue box is visible."
     },
