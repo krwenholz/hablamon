@@ -84,7 +84,8 @@
             if let library = try? VoiceLibrary.bundled() {
                 let models = store.root.appendingPathComponent("models", isDirectory: true)
                 switch settings.value.engine {
-                case .kokoro: characterVoices = KokoroSpeechEngine(fallback: apple, modelsDirectory: models)
+                case .kokoro:
+                    characterVoices = KokoroSpeechEngine(library: library, fallback: apple, modelsDirectory: models)
                 case .qwen3:
                     characterVoices = Qwen3SpeechEngine(library: library, fallback: apple, modelsDirectory: models)
                 case .apple: break

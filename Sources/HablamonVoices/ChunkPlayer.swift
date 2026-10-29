@@ -26,16 +26,19 @@
             audio.connect(timePitch, to: audio.mainMixerNode, format: format)
         }
 
-        /// Generates each of `chunks` (pieces of `text`, in order) and plays them back to back.
-        /// Returns once the last has played; throws `CancellationError` if the task is cancelled.
+        /// Generates each of `chunks` (pieces of `text`, in order) and plays them back to back,
+        /// `pitch` semitones higher. Returns once the last has played; throws `CancellationError` if
+        /// the task is cancelled.
         func play(
-            _ text: String, chunks: [String], rate: Double, progress: @escaping @Sendable (Int) -> Void,
+            _ text: String, chunks: [String], rate: Double, pitch: Double = 0,
+            progress: @escaping @Sendable (Int) -> Void,
             generate: (String) async throws -> [Float]
         ) async throws -> Timing {
             let started = Date()
             let playback = Playback(text: text, chunks: chunks, offsets: SpeechChunker.offsets(of: chunks, in: text))
             player.stop()
             timePitch.rate = Float(min(max(rate, 0.5), 2.0))
+            timePitch.pitch = Float(pitch * 100)
             if !audio.isRunning { try? audio.start() }
             let ticker = Task { [self] in
                 while !Task.isCancelled {

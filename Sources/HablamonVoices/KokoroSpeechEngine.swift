@@ -24,6 +24,7 @@
         public var onStatus: (@Sendable (VoiceModelStatus) -> Void)?
         public var onLog: (@Sendable (String) -> Void)?
 
+        private let library: VoiceLibrary
         private let fallback: any SpeechEngine
         private let directory: URL
         // CoreML predictions run one at a time on this queue.
@@ -36,7 +37,8 @@
         private var status: VoiceModelStatus = .notLoaded
         private let player = ChunkPlayer(sampleRate: KokoroSpeechEngine.sampleRate)
 
-        public init(fallback: any SpeechEngine, modelsDirectory: URL) {
+        public init(library: VoiceLibrary, fallback: any SpeechEngine, modelsDirectory: URL) {
+            self.library = library
             self.fallback = fallback
             directory = modelsDirectory.appendingPathComponent("kokoro", isDirectory: true)
         }
@@ -96,14 +98,17 @@
         public func speak(
             _ text: String, voice: VoicePlan, rate: Double, progress: @escaping @Sendable (Int) -> Void
         ) async throws {
-            guard isReady, let name = voice.clip, let style = lock.withLock({ styles[name] }) else {
+            guard isReady, let name = voice.clip, let style = lock.withLock({ styles[name] }),
+                let clip = library.clip(named: name)
+            else {
                 try await fallback.speak(text, voice: voice, rate: rate, progress: progress)
                 return
             }
             let started = Date()
             do {
                 let timing = try await player.play(
-                    text, chunks: SpeechChunker.chunks(text), rate: rate, progress: progress
+                    text, chunks: SpeechChunker.chunks(text), rate: rate * clip.rate, pitch: clip.pitch,
+                    progress: progress
                 ) { chunk in
                     try await synthesize(chunk, style: style)
                 }

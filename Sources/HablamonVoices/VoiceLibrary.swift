@@ -7,6 +7,10 @@ public struct VoiceLibrary: Sendable {
     public struct Clip: Sendable, Equatable {
         public var url: URL
         public var referenceText: String
+        /// Speaking-speed multiplier, on top of the global speed.
+        public var rate: Double = 1
+        /// Pitch shift in semitones.
+        public var pitch: Double = 0
     }
 
     private let clips: [String: Clip]
@@ -24,7 +28,9 @@ public struct VoiceLibrary: Sendable {
         var clips: [String: Clip] = [:]
         for (name, voice) in manifest.voices where voice.engine == .qwen3 {
             let file = String(voice.referenceClip.dropFirst("voices/".count))
-            clips[name] = Clip(url: directory.appendingPathComponent(file), referenceText: voice.referenceText ?? "")
+            clips[name] = Clip(
+                url: directory.appendingPathComponent(file), referenceText: voice.referenceText ?? "",
+                rate: voice.rate ?? 1, pitch: voice.pitch ?? 0)
         }
         return VoiceLibrary(clips: clips)
     }

@@ -134,7 +134,9 @@ def main() -> None:
         audio = np.concatenate([np.array(r.audio, dtype=np.float32).reshape(-1) for r in results])
         clip = f"voices/{slug(name)}.m4a"
         write_m4a(audio, results[0].sample_rate, OUT / f"{slug(name)}.m4a")
-        manifest["voices"][name] = {
+        # Keep hand-tuned speed and pitch across redesigns.
+        tuning = {key: value for key, value in manifest["voices"].get(name, {}).items() if key in ("rate", "pitch")}
+        manifest["voices"][name] = tuning | {
             "engine": "qwen3",
             "referenceClip": clip,
             "referenceText": REFERENCE_TEXT,

@@ -48,6 +48,24 @@
               "null"
             ],
             "description" : "What the clip says, for cloning that uses the transcript. Optional so older manifests load."
+          },
+          "rate" : {
+            "type" : [
+              "number",
+              "null"
+            ],
+            "minimum" : 0.8,
+            "maximum" : 1.25,
+            "description" : "Speaking-speed multiplier for this voice, on top of the global speed. Omitted means 1."
+          },
+          "pitch" : {
+            "type" : [
+              "number",
+              "null"
+            ],
+            "minimum" : -3.0,
+            "maximum" : 3.0,
+            "description" : "Pitch shift in semitones. Omitted means 0."
           }
         },
         "additionalProperties" : false

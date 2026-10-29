@@ -141,7 +141,8 @@
             let started = Date()
             do {
                 let timing = try await player.play(
-                    text, chunks: SpeechChunker.chunks(text), rate: rate, progress: progress
+                    text, chunks: SpeechChunker.chunks(text), rate: rate * clip.rate, pitch: clip.pitch,
+                    progress: progress
                 ) { chunk in
                     try await generate(chunk, clip: clip, name: name)
                 }

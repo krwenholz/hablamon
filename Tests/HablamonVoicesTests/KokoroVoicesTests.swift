@@ -26,7 +26,8 @@ import Testing
 
         @Test(.enabled(if: cached, "Kokoro isn't downloaded yet; launch the app with engine kokoro once"))
         func speaksALineInACharactersVoice() async throws {
-            let engine = KokoroSpeechEngine(fallback: AppleSpeechEngine(), modelsDirectory: Self.models)
+            let engine = KokoroSpeechEngine(
+                library: try VoiceLibrary.bundled(), fallback: AppleSpeechEngine(), modelsDirectory: Self.models)
             try await engine.prepare()
             let line = "¡Has obtenido una Poción! La guardas en el bolsillo de Medicinas."
             let started = Date()

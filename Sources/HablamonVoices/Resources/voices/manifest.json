@@ -6,63 +6,80 @@
       "referenceClip": "voices/albora.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Pokémon Professor. Personality: brusque, intense researcher. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:29+00:00"
+      "createdAt": "2026-10-28T04:07:29+00:00",
+      "rate": 1.05,
+      "pitch": -0.5
     },
     "Anán": {
       "engine": "qwen3",
       "referenceClip": "voices/anan.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Team Star boss, Segin squad (Dark); DJ. Personality: cool and laid-back. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:03+00:00"
+      "createdAt": "2026-10-28T04:08:03+00:00",
+      "rate": 0.95,
+      "pitch": -0.5
     },
     "Araceli": {
       "engine": "qwen3",
       "referenceClip": "voices/araceli.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Gym leader (Bug); pastry chef. Personality: sweet and motherly. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:37+00:00"
+      "createdAt": "2026-10-28T04:07:37+00:00",
+      "rate": 0.97,
+      "pitch": 0.5
     },
     "Aroa": {
       "engine": "qwen3",
       "referenceClip": "voices/aroa.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Blueberry League Elite Four. Personality: bright, by-the-rules. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:48+00:00"
+      "createdAt": "2026-10-28T04:08:48+00:00",
+      "rate": 1.03,
+      "pitch": 0.5
     },
     "Brais": {
       "engine": "qwen3",
       "referenceClip": "voices/brais.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Gym leader (Grass); artist. Personality: flamboyant and avant-garde. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:41+00:00"
+      "createdAt": "2026-10-28T04:07:41+00:00",
+      "rate": 1.03,
+      "pitch": 0.5
     },
     "Brie": {
       "engine": "qwen3",
       "referenceClip": "voices/brie.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Blueberry Academy teacher; author on Area Zero. Personality: excitable, rambling, nerdy. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:42+00:00"
+      "createdAt": "2026-10-28T04:08:42+00:00",
+      "rate": 1.1,
+      "pitch": 0.5
     },
     "Casiopea": {
       "engine": "qwen3",
       "referenceClip": "voices/casiopea.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Team Star's anonymous boss, heard by phone. Personality: mysterious and distorted; keep distinct from Noa so the reveal isn't spoiled. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:39+00:00"
+      "createdAt": "2026-10-28T04:06:39+00:00",
+      "rate": 0.94,
+      "pitch": -1
     },
     "Cass": {
       "engine": "qwen3",
       "referenceClip": "voices/cass.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Rival from Kitakami; later Blueberry League champion. Personality: shy and quiet, turns bitter. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:24+00:00"
+      "createdAt": "2026-10-28T04:08:24+00:00",
+      "rate": 0.94,
+      "pitch": 0.5
     },
     "Cayena": {
       "engine": "qwen3",
       "referenceClip": "voices/cayena.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Elite Four (Ground). Personality: relaxed and teasing. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:18+00:00"
+      "createdAt": "2026-10-28T04:07:18+00:00",
+      "rate": 0.96
     },
     "Cinio": {
       "engine": "qwen3",
@@ -76,231 +93,287 @@
       "referenceClip": "voices/clavel.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Director of the academy. Personality: theatrical and pompous, fond of rhymes and alliteration; warm underneath. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:25+00:00"
+      "createdAt": "2026-10-28T04:06:25+00:00",
+      "rate": 0.95,
+      "pitch": -0.5
     },
     "Cloe": {
       "engine": "qwen3",
       "referenceClip": "voices/cloe.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, History teacher. Personality: energetic, theatrical storyteller. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:51+00:00"
+      "createdAt": "2026-10-28T04:06:51+00:00",
+      "rate": 1.06,
+      "pitch": 0.5
     },
     "Corin": {
       "engine": "qwen3",
       "referenceClip": "voices/corin.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Cass's older sister. Personality: brash and bossy. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:27+00:00"
+      "createdAt": "2026-10-28T04:08:27+00:00",
+      "rate": 1.06
     },
     "Damián": {
       "engine": "qwen3",
       "referenceClip": "voices/damian.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Student searching for the Herba Mystica. Personality: gruff and guarded at first, softens over time. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:32+00:00"
+      "createdAt": "2026-10-28T04:06:32+00:00",
+      "rate": 0.97,
+      "pitch": -0.5
     },
     "Denis": {
       "engine": "qwen3",
       "referenceClip": "voices/denis.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Blueberry League Elite Four. Personality: fiery and loud. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:55+00:00"
+      "createdAt": "2026-10-28T04:08:55+00:00",
+      "rate": 1.07
     },
     "Erin": {
       "engine": "qwen3",
       "referenceClip": "voices/erin.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Team Star boss, Caph squad (Fighting). Personality: steady, strong, earnest. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:11:10+00:00"
+      "createdAt": "2026-10-28T04:11:10+00:00",
+      "pitch": -0.5
     },
     "Fuco": {
       "engine": "qwen3",
       "referenceClip": "voices/fuco.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Gym leader (Water); chef. Personality: boisterous and booming. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:48+00:00"
+      "createdAt": "2026-10-28T04:07:48+00:00",
+      "rate": 1.03,
+      "pitch": -1
     },
     "Gama": {
       "engine": "qwen3",
       "referenceClip": "voices/gama.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Photographer hunting a mysterious Pokémon. Personality: calm and curious. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:38+00:00"
+      "createdAt": "2026-10-28T04:08:38+00:00",
+      "rate": 0.97
     },
     "Grusha": {
       "engine": "qwen3",
       "referenceClip": "voices/grusha.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Gym leader (Ice); former pro snowboarder. Personality: cool, terse, aloof. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:59+00:00"
+      "createdAt": "2026-10-28T04:07:59+00:00",
+      "rate": 0.96,
+      "pitch": -0.5
     },
     "Gus": {
       "engine": "qwen3",
       "referenceClip": "voices/gus.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Team Star boss, Ruchbah squad (Fairy). Personality: bratty and whiny. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:13+00:00"
+      "createdAt": "2026-10-28T04:08:13+00:00",
+      "rate": 1.05,
+      "pitch": 1
     },
     "Heladia": {
       "engine": "qwen3",
       "referenceClip": "voices/heladia.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An elderly woman, Cass and Corin's grandmother. Personality: kindly, unhurried. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:31+00:00"
+      "createdAt": "2026-10-28T04:08:31+00:00",
+      "rate": 0.9
     },
     "Henzo": {
       "engine": "qwen3",
       "referenceClip": "voices/henzo.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Team Star boss, Navi squad (Poison). Personality: theatrical, old-fashioned ninja speech. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:09+00:00"
+      "createdAt": "2026-10-28T04:08:09+00:00",
+      "rate": 0.97,
+      "pitch": -0.5
     },
     "Hesperio": {
       "engine": "qwen3",
       "referenceClip": "voices/hesperio.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Art teacher; Elite Four (Dragon). Personality: dramatic and emotional, moved to tears by beauty. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:47+00:00"
+      "createdAt": "2026-10-28T04:06:47+00:00",
+      "rate": 0.95
     },
     "Hugo": {
       "engine": "qwen3",
       "referenceClip": "voices/hugo.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Home economics teacher. Personality: calm, gentle, soft-spoken. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:58+00:00"
+      "createdAt": "2026-10-28T04:06:58+00:00",
+      "rate": 0.93,
+      "pitch": -0.5
     },
     "Kendra": {
       "engine": "qwen3",
       "referenceClip": "voices/kendra.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Battle studies teacher. Personality: loud, athletic, enthusiastic. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:06+00:00"
+      "createdAt": "2026-10-28T04:07:06+00:00",
+      "rate": 1.07,
+      "pitch": 0.5
     },
     "Laureano": {
       "engine": "qwen3",
       "referenceClip": "voices/laureano.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Gym leader (Normal) and Elite Four (Flying); office worker. Personality: flat, weary, deadpan. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:25+00:00"
+      "createdAt": "2026-10-28T04:07:25+00:00",
+      "rate": 0.92,
+      "pitch": -1
     },
     "Levi": {
       "engine": "qwen3",
       "referenceClip": "voices/levi.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage man, Blueberry League Elite Four; former champion. Personality: lazy and laid-back. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:52+00:00"
+      "createdAt": "2026-10-28T04:08:52+00:00",
+      "rate": 0.92,
+      "pitch": -0.5
     },
     "Lima": {
       "engine": "qwen3",
       "referenceClip": "voices/lima.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Gym leader (Ghost); rapper. Personality: rhythmic and raspy. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:52+00:00"
+      "createdAt": "2026-10-28T04:07:52+00:00",
+      "rate": 1.02,
+      "pitch": -0.5
     },
     "Melo": {
       "engine": "qwen3",
       "referenceClip": "voices/melo.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Team Star boss, Schedar squad (Fire). Personality: hot-headed and brash. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:06+00:00"
+      "createdAt": "2026-10-28T04:08:06+00:00",
+      "rate": 1.08
     },
     "Mencía": {
       "engine": "qwen3",
       "referenceClip": "voices/mencia.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Rival; champion-ranked student. Personality: bubbly and fast-talking, obsessed with battling. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:29+00:00"
+      "createdAt": "2026-10-28T04:06:29+00:00",
+      "rate": 1.08,
+      "pitch": 0.5
     },
     "Mila": {
       "engine": "qwen3",
       "referenceClip": "voices/mila.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Math teacher; former gym leader. Personality: precise and upbeat. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:01+00:00"
+      "createdAt": "2026-10-28T04:07:01+00:00",
+      "rate": 1.04,
+      "pitch": 0.5
     },
     "Mimí": {
       "engine": "qwen3",
       "referenceClip": "voices/mimi.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, School nurse. Personality: gentle and hesitant. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:11+00:00"
+      "createdAt": "2026-10-28T04:07:11+00:00",
+      "rate": 0.93,
+      "pitch": 0.5
     },
     "Mirtilo": {
       "engine": "qwen3",
       "referenceClip": "voices/mirtilo.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Director of Blueberry Academy. Personality: cheerful and carefree. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:44+00:00"
+      "createdAt": "2026-10-28T04:08:44+00:00",
+      "rate": 1.04,
+      "pitch": 0.5
     },
     "Nerina": {
       "engine": "qwen3",
       "referenceClip": "voices/nerina.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Blueberry League Elite Four. Personality: cool and blunt. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:58+00:00"
+      "createdAt": "2026-10-28T04:08:58+00:00",
+      "rate": 0.98,
+      "pitch": -0.5
     },
     "Nevesio": {
       "engine": "qwen3",
       "referenceClip": "voices/nevesio.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An elderly man, Cass and Corin's grandfather. Personality: kindly, storytelling. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:35+00:00"
+      "createdAt": "2026-10-28T04:08:35+00:00",
+      "rate": 0.92,
+      "pitch": -0.5
     },
     "Noa": {
       "engine": "qwen3",
       "referenceClip": "voices/noa.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage woman, Reclusive student hacker. Personality: quiet, mumbling, dry. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:36+00:00"
+      "createdAt": "2026-10-28T04:06:36+00:00",
+      "rate": 0.95
     },
     "Pola": {
       "engine": "qwen3",
       "referenceClip": "voices/pola.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A young child woman, Elite Four (Steel). Personality: young, cheerful, childlike. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:22+00:00"
+      "createdAt": "2026-10-28T04:07:22+00:00",
+      "rate": 1.05,
+      "pitch": 1
     },
     "Recluta": {
       "engine": "qwen3",
       "referenceClip": "voices/recluta.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "A teenage person with an androgynous voice, Team Star grunt; many students share this tag. Personality: cocky and slangy. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:08:20+00:00"
+      "createdAt": "2026-10-28T04:08:20+00:00",
+      "rate": 1.05
     },
     "Silvio": {
       "engine": "qwen3",
       "referenceClip": "voices/silvio.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Languages teacher. Personality: warm, flowery, effusive. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:06:54+00:00"
+      "createdAt": "2026-10-28T04:06:54+00:00",
+      "rate": 0.97
     },
     "Ságita": {
       "engine": "qwen3",
       "referenceClip": "voices/sagita.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Top Champion and chairwoman of the Pokémon League. Personality: composed, formal, authoritative. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:15+00:00"
+      "createdAt": "2026-10-28T04:07:15+00:00",
+      "rate": 0.96,
+      "pitch": -0.5
     },
     "Tuli": {
       "engine": "qwen3",
       "referenceClip": "voices/tuli.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Gym leader (Psychic); makeup artist. Personality: soft, elegant, airy. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:56+00:00"
+      "createdAt": "2026-10-28T04:07:56+00:00",
+      "rate": 0.95,
+      "pitch": 0.5
     },
     "Turo": {
       "engine": "qwen3",
       "referenceClip": "voices/turo.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult man, Pokémon Professor. Personality: calm, detached researcher. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:34+00:00"
+      "createdAt": "2026-10-28T04:07:34+00:00",
+      "rate": 0.95,
+      "pitch": -0.5
     },
     "e-Nigma": {
       "engine": "qwen3",
       "referenceClip": "voices/e-nigma.m4a",
       "referenceText": "¡Hola! Qué alegría verte por aquí. Hoy hace un día precioso para explorar Paldea, ¿no crees? Vamos, que el camino es largo.",
       "prompt": "An adult woman, Gym leader (Electric); streamer. Personality: hyper, bubbly influencer. Speaks neutral Latin American Spanish with a clear, natural accent.",
-      "createdAt": "2026-10-28T04:07:44+00:00"
+      "createdAt": "2026-10-28T04:07:44+00:00",
+      "rate": 1.1,
+      "pitch": 1
     },
     "generic-boy": {
       "engine": "qwen3",

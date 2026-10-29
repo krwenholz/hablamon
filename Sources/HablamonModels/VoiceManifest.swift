@@ -33,18 +33,28 @@ public struct DesignedVoice: Codable, Sendable, Equatable {
     public var createdAt: String
     /// What the clip says, for cloning that uses the transcript. Optional so older manifests load.
     public var referenceText: String?
+    /// Speaking-speed multiplier for this voice, on top of the global speed. Omitted means 1.
+    @NumberOptions(.minimum(0.8), .maximum(1.25))
+    public var rate: Double?
+    /// Pitch shift in semitones. Omitted means 0.
+    @NumberOptions(.minimum(-3), .maximum(3))
+    public var pitch: Double?
 
     public init(
         engine: SpeechEngineID,
         referenceClip: String,
         prompt: String,
         createdAt: String,
-        referenceText: String? = nil
+        referenceText: String? = nil,
+        rate: Double? = nil,
+        pitch: Double? = nil
     ) {
         self.engine = engine
         self.referenceClip = referenceClip
         self.prompt = prompt
         self.createdAt = createdAt
         self.referenceText = referenceText
+        self.rate = rate
+        self.pitch = pitch
     }
 }
