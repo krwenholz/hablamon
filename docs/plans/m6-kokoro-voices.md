@@ -27,5 +27,17 @@ Qwen3 had been speaking near-silence since it shipped. The engine gave speech-sw
 ## Leftovers
 
 - Names: `HablamonCore/Resources/pronunciations.tsv` holds phonemes for words the rules misread (Team Star, Eevee, Quaxly…). Add to it as new names come up.
-- Voice identity: the clone captures timbre; prosody comes from Kokoro's stock voices, so characters sound more alike than with Qwen3. Kyle finds them fairly good. For more difference later: tune individual voices with [kvoicewalk](https://github.com/RobViren/kvoicewalk) (a search that scores candidates against the target clip), blend a character's clone with a stock voice, or give characters their own speaking rate and pitch.
+- Voice identity: the clone captures timbre; prosody comes from Kokoro's stock voices, so characters sound more alike than with Qwen3. Kyle finds them fairly good. Each voice now has a gentle speed and pitch from its character's description (`rate`, `pitch` in `voices/manifest.json`, within ±10 % and ±1 semitone; Whisper still hears pitched lines perfectly).
+
+## kvoicewalk (Oct 29): tried, not shipped
+
+`scripts/walk-kokoro-voices.py` refines voices with [kvoicewalk](https://github.com/RobViren/kvoicewalk), which random-walks a voice pack toward the designed clip. It ran 2,000 steps on each of the seven main voices (narrator, Mencía, Clavel, Damián, Noa, Casiopea, Cinio), about 40 minutes each on the M2 Max GPU. None of the results were shipped:
+
+- A Kokoro voice is 510 rows, one per text length; the app's CoreML model takes one vector, their mean. Walked freely, each row moved by nearly the size of the whole vector but the mean by 5 %, so the gains kvoicewalk reported (Clavel 0.63 → 0.80) vanished in the app. The script now walks one vector repeated across the rows, so what it scores is what ships.
+- Constrained that way, speaker similarity in the app's own path (Resemblyzer, averaged over three renders) changed by −0.008 to +0.011, inside the ±0.015 a single render varies by. The inno clone is already about as close as one vector gets.
+- Feeding CoreML the row for each piece's length, as PyTorch Kokoro does, was mixed too (−0.027 to +0.028 on the clones), so the engine still uses the mean.
+
+Pitfalls the script now handles: parallel walks corrupt librosa's shared numba cache (segfaults), and kvoicewalk copies targets into one folder by file name, so identically named targets overwrite each other.
+
+If voices need to differ more, the speed and pitch tuning is the cheap lever; beyond that, a voice model that clones delivery (Qwen3) rather than a style vector.
 - Engine switching needs a relaunch (`settings.json`); Kyle doesn't want a key for it.
