@@ -54,8 +54,10 @@
         @ObservationIgnored private var ranker: VocabRanker?
         @ObservationIgnored let narrator: Narrator
         @ObservationIgnored private var voices = VoiceSelector()
-        /// The Qwen3 character voices' state, for the status strip.
-        var voiceStatus: Qwen3SpeechEngine.Status?
+        /// The character voices' state, for the status strip.
+        var voiceStatus: VoiceModelStatus?
+        /// "Kokoro" or "Qwen3" when character voices are on.
+        @ObservationIgnored private var voiceEngineName: String?
         @ObservationIgnored private var replayTask: Task<Void, Never>?
         /// Decodes and reads the video; cancelled along with `replayTask` so an old replay stops.
         @ObservationIgnored private var replayProducer: Task<Void, Never>?
@@ -78,34 +80,40 @@
             self.settings = settings.value
             self.known = known.value
             let apple = AppleSpeechEngine()
-            var qwen: Qwen3SpeechEngine?
-            if settings.value.engine == .qwen3, let library = try? VoiceLibrary.bundled() {
-                qwen = Qwen3SpeechEngine(
-                    library: library, fallback: apple,
-                    modelsDirectory: store.root.appendingPathComponent("models", isDirectory: true))
-                voices = VoiceSelector(clips: library.names)
+            var characterVoices: (any CharacterVoiceEngine)?
+            if let library = try? VoiceLibrary.bundled() {
+                let models = store.root.appendingPathComponent("models", isDirectory: true)
+                switch settings.value.engine {
+                case .kokoro: characterVoices = KokoroSpeechEngine(fallback: apple, modelsDirectory: models)
+                case .qwen3:
+                    characterVoices = Qwen3SpeechEngine(library: library, fallback: apple, modelsDirectory: models)
+                case .apple: break
+                }
+                if characterVoices != nil { voices = VoiceSelector(clips: library.names) }
             }
-            narrator = Narrator(engine: qwen ?? apple, fallback: apple, speed: settings.value.speed)
+            narrator = Narrator(engine: characterVoices ?? apple, fallback: apple, speed: settings.value.speed)
             issues = problems + [characters.issue, settings.issue, known.issue].compactMap { $0 }
             log = try? FileLog(
                 directory: store.logsDirectory, name: TranscriptWriter.sessionName(startingAt: sessionStart))
             log?.write("launched; root \(store.root.path)")
             for issue in issues { log?.write("issue: \(issue)") }
             loadVocabulary()
-            if let qwen { loadVoices(qwen) }
+            if let characterVoices { loadVoices(characterVoices) }
         }
 
         /// Downloads (the first time) and loads the character voices; Apple speaks meanwhile.
-        private func loadVoices(_ engine: Qwen3SpeechEngine) {
+        private func loadVoices(_ engine: any CharacterVoiceEngine) {
             voiceStatus = .notLoaded
+            voiceEngineName = engine.displayName
+            let name = engine.id.rawValue
             engine.onStatus = { status in Task { @MainActor [weak self] in self?.voiceStatus = status } }
             engine.onLog = { line in Task { @MainActor [weak self] in self?.note(line) } }
             Task.detached(priority: .utility) { [weak self] in
                 do {
                     try await engine.prepare()
-                    await self?.note("qwen3 voices ready")
+                    await self?.note("\(name) voices ready")
                 } catch {
-                    await self?.note("qwen3 voices failed to load: \(error)")
+                    await self?.note("\(name) voices failed to load: \(error)")
                 }
             }
         }
@@ -114,7 +122,7 @@
             let speed = "\(String(format: "%.2g", settings.speed))×"
             switch voiceStatus {
             case nil: return "Apple · \(speed)"
-            case .ready?: return "Qwen3 · \(speed)"
+            case .ready?: return "\(voiceEngineName ?? "Voces") · \(speed)"
             case .downloading(let fraction)?: return "Voces: descargando \(Int(fraction * 100)) %"
             case .notLoaded?, .loading?: return "Voces: cargando…"
             case .failed?: return "Apple · \(speed) (voces no disponibles)"

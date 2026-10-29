@@ -5,7 +5,7 @@ import JSONSchemaBuilder
 @Schemable
 @ObjectOptions(.additionalProperties(false))
 public struct Settings: VersionedDocument, Equatable {
-    public static let currentVersion = 4
+    public static let currentVersion = 5
     public static let schemaName = "settings"
 
     public var schemaURI: String?
@@ -35,7 +35,16 @@ public struct Settings: VersionedDocument, Equatable {
     /// Version 3 makes the Qwen3 character voices the default: "apple" in an older file was only the
     /// old default, never a choice.
     /// Version 4 checks for dialogue twice a second when idle; 2 s in an older file was the old default.
+    /// Version 5 makes the Kokoro character voices the default for speed; "qwen3" in an older file
+    /// was only the old default.
     public static func migrate(_ json: JSONValue, from version: Int) throws(DocumentError) -> JSONValue {
+        if version == 4, case .object(var object) = json {
+            if object["engine"] == .string(SpeechEngineID.qwen3.rawValue) {
+                object["engine"] = .string(SpeechEngineID.kokoro.rawValue)
+            }
+            object["schemaVersion"] = .numberLiteral(JSONNumberLiteral(5))
+            return .object(object)
+        }
         if version == 3, case .object(var object) = json {
             if case .numberLiteral(let interval) = object["idleSampleInterval"], interval == JSONNumberLiteral(2) {
                 object["idleSampleInterval"] = .numberLiteral(try! JSONNumberLiteral(0.5))
@@ -46,7 +55,6 @@ public struct Settings: VersionedDocument, Equatable {
         if version == 2, case .object(var object) = json {
             object["engine"] = .string(SpeechEngineID.qwen3.rawValue)
             object["schemaVersion"] = .numberLiteral(JSONNumberLiteral(3))
-            return .object(object)
             return .object(object)
         }
         guard version == 1, case .object(var object) = json else { throw .noMigration(from: version) }
@@ -66,7 +74,7 @@ public struct Settings: VersionedDocument, Equatable {
     public static let defaults = Settings(
         schemaURI: nil,
         schemaVersion: currentVersion,
-        engine: .qwen3,
+        engine: .kokoro,
         speed: 0.85,
         idleSampleInterval: 0.5,
         dialogueSampleRate: 4,

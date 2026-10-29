@@ -50,7 +50,7 @@ Click a line to hear it again. "N voces sin asignar" in the bottom strip opens t
 
 **Files** in `~/Library/Application Support/Hablamon`: `settings.json` (hotkeys, speed, sampling), `characters.json`, `known-words.json`, `calibration.json` and `reference.pgm` (delete both to calibrate from scratch or pin a different phone), `sessions/` (transcripts), `logs/` (one per launch; attach the latest when something goes wrong).
 
-**Voices:** every character has its own voice, designed once with Qwen3-TTS and cloned on the Mac's GPU as each line is spoken. The first launch downloads the voice model (about 1 GB) into `~/Library/Application Support/Hablamon/models`; until it's ready, the bottom strip says "Voces: descargando…" and the Apple voice speaks. To use only the Apple voice, set `"engine": "apple"` in `settings.json`. To redesign a voice, edit the character's `description` and run `scripts/design-voices.py --only <Name>` (needs [uv](https://docs.astral.sh/uv/)).
+**Voices:** every character has its own voice, designed once with Qwen3-TTS and spoken by Kokoro on the Neural Engine, which starts each line in about a quarter of a second. The first launch downloads the voice model (312 MB) into `~/Library/Application Support/Hablamon/models`; until it's ready, the bottom strip says "Voces: descargando…" and the Apple voice speaks. Set `"engine"` in `settings.json` to `"qwen3"` for the slower, more expressive Qwen3 voices (a 1.2 GB download) or `"apple"` for the Apple voice alone. To redesign a voice, edit the character's `description`, then run `scripts/design-voices.py --only <Name>` and `scripts/clone-kokoro-voices.py --only <Name>` (both need [uv](https://docs.astral.sh/uv/)).
 
 ## Use the Mac's camera instead
 

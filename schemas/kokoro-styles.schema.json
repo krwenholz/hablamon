@@ -1,0 +1,25 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "kokoro-styles",
+  "type" : "object",
+  "required" : [
+    "schemaVersion",
+    "styles"
+  ],
+  "properties" : {
+    "schemaVersion" : {
+      "type" : "integer"
+    },
+    "styles" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "array",
+        "items" : {
+          "type" : "number"
+        }
+      },
+      "description" : "Keyed by voice name, matching `voices/manifest.json`."
+    }
+  },
+  "additionalProperties" : false
+}

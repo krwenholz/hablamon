@@ -74,12 +74,12 @@ import Testing
 }
 
 extension DocumentLoaderTests {
-    @Test func versionTwoMovesToQwenVoicesOnce() throws {
+    @Test func versionTwoMovesToCharacterVoicesOnce() throws {
         var old = Settings.defaults
         old.engine = .apple
         old.schemaVersion = 2
         let migrated = try DocumentLoader.load(Settings.self, from: try encode(old))
-        #expect(migrated.engine == .qwen3, "apple was only ever the old default")
+        #expect(migrated.engine == .kokoro, "apple was only ever the old default")
         #expect(migrated.schemaVersion == Settings.currentVersion)
 
         var chosen = Settings.defaults
@@ -101,8 +101,26 @@ extension DocumentLoaderTests {
         #expect(Settings.defaults.idleSampleInterval == 0.5)
     }
 
-    @Test func qwenIsTheDefaultEngine() {
-        #expect(Settings.defaults.engine == .qwen3)
+    @Test func versionFourMovesFromQwenToKokoro() throws {
+        var old = Settings.defaults
+        old.engine = .qwen3
+        old.schemaVersion = 4
+        #expect(try DocumentLoader.load(Settings.self, from: try encode(old)).engine == .kokoro)
+
+        var apple = Settings.defaults
+        apple.engine = .apple
+        apple.schemaVersion = 4
+        #expect(try DocumentLoader.load(Settings.self, from: try encode(apple)).engine == .apple)
+
+        var chosen = Settings.defaults
+        chosen.engine = .qwen3
+        #expect(
+            try DocumentLoader.load(Settings.self, from: try encode(chosen)).engine == .qwen3,
+            "a version 5 file that says qwen3 was chosen on purpose")
+    }
+
+    @Test func kokoroIsTheDefaultEngine() {
+        #expect(Settings.defaults.engine == .kokoro)
     }
 }
 

@@ -66,3 +66,5 @@ Six blends of Clavel's long line are in [voice-samples/](voice-samples/) as `kok
 | `older_man` | em_santa ×2 + bm_lewis |
 
 **Trade-offs against Qwen3:** much faster and lighter (82M parameters, and speech-swift already has a `KokoroTTS` module, so it stays native); but fewer starting voices, so characters sound more alike, and Kokoro's Spanish phonemes come from espeak's Spain Spanish (`es`), so it leans Castilian unless the phonemizer is switched to Latin American (`es-419`, untested). A blend recipe per character could live next to each Qwen clip in the manifest, so switching engines keeps every character's identity.
+
+**Update (Oct 28, night):** the clone-tuner route won over blending: each designed Qwen3 voice is cloned into a Kokoro style and Kokoro is now the default engine. See [m6-kokoro-voices.md](m6-kokoro-voices.md).

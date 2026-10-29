@@ -1,6 +1,6 @@
 # M5: Qwen3 character voices
 
-Oct 28, 2026 · built; awaiting Kyle's ears on the Air · Kyle chose Qwen3 ("they rock"), a slightly Latin American accent, speech-swift for native inference, and is fine with one-time downloads · spike results in [voices.md](voices.md)
+Oct 28, 2026 · built; no longer the default (see [m6-kokoro-voices.md](m6-kokoro-voices.md), which also fixes Qwen3 speaking near-silence) · Kyle chose Qwen3 ("they rock"), a slightly Latin American accent, speech-swift for native inference, and is fine with one-time downloads · spike results in [voices.md](voices.md)
 
 ## Shape
 
