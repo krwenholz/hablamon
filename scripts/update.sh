@@ -18,6 +18,16 @@ if pgrep -xq Hablamon; then
         pgrep -xq Hablamon || break
         sleep 0.5
     done
+    # Still busy (say, mid-replay) after 10 s: stop it, or the launch below lands on a dying app.
+    if pgrep -xq Hablamon; then
+        pkill -x Hablamon || true
+        sleep 1
+    fi
 fi
-open "$HOME/Applications/Hablamon.app"
+# Launch Services can briefly refuse an app that just quit (error -609), so retry.
+for attempt in 1 2 3; do
+    open "$HOME/Applications/Hablamon.app" && break
+    [ "$attempt" = 3 ] && exit 1
+    sleep 1
+done
 echo "relaunched Hablamon ($(git rev-parse --short HEAD))"
