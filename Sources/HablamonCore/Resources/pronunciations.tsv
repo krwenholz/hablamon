@@ -1,0 +1,10 @@
+# Words the Spanish pronunciation rules misread, mostly English names, as Kokoro phonemes.
+# One per line: lowercase word, a tab, phonemes (the stress mark ˈ goes before the stressed vowel).
+# Check a change by listening, or with Whisper (see docs/plans/m6-kokoro-voices.md).
+team	tˈim
+star	stˈaɾ
+eevee	ˈibi
+ball	bˈol
+quaxly	kwˈaksli
+quaxwell	kwˈakswel
+quaquaval	kwakwaβˈal

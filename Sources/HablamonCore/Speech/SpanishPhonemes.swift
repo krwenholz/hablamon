@@ -7,7 +7,9 @@ import Foundation
 /// second-to-last syllable for words ending in a vowel, n, or s, else the last; b, d, and g soften
 /// between sounds; unstressed i and u next to another vowel glide.
 public enum SpanishPhonemes {
-    public static func phonemize(_ text: String) -> String {
+    /// `pronunciations` maps lowercase words the rules get wrong (mostly English names) to their
+    /// phonemes; see `bundledPronunciations()`.
+    public static func phonemize(_ text: String, pronunciations: [String: String] = [:]) -> String {
         var output = ""
         // The last sound spoken in this phrase; punctuation starts a new phrase.
         var previous: Character?
@@ -15,7 +17,7 @@ public enum SpanishPhonemes {
             switch token {
             case .word(let word):
                 if !output.isEmpty && output.last != " " { output += " " }
-                let phonemes = self.word(word, after: previous)
+                let phonemes = pronunciations[word.lowercased()] ?? self.word(word, after: previous)
                 output += phonemes
                 previous = phonemes.last
             case .pause(let mark):
@@ -25,6 +27,20 @@ public enum SpanishPhonemes {
             }
         }
         return output.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// `pronunciations.tsv`: hand-written phonemes for words Spanish rules misread.
+    public static func bundledPronunciations() throws -> [String: String] {
+        guard let url = Bundle.module.url(forResource: "pronunciations", withExtension: "tsv") else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        var table: [String: String] = [:]
+        for line in try String(contentsOf: url, encoding: .utf8).split(separator: "\n")
+        where !line.hasPrefix("#") {
+            let fields = line.split(separator: "\t")
+            if fields.count == 2 { table[String(fields[0])] = String(fields[1]) }
+        }
+        return table
     }
 
     /// Splits a phoneme string into pieces of at most `maxLength` characters (what the model

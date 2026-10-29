@@ -67,4 +67,21 @@ struct SpanishPhonemesTests {
         // Balanced rather than greedy, so a name isn't left on its own at the end.
         #expect(SpanishPhonemes.pieces("aa bb cc dd ee", maxLength: 12) == ["aa bb cc", "dd ee"])
     }
+
+    @Test func namesFromThePronunciationTableOverrideTheRules() {
+        let table = ["team": "tˈim", "eevee": "ˈibi"]
+        #expect(SpanishPhonemes.phonemize("del Team Star", pronunciations: table) == "del tˈim stˈaɾ")
+        #expect(SpanishPhonemes.phonemize("mochila de Eevee.", pronunciations: table) == "moʧˈila ðe ˈibi.")
+    }
+
+    @Test func bundledPronunciationsCoverTheNamesWhisperMisheard() throws {
+        let table = try SpanishPhonemes.bundledPronunciations()
+        for name in ["team", "star", "eevee"] {
+            #expect(table[name] != nil, "\(name)")
+        }
+        for (word, phonemes) in table {
+            #expect(word == word.lowercased(), "\(word) should be lowercase")
+            #expect(!phonemes.isEmpty && !phonemes.contains(" "), "\(word)")
+        }
+    }
 }

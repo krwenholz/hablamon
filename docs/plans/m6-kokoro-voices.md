@@ -26,6 +26,6 @@ Qwen3 had been speaking near-silence since it shipped. The engine gave speech-sw
 
 ## Leftovers
 
-- Names: a small pronunciation table (Team Star, Eevee) would fix the remaining misreads; the game-terms table is a natural home.
-- Voice identity: the clone captures timbre; prosody comes from Kokoro's stock voices, so characters sound more alike than with Qwen3. Kyle's ears decide whether that's acceptable.
-- Engine switching needs a relaunch (`settings.json`); a key to flip engines live would make comparing easier.
+- Names: `HablamonCore/Resources/pronunciations.tsv` holds phonemes for words the rules misread (Team Star, Eevee, Quaxly…). Add to it as new names come up.
+- Voice identity: the clone captures timbre; prosody comes from Kokoro's stock voices, so characters sound more alike than with Qwen3. Kyle finds them fairly good. For more difference later: tune individual voices with [kvoicewalk](https://github.com/RobViren/kvoicewalk) (a search that scores candidates against the target clip), blend a character's clone with a stock voice, or give characters their own speaking rate and pitch.
+- Engine switching needs a relaunch (`settings.json`); Kyle doesn't want a key for it.

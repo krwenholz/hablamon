@@ -32,6 +32,7 @@
         private var model: MLModel?
         private var vocabulary: [Character: Int32] = [:]
         private var styles: [String: [Float]] = [:]
+        private var pronunciations: [String: String] = [:]
         private var status: VoiceModelStatus = .notLoaded
         private let player = ChunkPlayer(sampleRate: KokoroSpeechEngine.sampleRate)
 
@@ -70,7 +71,9 @@
                 let model = try MLModel(
                     contentsOf: directory.appendingPathComponent("kokoro_5s.mlmodelc"), configuration: configuration)
                 let styles = try KokoroVoices.bundled()
+                let pronunciations = try SpanishPhonemes.bundledPronunciations()
                 lock.withLock {
+                    self.pronunciations = pronunciations
                     self.model = model
                     self.vocabulary = vocabulary
                     self.styles = styles
@@ -129,7 +132,7 @@
 
         private func synthesize(_ text: String, style: [Float]) async throws -> [Float] {
             var samples: [Float] = []
-            let phonemes = SpanishPhonemes.phonemize(text)
+            let phonemes = SpanishPhonemes.phonemize(text, pronunciations: lock.withLock { pronunciations })
             for piece in SpanishPhonemes.pieces(phonemes, maxLength: Self.phonemesPerPass) {
                 samples += try await render(piece, style: style)
             }

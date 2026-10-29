@@ -29,6 +29,7 @@ let package = Package(
                 .copy("Resources/characters.default.json"), .copy("Resources/profiles"),
                 .copy("Resources/dictionary"),
                 .copy("Resources/game-terms"),
+                .copy("Resources/pronunciations.tsv"),
             ]
         ),
         .executableTarget(
