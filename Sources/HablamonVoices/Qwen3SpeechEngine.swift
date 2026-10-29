@@ -73,12 +73,17 @@
                 throw CocoaError(.fileNoSuchFile, userInfo: [NSLocalizedDescriptionKey: reason])
             }
             report(.loading)
-            let marker = modelsDirectory.appendingPathComponent(".qwen3-ready")
-            let cached = FileManager.default.fileExists(atPath: marker.path)
+            // The model and its speech tokenizer each need their own folder: given one folder for
+            // both, speech-swift takes the model's weights for the tokenizer's and speaks silence.
+            let modelDirectory = modelsDirectory.appendingPathComponent("qwen3", isDirectory: true)
+            let tokenizerDirectory = modelsDirectory.appendingPathComponent("qwen3-tokenizer", isDirectory: true)
+            let marker = modelDirectory.appendingPathComponent(".ready")
             do {
-                try FileManager.default.createDirectory(at: modelsDirectory, withIntermediateDirectories: true)
+                try Self.moveSharedFolderDownload(from: modelsDirectory, to: modelDirectory)
+                let cached = FileManager.default.fileExists(atPath: marker.path)
+                try FileManager.default.createDirectory(at: modelDirectory, withIntermediateDirectories: true)
                 let loaded = try await Qwen3TTSModel.fromPretrained(
-                    modelId: Self.modelID, cacheDir: modelsDirectory, tokenizerCacheDir: modelsDirectory,
+                    modelId: Self.modelID, cacheDir: modelDirectory, tokenizerCacheDir: tokenizerDirectory,
                     offlineMode: cached,
                     progressHandler: { [weak self] fraction, _ in
                         if !cached { self?.report(.downloading(fraction)) }
@@ -96,6 +101,24 @@
             }
         }
 
+        /// Builds before the fix downloaded the model straight into `models/`; move it into its own
+        /// folder rather than fetching 1.2 GB again. The tokenizer was never downloaded, so it will be.
+        static func moveSharedFolderDownload(from models: URL, to modelDirectory: URL) throws {
+            let files = FileManager.default
+            guard files.fileExists(atPath: models.appendingPathComponent("model.safetensors").path),
+                !files.fileExists(atPath: modelDirectory.path)
+            else { return }
+            try files.createDirectory(at: modelDirectory, withIntermediateDirectories: true)
+            for name in [
+                "config.json", "merges.txt", "model.safetensors", "model.safetensors.index.json",
+                "tokenizer_config.json", "vocab.json",
+            ] where files.fileExists(atPath: models.appendingPathComponent(name).path) {
+                try files.moveItem(
+                    at: models.appendingPathComponent(name), to: modelDirectory.appendingPathComponent(name))
+            }
+            try? files.removeItem(at: models.appendingPathComponent(".qwen3-ready"))
+        }
+
         /// Whether MLX will find its shaders: next to the executable, in `Resources/` beside it, or as
         /// `default.metallib` in MLX's resource bundle inside the app (where the install puts them).
         static func metalLibraryAvailable() -> Bool {
@@ -104,6 +127,13 @@
                 executable?.appendingPathComponent("mlx.metallib"),
                 executable?.appendingPathComponent("Resources/mlx.metallib"),
             ]
+            // MLX also looks beside the binary its code is linked into, which in tests is the test bundle.
+            var image = Dl_info()
+            if dladdr(#dsohandle, &image) != 0, let path = image.dli_fname {
+                candidates.append(
+                    URL(fileURLWithPath: String(cString: path)).deletingLastPathComponent()
+                        .appendingPathComponent("mlx.metallib"))
+            }
             for bundle in [Bundle.main] + Bundle.allBundles {
                 candidates.append(
                     bundle.resourceURL?.appendingPathComponent(
@@ -177,7 +207,7 @@
 
         // MARK: Generation
 
-        private func generate(_ text: String, clip: VoiceLibrary.Clip, name: String) async throws -> [Float] {
+        func generate(_ text: String, clip: VoiceLibrary.Clip, name: String) async throws -> [Float] {
             try await withCheckedThrowingContinuation { continuation in
                 queue.async { [self] in
                     do {
