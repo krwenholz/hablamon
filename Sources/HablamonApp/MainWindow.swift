@@ -14,6 +14,14 @@
         private var side: SidePanel { model.side }
 
         var body: some View {
+            ZStack {
+                content
+                // Over the whole window, edge to edge, rather than inside the main view's margins.
+                if model.screenOpen { ScreenTranslationView(model: model).ignoresSafeArea() }
+            }
+        }
+
+        private var content: some View {
             VStack(spacing: 22) {
                 HeroBox(
                     page: model.state.current, translation: model.currentTranslation, waiting: model.liveStatus,
@@ -48,9 +56,6 @@
                 if empty && side == .speakers { model.side = .words }
             }
             .modifier(TranslationDriver(model: model))
-            .overlay {
-                if model.screenOpen { ScreenTranslationView(model: model) }
-            }
             .background {
                 ZStack {
                     Theme.background

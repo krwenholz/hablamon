@@ -77,8 +77,7 @@
         @State private var configuration: TranslationSession.Configuration?
 
         var body: some View {
-            ZStack {
-                Color.black.opacity(0.92).ignoresSafeArea()
+            VStack(spacing: 6) {
                 if let image = model.screenImage {
                     GeometryReader { geometry in
                         let size = fitted(image, in: geometry.size)
@@ -93,16 +92,18 @@
                         .frame(width: size.width, height: size.height)
                         .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                     }
-                    .padding(28)
-                }
-                VStack {
+                } else {
                     Spacer()
-                    Text(status)
-                        .font(Theme.menu(14, heavy: false))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .padding(.bottom, 10)
                 }
+                Text(status)
+                    .font(Theme.menu(14, heavy: false))
+                    .foregroundStyle(.white.opacity(0.7))
             }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black)
             .onChange(of: model.screenTranslation?.pending.count ?? 0, initial: true) { _, count in
                 guard count > 0 else { return }
                 if configuration == nil {
