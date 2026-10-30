@@ -87,7 +87,7 @@ mise tasks         # list all tasks
 swift run HablamonApp --replay Tests/Fixtures/videos/classroom_far.mp4 --windowed --mute
 ```
 
-Running the app with `swift run` needs MLX's Metal shaders once per build: `mise run metallib` (`mise run install` does this itself, downloading Xcode's Metal Toolchain if needed). `HablamonApp` also takes `--translate-image <picture>` (open the whole-screen translation on a screenshot), `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
+Running the app with `swift run` needs MLX's Metal shaders once per build: `mise run metallib` (`mise run install` does this itself). Builds need Xcode's Metal Toolchain, a separate download for each Xcode version; `mise run install` fetches it, or run `xcodebuild -downloadComponent MetalToolchain` after updating Xcode. `HablamonApp` also takes `--translate-image <picture>` (open the whole-screen translation on a screenshot), `--root <dir>` (a scratch data folder), `--panel speakers|diagnostics|calibration`, and `--snapshot <png> --after <seconds>` for screenshots. Agent guidance lives in [`AGENTS.md`](AGENTS.md).
 
 ## Notes
 

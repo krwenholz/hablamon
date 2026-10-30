@@ -9,6 +9,12 @@ bundle_id="dev.krw.hablamon"
 app="$HOME/Applications/Hablamon.app"
 staging="$(mktemp -d)/Hablamon.app"
 
+# MLX's shaders need Xcode's Metal Toolchain, a separate download per Xcode version. Swift Build
+# compiles them during `swift build`, so fetch it first (again after an Xcode update).
+if ! xcrun metal -v >/dev/null 2>&1; then
+    echo "Downloading Xcode's Metal Toolchain (one time per Xcode version, ~700 MB)…"
+    xcodebuild -downloadComponent MetalToolchain
+fi
 swift build -c release
 bin="$(swift build -c release --show-bin-path)"
 scripts/build-metallib.sh release
