@@ -1,4 +1,5 @@
-#if canImport(AVFoundation) && canImport(CoreImage)
+// Continuity Camera and Center Stage are macOS APIs; the iPhone app uses `PhoneCamera`.
+#if os(macOS)
     @preconcurrency import AVFoundation
     import CoreImage
     import Foundation

@@ -18,8 +18,14 @@ public struct AppSupportStore: Sendable {
     }
 
     public static var defaultRoot: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/Hablamon", isDirectory: true)
+        #if os(iOS)
+            // The app's Documents folder, which the Files app shows (On My iPhone › Hablamon) so logs
+            // and transcripts can be shared from the phone. It survives reinstalls too.
+            FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        #else
+            FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/Application Support/Hablamon", isDirectory: true)
+        #endif
     }
 
     public var sessionsDirectory: URL { root.appendingPathComponent("sessions", isDirectory: true) }

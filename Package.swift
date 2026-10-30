@@ -3,10 +3,12 @@ import PackageDescription
 
 let package = Package(
     name: "Hablamon",
-    platforms: [.macOS(.v15)],
+    platforms: [.macOS(.v15), .iOS(.v18)],
     products: [
         .executable(name: "hablamon", targets: ["HablamonCLI"]),
         .executable(name: "HablamonApp", targets: ["HablamonApp"]),
+        // What the iPhone app (Apps/iOS) links; the Mac app and CLI are executables in this package.
+        .library(name: "HablamonKit", targets: ["HablamonModels", "HablamonCore", "HablamonVoices"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.8.0"),
@@ -46,7 +48,7 @@ let package = Package(
                 "HablamonCore",
                 "HablamonModels",
                 .product(name: "Qwen3TTS", package: "speech-swift", condition: .when(platforms: [.macOS])),
-                .product(name: "AudioCommon", package: "speech-swift", condition: .when(platforms: [.macOS])),
+                .product(name: "AudioCommon", package: "speech-swift", condition: .when(platforms: [.macOS, .iOS])),
             ],
             resources: [.copy("Resources/voices")]
         ),
