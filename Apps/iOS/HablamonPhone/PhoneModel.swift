@@ -125,6 +125,12 @@ final class PhoneModel {
         UIApplication.shared.isIdleTimerDisabled = true
         configureAudio()
         watchDevice()
+        #if targetEnvironment(simulator)
+            if let video = Self.replayVideo {
+                startReplay(video: video)
+                return
+            }
+        #endif
         tasks.append(
             Task { [weak self] in
                 guard await PhoneCamera.authorize() else {
@@ -508,3 +514,59 @@ final class PhoneModel {
         if recentLog.count > 12 { recentLog.removeFirst(recentLog.count - 12) }
     }
 }
+
+#if targetEnvironment(simulator)
+    // The simulator has no camera, so a recorded video stands in for it. This checks OCR, speech, and
+    // the screen on iOS without a phone; `PhoneCamera` and `LiveEngine` still need the real thing.
+    extension PhoneModel {
+        /// The video after `--replay`, with its `<name>.calibration.json` beside it.
+        fileprivate static var replayVideo: URL? {
+            let arguments = ProcessInfo.processInfo.arguments
+            guard let flag = arguments.firstIndex(of: "--replay"), flag + 1 < arguments.count else { return nil }
+            return URL(fileURLWithPath: arguments[flag + 1])
+        }
+
+        fileprivate func startReplay(video: URL) {
+            let calibrationURL = video.deletingPathExtension().appendingPathExtension("calibration.json")
+            let calibration: Calibration
+            let profile: GameProfile
+            do {
+                calibration = try DocumentLoader.load(
+                    Calibration.self, from: try String(contentsOf: calibrationURL, encoding: .utf8))
+                profile = try BundledData.profile("scarlet")
+            } catch {
+                status = "\(error)"
+                note("replay failed: \(error)")
+                return
+            }
+            note("replay \(video.path)")
+            // Replays are kept apart from real sessions so they don't skew word frequencies.
+            transcript = try? TranscriptWriter(
+                sessionsDirectory: store.root.appendingPathComponent("replays", isDirectory: true),
+                session: TranscriptWriter.sessionName(startingAt: sessionStart))
+
+            let (stream, continuation) = AsyncStream.makeStream(of: Message.self)
+            let characters = characters
+            Task.detached(priority: .utility) {
+                do {
+                    try await Replay.run(
+                        video: video, calibration: calibration, profile: profile, characters: characters,
+                        realTime: true,
+                        onFrame: { found, _ in continuation.yield(.engine(.frame(screenFound: found))) },
+                        onEvent: { event, _ in continuation.yield(.engine(.pipeline(event))) })
+                    continuation.yield(.log("replay finished"))
+                } catch {
+                    continuation.yield(.log("replay failed: \(error)"))
+                }
+                continuation.finish()
+            }
+            tasks.append(
+                Task { [weak self] in
+                    for await message in stream {
+                        guard let self else { break }
+                        await self.handle(message)
+                    }
+                })
+        }
+    }
+#endif

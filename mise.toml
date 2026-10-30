@@ -47,3 +47,7 @@ run = "scripts/update.sh"
 [tasks.phone]
 description = "Build the iPhone app and install it on the connected iPhone (see docs/plans/ios-app.md)"
 run = "scripts/phone.sh"
+
+[tasks.phone-sim]
+description = "Run the iPhone app in the iOS Simulator, with a fixture video as the camera"
+run = "scripts/phone-sim.sh"
