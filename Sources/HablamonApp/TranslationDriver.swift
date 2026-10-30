@@ -68,7 +68,7 @@
             }
         }
     }
-#else
+#elseif canImport(SwiftUI)
     import SwiftUI
 
     struct TranslationDriver: ViewModifier {
