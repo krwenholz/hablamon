@@ -1,0 +1,219 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		88C34F3D4FA689557B5DE078 /* HablamonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98BEDFBFA466FCB6F5AB815A /* HablamonKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		37A299CA637B3CFFBD5E1890 /* Hablamon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hablamon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B753069365BBE82EC97F3603 /* HablamonPhone.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = HablamonPhone.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		62941087CF13F5C8C7BDAD37 /* HablamonPhone */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HablamonPhone;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		923CA99B8AF0FB42514BBDF8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				88C34F3D4FA689557B5DE078 /* HablamonKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		552A0910F35D69AD6D026734 = {
+			isa = PBXGroup;
+			children = (
+				B753069365BBE82EC97F3603 /* HablamonPhone.xcconfig */,
+				62941087CF13F5C8C7BDAD37 /* HablamonPhone */,
+				866E24E853D768BD316F1B90 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		866E24E853D768BD316F1B90 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				37A299CA637B3CFFBD5E1890 /* Hablamon.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		98A438A5C7A01F870C4066C6 /* HablamonPhone */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 841872A75BFB4AEBB455F058 /* Build configuration list for PBXNativeTarget "HablamonPhone" */;
+			buildPhases = (
+				E76D9DF14DDAE3E494BF579C /* Sources */,
+				923CA99B8AF0FB42514BBDF8 /* Frameworks */,
+				FF3D54620401A0F331FA3C01 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				62941087CF13F5C8C7BDAD37 /* HablamonPhone */,
+			);
+			name = HablamonPhone;
+			packageProductDependencies = (
+				98BEDFBFA466FCB6F5AB815A /* HablamonKit */,
+			);
+			productName = HablamonPhone;
+			productReference = 37A299CA637B3CFFBD5E1890 /* Hablamon.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0C7318EED4747B9644F72C5F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					98A438A5C7A01F870C4066C6 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = 4990BD0F65CF4C3A2CBEB2B1 /* Build configuration list for PBXProject "Hablamon" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 552A0910F35D69AD6D026734;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DCB7C1E014162D47B0C6DCEC /* XCLocalSwiftPackageReference "../.." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 866E24E853D768BD316F1B90 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				98A438A5C7A01F870C4066C6 /* HablamonPhone */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FF3D54620401A0F331FA3C01 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E76D9DF14DDAE3E494BF579C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		28CA9D1B18BADBBEB098AF31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BE831E255F035B0C2935948B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BA379799A4BFC82B876FF12A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B753069365BBE82EC97F3603 /* HablamonPhone.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		DEF55780A9B7272F2C6F103B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B753069365BBE82EC97F3603 /* HablamonPhone.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4990BD0F65CF4C3A2CBEB2B1 /* Build configuration list for PBXProject "Hablamon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				28CA9D1B18BADBBEB098AF31 /* Debug */,
+				BE831E255F035B0C2935948B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		841872A75BFB4AEBB455F058 /* Build configuration list for PBXNativeTarget "HablamonPhone" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA379799A4BFC82B876FF12A /* Debug */,
+				DEF55780A9B7272F2C6F103B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		DCB7C1E014162D47B0C6DCEC /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		98BEDFBFA466FCB6F5AB815A /* HablamonKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HablamonKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 0C7318EED4747B9644F72C5F /* Project object */;
+}

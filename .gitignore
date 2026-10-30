@@ -23,3 +23,6 @@ DerivedData/
 # Hablamon: phone videos are large; keep them out of git (Git LFS later if needed)
 Tests/Fixtures/**/*.mov
 Tests/Fixtures/**/*.mp4
+
+# Hablamon: the iPhone app's signing team (scripts/phone.sh writes it)
+Apps/iOS/Local.xcconfig

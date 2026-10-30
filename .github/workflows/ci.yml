@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths-ignore: ["**.md", "docs/**"]
@@ -51,3 +52,28 @@ jobs:
         with:
           name: verify-report
           path: reports/
+
+  # The iPhone app (Apps/iOS) links the shared package, so a change there can break it. Build only,
+  # unsigned, for a generic device; the verify job runs the tests.
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        timeout-minutes: 2
+      - name: Build the iPhone app
+        timeout-minutes: 20
+        run: |
+          set -o pipefail
+          xcodebuild -project Apps/iOS/Hablamon.xcodeproj -scheme HablamonPhone -configuration Debug \
+            -destination 'generic/platform=iOS' -derivedDataPath .build/ios \
+            -skipMacroValidation -skipPackagePluginValidation CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee ios-build.log | grep -E 'error:|warning: .*Apps/iOS|^\*\*' || true
+          grep -q '\*\* BUILD SUCCEEDED \*\*' ios-build.log
+      - if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        timeout-minutes: 2
+        with:
+          name: ios-build-log
+          path: ios-build.log
+

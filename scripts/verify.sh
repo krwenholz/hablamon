@@ -26,7 +26,7 @@ step() {
     fi
 }
 
-step "lint" swift format lint --recursive --strict Package.swift Sources Tests
+step "lint" swift format lint --recursive --strict Package.swift Sources Tests Apps
 step "photo privacy" python3 -I scripts/photo-privacy.py check Tests/Fixtures
 step "build" swift build
 # Serial: the Vision and video tests block threads, and in parallel they can starve
