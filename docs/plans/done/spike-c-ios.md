@@ -1,6 +1,6 @@
 # Spike C: Hablamon on the iPhone
 
-Oct 28, 2026 · research only, nothing built · questions for Kyle at the end
+Oct 28, 2026 · research only; superseded by the plan in [ios-app.md](../ios-app.md) (Oct 30), which chose Kokoro voices and a thin Xcode shell over the shared package
 
 ## The idea
 
@@ -51,7 +51,7 @@ Most of it. The pipeline is plain Swift on Apple frameworks that also exist on i
 
 ### The camera gets better
 
-The [M2 record](done/m2-live-camera.md) notes that macOS can't set exposure bias or zoom on the phone. All it can do is meter on the dialogue box. A native iOS app has the whole `AVCaptureDevice` API:
+The [M2 record](m2-live-camera.md) notes that macOS can't set exposure bias or zoom on the phone. All it can do is meter on the dialogue box. A native iOS app has the whole `AVCaptureDevice` API:
 
 - **Exposure bias and lock**, so the bright box doesn't blow out.
 - **Zoom and lens choice.** With the telephoto lens the phone can sit beside the player and still fill the frame with the TV. That makes the phone screen readable and the phone easy to reach.

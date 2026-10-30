@@ -18,7 +18,7 @@ Hablamon is a native macOS app that watches Pokémon Scarlet on the TV through a
 **Non-goals for v1**
 
 - Translation to English (v2, run offline in batch against the transcript).
-- Capture cards, Windows, Linux, mobile, or any hosted/server component.
+- Capture cards, Windows, Linux, or any hosted/server component. (The iPhone app came later; see [ios-app.md](ios-app.md).)
 - Reading menus, move lists, or battle UI text. Dialogue boxes only.
 - Other games. Everything Scarlet-specific lives in `profiles/scarlet.json` so a second game profile is possible later.
 
@@ -39,7 +39,8 @@ Swift 6 on macOS with SwiftPM, using Apple frameworks only: AVFoundation (camera
 | M5: second speech engine | Planned, route depends on Spike B | [voices.md](voices.md) |
 | Translation and focused window | Built (Oct 27): line + English + key words; recap behind H | [README](../../README.md) |
 | Whole-screen translation | Spec only | [spec-screen-translation.md](spec-screen-translation.md) |
-| Spike C: iPhone app | Research only; questions for Kyle | [spike-ios.md](spike-ios.md) |
+| Spike C: iPhone app | Research done | [done/spike-c-ios.md](done/spike-c-ios.md) |
+| iPhone app | Phases 0–2 built, awaiting a play test on the phone | [ios-app.md](ios-app.md) |
 
 Built so far: the full pipeline from frame to transcript (perspective correction, box detection, settle, OCR, scroll-aware page sequencing, speaker matching, voice choice, Apple speech, JSONL transcript), the data-file types and schemas, the Scarlet profile and character table, `hablamon run --replay`, `ocr`, `export`, and `schema export`, and macOS CI. The [M1 record](done/m1-offline-replay.md) lists what lives where and how it differs from the first design.
 

@@ -7,7 +7,7 @@
 - [m5-qwen-voices.md](m5-qwen-voices.md): Qwen3 character voices (built).
 - [m6-kokoro-voices.md](m6-kokoro-voices.md): Kokoro character voices, now the default, and the Qwen3 silence fix.
 - [spec-screen-translation.md](spec-screen-translation.md): idea spec for translating menus and battles on demand.
-- [spike-ios.md](spike-ios.md): research on running Hablamon as a personal iPhone app.
+- [ios-app.md](ios-app.md): the iPhone app: monorepo layout, phases, and the play test that decides whether to carry on.
 - [done/](done/): finished milestones and spikes, kept as records of what was built and what was learned.
 - [mockups/](mockups/): UI mockups as PNGs, with the HTML they were rendered from (headless Chrome at 1470×956, 2×).
 

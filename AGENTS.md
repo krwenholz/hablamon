@@ -32,6 +32,7 @@ mise run schemas  # regenerate schemas/ after changing a model type
 mise run fixtures # download fixture videos (not in git)
 mise run verify   # lint + build + test, writes reports/verify.md
 mise run install  # build Hablamon.app into ~/Applications, link the CLI
+mise run phone    # build the iPhone app and install it on the connected iPhone
 ```
 
 The app keeps all data (settings, characters, known words, transcripts, logs) in `~/Library/Application Support/Hablamon`, so reinstalls never touch it. For testing, `HablamonApp --replay <video> --windowed --mute --root <scratch dir> --snapshot <png> --after <s>` renders the window without speaking or touching real data.
@@ -40,7 +41,7 @@ Plain `swift build` / `swift test --filter <name>` work too.
 
 ## Rules
 
-- macOS on Apple Silicon is the target. Swift 6, SwiftPM only, no Xcode project. Cloud sessions run Linux, so only platform-neutral code can be built and tested there; gate Apple-only code with `#if canImport(...)` where practical.
+- macOS on Apple Silicon is the main target; an iPhone app is in progress ([plan](docs/plans/ios-app.md)). Swift 6. All code lives in the SwiftPM package; the one exception is `Apps/iOS`, a thin Xcode project for the iPhone app shell (keep build settings in its `.xcconfig`, not the project file). Cloud sessions run Linux, so only platform-neutral code can be built and tested there; gate Apple-only code with `#if canImport(...)` where practical.
 - Apple frameworks only. The only third-party packages are `swift-argument-parser` and `swift-json-schema`. Ask before adding dependencies.
 - Fully offline at runtime: no network calls or telemetry.
 - Every JSON file has a `VersionedDocument` type in `HablamonModels`; `schemas/` is generated from them and a test fails if it's stale.

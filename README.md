@@ -52,6 +52,18 @@ Click a line to hear it again. "N voces sin asignar" in the bottom strip opens t
 
 **Voices:** every character has its own voice, designed once with Qwen3-TTS and spoken by Kokoro on the Neural Engine, which starts each line in about a quarter of a second. The first launch downloads the voice model (312 MB) into `~/Library/Application Support/Hablamon/models`; until it's ready, the bottom strip says "Voces: descargando…" and the Apple voice speaks. Set `"engine"` in `settings.json` to `"qwen3"` for the slower, more expressive Qwen3 voices (a 1.2 GB download) or `"apple"` for the Apple voice alone. To redesign a voice, edit the character's `description`, then run `scripts/design-voices.py --only <Name>` and `scripts/clone-kokoro-voices.py --only <Name>` (both need [uv](https://docs.astral.sh/uv/)).
 
+## Try it on the iPhone (experimental)
+
+The iPhone can run the whole thing by itself: its back camera watches the TV, and it reads each line aloud and shows it with the English. It's an early build for deciding whether a phone app is worth it; the [plan](docs/plans/ios-app.md) has the full setup and what to look for.
+
+You need full Xcode with your Apple ID added (Xcode › Settings › Accounts), and the iPhone plugged in with Developer Mode on (Settings › Privacy & Security). Then:
+
+```sh
+mise run phone
+```
+
+On the phone, **Cámara** opens the picture with the TV's corners, the lens and zoom, exposure, and focus lock; **Datos** shows heat, battery, and the latest log lines. Logs and transcripts are in Files › On My iPhone › Hablamon. With a free Apple ID the app stops opening after 7 days; `mise run phone` again renews it.
+
 ## Use the Mac's camera instead
 
 To try a placement with the Mac's own camera, start it with:
