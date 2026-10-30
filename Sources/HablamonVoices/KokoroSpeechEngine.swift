@@ -69,7 +69,12 @@
                 }
                 let vocabulary = try Self.loadVocabulary(directory.appendingPathComponent("vocab_index.json"))
                 let configuration = MLModelConfiguration()
-                configuration.computeUnits = .all
+                #if targetEnvironment(simulator)
+                    // The simulator's CoreML has no GPU backend and can't build this model's plan otherwise.
+                    configuration.computeUnits = .cpuOnly
+                #else
+                    configuration.computeUnits = .all
+                #endif
                 let model = try MLModel(
                     contentsOf: directory.appendingPathComponent("kokoro_5s.mlmodelc"), configuration: configuration)
                 let styles = try KokoroVoices.bundled()
