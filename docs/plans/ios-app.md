@@ -128,5 +128,5 @@ With a free Apple ID the app stops launching after 7 days; `mise run phone` agai
 
 ## Questions for Kyle
 
-1. Which iPhone? A Pro has the telephoto, which may let the phone sit beside you rather than by the TV.
+1. ~~Which iPhone?~~ A Pro (Oct 30): the telephoto is there, so try the phone beside you as well as by the TV, and 8 GB of RAM leaves room for the voices.
 2. After the test: worth phase 3?
