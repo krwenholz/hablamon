@@ -1,6 +1,6 @@
 # Hablamon on the iPhone
 
-Oct 30, 2026 · @Kyle · phases 0–2 built (not yet compiled for iOS or run on a phone); the rest planned · research in [done/spike-c-ios.md](done/spike-c-ios.md)
+Oct 30, 2026 · @Kyle · phases 0–2 built and running in the simulator (not yet run on a phone); the rest planned · research in [done/spike-c-ios.md](done/spike-c-ios.md)
 
 ## Goal
 
@@ -106,12 +106,11 @@ Move what both apps need into a `HablamonUI` library target in the package:
 - **Thermal back-off:** at `.serious`, sample less often and stop the free-speech whole-frame OCR; at `.critical`, pause and say why.
 - iPad layout, if the iPad turns out to be the better screen.
 - App icon from `Assets/`.
-- Commit the Xcode project's `Package.resolved` once resolved on the Mac, so the phone builds against the same dependency versions as the Mac app.
 - If the 7-day free signing gets tiresome: the paid program, then TestFlight uploads from CI.
 
 ## Setup (once)
 
-1. Install Xcode (not just the Command Line Tools). In Xcode › Settings › Accounts, add your Apple ID; a "Personal Team" appears.
+1. Install Xcode (not just the Command Line Tools) and its iOS platform: `xcodebuild -downloadPlatform iOS`, about 8.5 GB. In Xcode › Settings › Accounts, add your Apple ID; a "Personal Team" appears.
 2. Plug the iPhone in and trust the Mac. Turn on Settings › Privacy & Security › Developer Mode (it appears after the phone has met Xcode) and restart.
 3. `mise run phone`. If it can't find your team (no development certificate yet), open `Apps/iOS/Hablamon.xcodeproj` once, pick the Personal Team under Signing & Capabilities, press Run, and use `mise run phone` from then on. The script writes `Apps/iOS/Local.xcconfig`; you can also write `DEVELOPMENT_TEAM = <team ID>` there yourself.
 4. On the phone, the first launch is blocked until you trust the developer: Settings › General › VPN & Device Management.
@@ -119,9 +118,13 @@ Move what both apps need into a `HablamonUI` library target in the package:
 
 With a free Apple ID the app stops launching after 7 days; `mise run phone` again re-signs it.
 
+## Trying it without the phone
+
+`mise run phone-sim` runs the app in the iOS Simulator with a fixture video standing in for the camera. It checks OCR, Kokoro, and the screen on iOS. Kokoro runs on the CPU there because the simulator's CoreML can't load it otherwise, so its timings say nothing about the phone. The simulator has no camera or Apple Translation, and replay skips `LiveEngine`, so `PhoneCamera`, calibration, tracking, English lines, heat, and Neural Engine speed all still need the play test.
+
 ## Risks
 
-- **None of the iOS code has been compiled yet.** It was written in a Linux cloud session. The CI job and the first `mise run phone` will surface any mistakes, which should be small.
+- **Nothing has run on a real phone yet.** The app builds for a device and runs in the simulator, but device signing and `PhoneCamera` are untested until the first `mise run phone`.
 - **Heat.** Camera, screen, Vision, and the Neural Engine for hours while charging. Phase 2 measures it; phase 5 backs off.
 - **Free-account signing.** The bundle ID `dev.krw.hablamon.phone` must be unique to the team. Change it in `Local.xcconfig` (`PRODUCT_BUNDLE_IDENTIFIER`) if Xcode complains.
 - **Kokoro's first download** needs Wi-Fi once (312 MB from Hugging Face), as on the Mac.
