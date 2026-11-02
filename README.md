@@ -2,11 +2,15 @@
 
 Live Spanish audio for Pokémon Scarlet. Hablamon is a native macOS app that watches the TV through an iPhone (Continuity Camera), OCRs each Spanish dialogue box once the text finishes typing, and reads it aloud offline in a consistent voice per character. Every line also goes into an append-only transcript for later study.
 
-**Status:** the window, live camera, calibration, and recovery are built; the first play test with the iPhone is next. Design docs, records, and the play-test checklist are in [`docs/plans/`](docs/plans/).
+<a href="docs/demo/hablamon-demo.mp4"><img src="docs/demo/hablamon-demo.jpg" width="360" alt="The TV shows Turo's line in Spanish; the iPhone on the laptop watches it, and Hablamon on the Mac shows the line as it speaks it"></a>
+
+▶ [15-second demo, sound on](docs/demo/hablamon-demo.mp4): Turo's line on the TV, read through the iPhone and spoken by the Mac.
+
+**Status:** the window, live camera, calibration, recovery, translation, and character voices are built and in use; in-game voice testing is next. Design docs, records, and the play-test checklist are in [`docs/plans/`](docs/plans/).
 
 ## Install on your Mac
 
-You need macOS 14+ on Apple Silicon, Xcode or the Command Line Tools (`xcode-select --install`), [mise](https://mise.jdx.dev) (`brew install mise`), and an iPhone signed in to the same Apple Account.
+You need macOS 15+ on Apple Silicon, Xcode or the Command Line Tools (`xcode-select --install`), [mise](https://mise.jdx.dev) (`brew install mise`), and an iPhone signed in to the same Apple Account.
 
 **Turn on Continuity Camera on the iPhone first:** Settings › General › AirPlay & Continuity › Continuity Camera. It can be off by default, and without it the Mac never sees the phone.
 
