@@ -2,8 +2,9 @@
 # Builds the iPhone app (Release) and installs and launches it on a connected iPhone: by cable, or
 # over Wi-Fi once Xcode has paired with the phone. Usage: scripts/phone.sh [device name or UDID]
 #
-# Signing uses the team in Apps/iOS/Local.xcconfig. The first time, this script finds the team in
-# the Apple Development certificate Xcode created for your Apple ID and writes that file.
+# Signing uses the team in Apps/iOS/Local.xcconfig. The first time, this script writes that file
+# with the Personal Team of the Apple ID added in Xcode, or else the team of an Apple Development
+# certificate in the keychain.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -13,17 +14,24 @@ bundle_id=dev.krw.hablamon.phone
 derived=.build/ios
 
 if [ ! -f "$local_config" ]; then
-    # The team ID is the certificate's organizational unit (OU).
-    team="$(security find-certificate -c "Apple Development" -p 2>/dev/null |
-        openssl x509 -noout -subject 2>/dev/null |
-        sed -n 's/.*OU *= *\([A-Z0-9]\{10\}\).*/\1/p' | head -n 1 || true)"
+    # Xcode lists the teams of every account in Settings › Accounts. A Personal Team comes first,
+    # so a work account on the same Mac isn't picked; xcodebuild makes its certificate if needed.
+    team="$(defaults export com.apple.dt.Xcode - 2>/dev/null | python3 -I -c '
+import plistlib, sys
+accounts = plistlib.loads(sys.stdin.buffer.read()).get("IDEProvisioningTeamByIdentifier", {})
+teams = sorted((t for ts in accounts.values() for t in ts), key=lambda t: not t.get("isFreeProvisioningTeam"))
+print(teams[0]["teamID"] if teams else "")
+' 2>/dev/null || true)"
+    if [ -z "$team" ]; then
+        # The team ID is the certificate's organizational unit (OU).
+        team="$(security find-certificate -c "Apple Development" -p 2>/dev/null |
+            openssl x509 -noout -subject 2>/dev/null |
+            sed -n 's/.*OU *= *\([A-Z0-9]\{10\}\).*/\1/p' | head -n 1 || true)"
+    fi
     if [ -z "$team" ]; then
         cat >&2 <<'EOF'
-No Apple Development certificate found, so the signing team is unknown. Once:
-  1. Xcode › Settings › Accounts: add your Apple ID.
-  2. Open Apps/iOS/Hablamon.xcodeproj, select the HablamonPhone target › Signing & Capabilities,
-     pick your (Personal) Team, choose your iPhone, and press Run.
-Then run this again. Or write Apps/iOS/Local.xcconfig yourself with: DEVELOPMENT_TEAM = <team ID>
+No signing team found. Add your Apple ID in Xcode › Settings › Accounts, then run this again.
+Or write Apps/iOS/Local.xcconfig yourself with: DEVELOPMENT_TEAM = <team ID>
 EOF
         exit 1
     fi
