@@ -73,7 +73,7 @@ Deliberately left out: key words, recap, speaker tagging, whole-screen translati
 
 ### Kyle's play test (the decision)
 
-1. `mise run phone` with the iPhone plugged in. The first time, Xcode needs your Apple ID (see Setup below).
+1. `mise run phone` with the iPhone plugged in. The first time, follow the setup in the README (see Setup below).
 2. Mount the phone, open **Cámara**, try 1× and the telephoto from where you'd sit, and drag the corners if needed. Note the text height it reports, and whether exposure bias stops the box blowing out.
 3. Play for 30–60 minutes, plugged in.
 
@@ -108,15 +108,12 @@ Move what both apps need into a `HablamonUI` library target in the package:
 - App icon from `Assets/`.
 - If the 7-day free signing gets tiresome: the paid program, then TestFlight uploads from CI.
 
-## Setup (once)
+## Setup
 
-1. Install Xcode (not just the Command Line Tools) and its iOS platform: `xcodebuild -downloadPlatform iOS`, about 8.5 GB. In Xcode › Settings › Accounts, add your Apple ID; a "Personal Team" appears.
-2. Plug the iPhone in and trust the Mac. Turn on Settings › Privacy & Security › Developer Mode (it appears after the phone has met Xcode) and restart.
-3. `mise run phone`. If it can't find your team (no development certificate yet), open `Apps/iOS/Hablamon.xcodeproj` once, pick the Personal Team under Signing & Capabilities, press Run, and use `mise run phone` from then on. The script writes `Apps/iOS/Local.xcconfig`; you can also write `DEVELOPMENT_TEAM = <team ID>` there yourself.
-4. On the phone, the first launch is blocked until you trust the developer: Settings › General › VPN & Device Management.
-5. Xcode asks to "Trust & Enable" the swift-json-schema macros the first time; the script passes `-skipMacroValidation`.
+The steps are in the README's [Try it on the iPhone](../../README.md#try-it-on-the-iphone-experimental), so a fresh clone on any Mac can follow them. Behind them:
 
-With a free Apple ID the app stops launching after 7 days; `mise run phone` again re-signs it.
+- `scripts/phone.sh` writes `Apps/iOS/Local.xcconfig` (gitignored) with the Personal Team of the Apple ID added in Xcode, falling back to the team of an Apple Development certificate in the keychain. With `-allowProvisioningUpdates`, xcodebuild makes the certificate and profile on the first build. To use another team, write `DEVELOPMENT_TEAM = <team ID>` there yourself.
+- It passes `-skipMacroValidation`, so Xcode never stops to ask about trusting the swift-json-schema macros.
 
 ## Trying it without the phone
 

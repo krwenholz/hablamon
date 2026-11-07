@@ -56,13 +56,23 @@ Click a line to hear it again. "N voces sin asignar" in the bottom strip opens t
 
 ## Try it on the iPhone (experimental)
 
-The iPhone can run the whole thing by itself: its back camera watches the TV, and it reads each line aloud and shows it with the English. It's an early build for deciding whether a phone app is worth it; the [plan](docs/plans/ios-app.md) has the full setup and what to look for.
+The iPhone can run the whole thing by itself: its back camera watches the TV, and it reads each line aloud and shows it with the English. It's an early build for deciding whether a phone app is worth it; the [plan](docs/plans/ios-app.md) has what to look for.
 
-You need full Xcode with your Apple ID added (Xcode › Settings › Accounts), and the iPhone plugged in with Developer Mode on (Settings › Privacy & Security). Then:
+**Once per Mac,** after the clone, `mise trust`, and `mise install` above:
+
+1. Install full Xcode (not just the Command Line Tools) and open it once to finish setup.
+2. Get its iOS platform: `xcodebuild -downloadPlatform iOS` (about 8.5 GB).
+3. In Xcode › Settings › Accounts, add your Apple ID. A free "Personal Team" is enough.
+
+**Once per iPhone:** plug it in, unlock it, and tap **Trust**. Turn on Settings › Privacy & Security › Developer Mode; it only appears after the phone has been plugged into a Mac with Xcode, and turning it on restarts the phone.
+
+**Then, every time:**
 
 ```sh
 mise run phone
 ```
+
+It builds, installs, and opens Hablamon on the phone. The first time, the phone won't open it until you trust the developer in Settings › General › VPN & Device Management, and the voices download over Wi-Fi (312 MB). The first build takes about five minutes; after a change, rebuilds take seconds.
 
 On the phone, **Cámara** opens the picture with the TV's corners, the lens and zoom, exposure, and focus lock; **Datos** shows heat, battery, and the latest log lines. Logs and transcripts are in Files › On My iPhone › Hablamon. With a free Apple ID the app stops opening after 7 days; `mise run phone` again renews it.
 
