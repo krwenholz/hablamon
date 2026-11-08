@@ -64,6 +64,9 @@ final class PhoneModel {
     @ObservationIgnored private var camera: PhoneCamera?
     @ObservationIgnored private var engine: LiveEngine?
     @ObservationIgnored private var previewer: PreviewRenderer?
+    /// The camera's rotation for how the screen is turned, and what tells us when it turns.
+    @ObservationIgnored private var cameraRotation = 0.0
+    @ObservationIgnored private var orientationObservation: NSKeyValueObservation?
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
     @ObservationIgnored private var started = false
     /// Bumped per spoken line so late progress callbacks from an old line are ignored.
@@ -74,6 +77,8 @@ final class PhoneModel {
         static let zoom = "camera.zoom"
         static let exposureBias = "camera.exposureBias"
         static let focusLocked = "camera.focusLocked"
+        /// The camera rotation the saved corners were placed in.
+        static let calibratedRotation = "camera.calibratedRotation"
     }
 
     /// Messages from the camera and engine, applied in order on the main actor.
@@ -173,10 +178,10 @@ final class PhoneModel {
         }
         camera.onSignal = { signal, date in engine.signal(signal, at: date) }
         camera.onLog = { continuation.yield(.log($0)) }
+        cameraRotation = Self.screenRotation
         do {
             try camera.start(
-                lensID: defaults.string(forKey: Saved.lens) ?? calibration.value?.deviceID,
-                rotation: Self.screenRotation)
+                lensID: defaults.string(forKey: Saved.lens) ?? calibration.value?.deviceID, rotation: cameraRotation)
         } catch {
             status = "\(error)"
             note("camera failed: \(error)")
@@ -185,6 +190,14 @@ final class PhoneModel {
         self.engine = engine
         self.camera = camera
         self.previewer = previewer
+        // Corners placed with the screen turned the other way don't fit this picture.
+        if calibration.value != nil, defaults.object(forKey: Saved.calibratedRotation) != nil,
+            defaults.double(forKey: Saved.calibratedRotation) != cameraRotation
+        {
+            note("saved corners are for camera rotation \(Int(defaults.double(forKey: Saved.calibratedRotation)))°")
+            engine.signal(.screenMismatch, at: Date())
+        }
+        watchScreenOrientation()
         if defaults.object(forKey: Saved.zoom) != nil { camera.setZoom(defaults.double(forKey: Saved.zoom)) }
         camera.setExposureBias(defaults.double(forKey: Saved.exposureBias))
         if defaults.bool(forKey: Saved.focusLocked) { camera.setFocusLocked(true) }
@@ -212,11 +225,40 @@ final class PhoneModel {
             })
     }
 
-    /// The capture rotation that matches the screen: the back camera's sensor is upright when the
-    /// screen is landscape right (0°), and upside down for landscape left (180°).
+    private static var windowScene: UIWindowScene? {
+        UIApplication.shared.connectedScenes.first { $0 is UIWindowScene } as? UIWindowScene
+    }
+
+    /// The camera rotation that matches how the screen is turned now.
     private static var screenRotation: Double {
-        let scene = UIApplication.shared.connectedScenes.first { $0 is UIWindowScene } as? UIWindowScene
-        return scene?.effectiveGeometry.interfaceOrientation == .landscapeLeft ? 180 : 0
+        rotation(for: windowScene?.effectiveGeometry.interfaceOrientation ?? .landscapeRight)
+    }
+
+    private static func rotation(for orientation: UIInterfaceOrientation) -> Double {
+        switch orientation {
+        case .portrait: PhoneLens.captureRotation(for: .portrait)
+        case .portraitUpsideDown: PhoneLens.captureRotation(for: .portraitUpsideDown)
+        case .landscapeLeft: PhoneLens.captureRotation(for: .landscapeLeft)
+        default: PhoneLens.captureRotation(for: .landscapeRight)
+        }
+    }
+
+    /// Turns the picture with the screen. The phone has moved, so the old corners no longer fit:
+    /// the camera screen opens to check new ones, as after a zoom change.
+    private func watchScreenOrientation() {
+        orientationObservation = Self.windowScene?.observe(\.effectiveGeometry, options: [.new]) {
+            scene, _ in
+            let orientation = scene.effectiveGeometry.interfaceOrientation
+            Task { @MainActor [weak self] in self?.screenTurned(to: Self.rotation(for: orientation)) }
+        }
+    }
+
+    private func screenTurned(to rotation: Double) {
+        guard rotation != cameraRotation, let camera else { return }
+        cameraRotation = rotation
+        camera.setRotation(rotation)
+        note("screen turned: camera rotation \(Int(rotation))°")
+        pictureChanged()
     }
 
     /// Speech plays even with the ring switch on silent, and is spoken audio for AirPods' sake.
@@ -490,7 +532,10 @@ final class PhoneModel {
         do {
             try store.save(calibration, for: .iphone)
             try store.save(reference: reference, for: .iphone)
-            note("calibrated \(quad) at \(controls.zoom)× on \(calibration.deviceName ?? "?")")
+            UserDefaults.standard.set(cameraRotation, forKey: Saved.calibratedRotation)
+            note(
+                "calibrated \(quad) at \(controls.zoom)× on \(calibration.deviceName ?? "?"), "
+                    + "rotation \(Int(cameraRotation))°")
         } catch {
             note("calibration.json: \(error)")
         }

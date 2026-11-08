@@ -24,15 +24,21 @@ public struct PhoneLens: Equatable, Sendable, Identifiable {
         return tan(mainFieldOfView / 2 * .pi / 180) / tan(fieldOfView / 2 * .pi / 180)
     }
 
-    /// The rotation that turns frames upright in a landscape-only app: the horizon-level angle iOS
-    /// reports when the phone is held landscape (0° or 180°), otherwise `current`. iOS reports
-    /// portrait (90° or 270°) when the phone lies flat or tips up, which would turn the picture
-    /// sideways on a landscape screen.
-    public static func landscapeRotation(horizonAngle: Double, current: Double) -> Double {
-        switch Int((horizonAngle.truncatingRemainder(dividingBy: 360) + 360).rounded()) % 360 {
-        case 0: 0
-        case 180: 180
-        default: current
+    /// How the app's screen is turned, as UIKit's interface orientation says.
+    public enum ScreenOrientation: Sendable {
+        case portrait, portraitUpsideDown, landscapeLeft, landscapeRight
+    }
+
+    /// The clockwise rotation in degrees that turns the back camera's frames upright for how the
+    /// screen is turned, so the picture always matches what the player sees. Following the screen
+    /// rather than the phone's tilt keeps the picture steady when the phone lies flat, where iOS
+    /// can't tell how it's held. The sensor is upright with the screen in landscape right.
+    public static func captureRotation(for orientation: ScreenOrientation) -> Double {
+        switch orientation {
+        case .landscapeRight: 0
+        case .portrait: 90
+        case .landscapeLeft: 180
+        case .portraitUpsideDown: 270
         }
     }
 

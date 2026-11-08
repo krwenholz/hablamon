@@ -5,8 +5,8 @@
 
     /// Captures from one of the iPhone's own back cameras, for running Hablamon on the phone itself.
     /// It reports frames and camera events like `LiveCamera` does on the Mac, but here the app
-    /// controls the lens, zoom, exposure bias, and focus. Frames arrive upright however the phone is
-    /// held; interruptions (the app leaving the screen, a call) report as suspension.
+    /// controls the lens, zoom, exposure bias, and focus. Frames arrive upright for how the app's
+    /// screen is turned; interruptions (the app leaving the screen, a call) report as suspension.
     public final class PhoneCamera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
         public enum Failure: Error, CustomStringConvertible {
             case notAuthorized
@@ -51,8 +51,6 @@
         private let output = AVCaptureVideoDataOutput()
         private let queue = DispatchQueue(label: "hablamon.phone-camera", qos: .utility)
         private var device: AVCaptureDevice?
-        private var coordinator: AVCaptureDevice.RotationCoordinator?
-        private var rotationObservation: NSKeyValueObservation?
         private var rotation = 0.0
         private var observers: [NSObjectProtocol] = []
 
@@ -101,7 +99,7 @@
         }
 
         /// Starts on the lens with this ID, or the main camera. `rotation` turns frames upright for
-        /// the screen's landscape orientation (0° or 180°) until the phone itself says otherwise.
+        /// how the screen is turned (`PhoneLens.captureRotation`).
         public func start(lensID: String?, rotation: Double) throws {
             guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else { throw Failure.notAuthorized }
             let device = try Self.camera(lensID)
@@ -114,11 +112,7 @@
         }
 
         public func stop() {
-            queue.async { [self] in
-                session.stopRunning()
-                rotationObservation = nil
-                coordinator = nil
-            }
+            queue.async { [session] in session.stopRunning() }
             for observer in observers { NotificationCenter.default.removeObserver(observer) }
             observers = []
         }
@@ -237,25 +231,13 @@
                 }
                 device.unlockForConfiguration()
             }
-            followRotation(of: device)
+            applyRotation(rotation)
             onLog?("phone camera \(device.localizedName) (\(device.deviceType.rawValue))")
         }
 
-        /// Keeps frames upright when the phone turns between the two landscape orientations.
-        private func followRotation(of device: AVCaptureDevice) {
-            let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
-            self.coordinator = coordinator
-            applyRotation(
-                PhoneLens.landscapeRotation(
-                    horizonAngle: Double(coordinator.videoRotationAngleForHorizonLevelCapture), current: rotation))
-            rotationObservation = coordinator.observe(\.videoRotationAngleForHorizonLevelCapture, options: [.new]) {
-                [weak self] coordinator, _ in
-                guard let self else { return }
-                let angle = Double(coordinator.videoRotationAngleForHorizonLevelCapture)
-                queue.async {
-                    self.applyRotation(PhoneLens.landscapeRotation(horizonAngle: angle, current: self.rotation))
-                }
-            }
+        /// Turns frames upright for how the screen is now turned (`PhoneLens.captureRotation`).
+        public func setRotation(_ angle: Double) {
+            queue.async { [self] in applyRotation(angle) }
         }
 
         private func applyRotation(_ angle: Double) {

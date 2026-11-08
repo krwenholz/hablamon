@@ -28,16 +28,19 @@ import Testing
         #expect(PhoneLens.magnification(fieldOfView: 0, mainFieldOfView: 70) == 1)
     }
 
-    @Test func landscapeRotationFollowsLandscape() {
-        #expect(PhoneLens.landscapeRotation(horizonAngle: 180, current: 0) == 180)
-        #expect(PhoneLens.landscapeRotation(horizonAngle: 0, current: 180) == 0)
-        #expect(PhoneLens.landscapeRotation(horizonAngle: 360, current: 180) == 0)
+    @Test func captureRotationFollowsTheScreen() {
+        // The angles AVCaptureDevice.RotationCoordinator gives for the back camera held each way.
+        #expect(PhoneLens.captureRotation(for: .landscapeRight) == 0)
+        #expect(PhoneLens.captureRotation(for: .portrait) == 90)
+        #expect(PhoneLens.captureRotation(for: .landscapeLeft) == 180)
+        #expect(PhoneLens.captureRotation(for: .portraitUpsideDown) == 270)
     }
 
-    @Test func landscapeRotationIgnoresPortrait() {
-        // Lying flat, iOS says portrait; the frames stay as they were.
-        #expect(PhoneLens.landscapeRotation(horizonAngle: 90, current: 0) == 0)
-        #expect(PhoneLens.landscapeRotation(horizonAngle: 270, current: 180) == 180)
+    @Test func portraitMetersTheRightSensorPoint() {
+        // In portrait the upright frame's top edge is the sensor's right edge.
+        let rotation = PhoneLens.captureRotation(for: .portrait)
+        let top = PhoneLens.sensorPoint(x: 0.5, y: 0, rotation: rotation)
+        #expect(top.x == 0 && top.y == 0.5)
     }
 
     @Test func sensorPointUnrotated() {
