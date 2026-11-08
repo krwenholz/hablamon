@@ -9,7 +9,7 @@ struct HablamonPhoneApp: App {
             PlayView(model: model)
                 .modifier(PhoneTranslation(model: model))
                 .task { model.start() }
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(.light)
                 .statusBarHidden()
                 .persistentSystemOverlays(.hidden)
         }

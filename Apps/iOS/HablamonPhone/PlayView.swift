@@ -2,80 +2,115 @@ import HablamonCore
 import HablamonModels
 import SwiftUI
 
-/// The play screen: the line being read, large enough to follow from the sofa, its English below,
-/// and a few controls. Tap the line to hear it again.
+/// The play screen: the line being read in the game's own dialogue box, large enough to follow from
+/// the sofa, its English below, and a few controls. Tap the line to hear it again.
 struct PlayView: View {
     @Bindable var model: PhoneModel
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 12) {
-                header
-                Text(attributedLine)
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onTapGesture { model.repeatLast(slow: false) }
-                if let english = model.currentTranslation {
-                    Text(english)
-                        .font(.system(size: 20, design: .rounded)).italic()
-                        .foregroundStyle(.white.opacity(0.65))
-                        .minimumScaleFactor(0.6)
-                }
-                Spacer(minLength: 0)
+            VStack(spacing: 14) {
+                card
                 controls
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             if model.showingStats {
                 StatsPanel(model: model).padding(12)
             }
         }
+        .background(ThemeBackground())
         .fullScreenCover(isPresented: $model.showingCamera) {
             CameraView(model: model)
         }
     }
 
-    private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            if let page = model.state.current {
-                Text(speakerName(page.speaker))
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundStyle(.yellow)
+    /// The dialogue box with the speaker's tab on its top edge and the state pills opposite.
+    private var card: some View {
+        ZStack(alignment: .topLeading) {
+            box.padding(.top, 24)
+            if let name = speakerName {
+                NameTag(name: name, size: 18).offset(x: -4, y: 2)
             }
-            Spacer()
-            Text(HablamonCore.text(model.state.pill, english: false))
-            Text("·")
-            Text(model.voiceSummary)
+            HStack(spacing: 8) {
+                Spacer()
+                Text("● " + HablamonCore.text(model.state.pill, english: false))
+                    .foregroundStyle(Theme.ink)
+                    .padding(.horizontal, 12).padding(.vertical, 5)
+                    .background(Capsule().fill(Theme.color(model.state.pill)))
+                Text(model.voiceSummary)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12).padding(.vertical, 5)
+                    .background(Capsule().fill(Theme.ink))
+            }
+            .font(Theme.menu(13))
+            .lineLimit(1)
+            .padding(.trailing, 14)
+            .padding(.top, 8)
         }
-        .font(.system(size: 14, design: .rounded))
-        .foregroundStyle(.white.opacity(0.6))
+    }
+
+    private var box: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(attributedLine)
+                .font(Theme.dialogue(36))
+                .lineSpacing(4)
+                .minimumScaleFactor(0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if model.state.current != nil {
+                Text(model.currentTranslation ?? "…")
+                    .font(Theme.menu(22, heavy: false))
+                    .italic()
+                    .foregroundStyle(Theme.navy.opacity(model.currentTranslation == nil ? 0.35 : 0.85))
+                    .minimumScaleFactor(0.6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(.leading, 40)
+        .padding(.trailing, 28)
+        .padding(.top, 28)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .overlay(alignment: .topLeading) { Tick(height: 34).padding(.leading, 16).padding(.top, 20) }
+        .overlay(alignment: .bottomTrailing) {
+            HStack(alignment: .bottom, spacing: 14) {
+                Text("▽").font(.system(size: 14)).foregroundStyle(Theme.navy)
+                Tick(height: 34)
+            }
+            .padding(.trailing, 14).padding(.bottom, 14)
+        }
+        .inkCard()
+        .contentShape(Rectangle())
+        .onTapGesture { model.repeatLast(slow: false) }
     }
 
     private var controls: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             Button("Repetir", systemImage: "arrow.counterclockwise") { model.repeatLast(slow: false) }
+                .buttonStyle(PillButtonStyle())
             Button("Lento", systemImage: "tortoise") { model.repeatLast(slow: true) }
+                .buttonStyle(PillButtonStyle())
             Button(
                 model.paused ? "Reanudar" : "Pausa", systemImage: model.paused ? "play.fill" : "pause.fill"
             ) { model.togglePause() }
+            .buttonStyle(PillButtonStyle(lit: model.paused))
             Button(model.normalSpeed ? "1×" : "Lenta", systemImage: "speedometer") { model.toggleSpeed() }
-            Spacer()
+                .buttonStyle(PillButtonStyle())
+            Spacer(minLength: 0)
             Button("Cámara", systemImage: "camera.viewfinder") { model.recalibrate() }
+                .buttonStyle(PillButtonStyle())
             Button("Datos", systemImage: "chart.bar.xaxis") { model.showingStats.toggle() }
+                .buttonStyle(PillButtonStyle(lit: model.showingStats))
         }
-        .buttonStyle(.bordered)
-        .tint(.white)
-        .font(.system(size: 14, design: .rounded))
+        .lineLimit(1)
     }
 
-    private func speakerName(_ speaker: ResolvedSpeaker) -> String {
-        switch speaker {
-        case .narrator: HablamonCore.text(.narrator, english: false)
-        case .known(let name, _): name
-        case .unknown(let tag): tag
+    /// Nil for the narrator, whose lines have no name tab in the game either.
+    private var speakerName: String? {
+        switch model.state.current?.speaker {
+        case nil, .narrator?: nil
+        case .known(let name, _)?: name
+        case .unknown(let tag)?: tag
         }
     }
 
@@ -83,16 +118,16 @@ struct PlayView: View {
     private var attributedLine: AttributedString {
         guard let page = model.state.current else {
             var placeholder = AttributedString(model.status ?? "Esperando un diálogo…")
-            placeholder.foregroundColor = Color.white.opacity(0.4)
+            placeholder.foregroundColor = Theme.unspoken
             return placeholder
         }
         let utf16 = page.text.utf16
         let split = utf16.index(utf16.startIndex, offsetBy: min(model.state.spokenUTF16, utf16.count))
         let index = split.samePosition(in: page.text) ?? page.text.endIndex
         var spoken = AttributedString(page.text[..<index])
-        spoken.foregroundColor = Color.white
+        spoken.foregroundColor = Theme.ink
         var rest = AttributedString(page.text[index...])
-        rest.foregroundColor = model.state.pill == .speaking ? Color.white.opacity(0.45) : Color.white
+        rest.foregroundColor = model.state.pill == .speaking ? Theme.unspoken : Theme.ink
         return spoken + rest
     }
 }
@@ -103,21 +138,20 @@ struct StatsPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(model.deviceSummary).bold()
+            Text(model.deviceSummary).font(Theme.menu(13)).foregroundStyle(Theme.yellow)
             Text(
                 "lights: camera \(light(model.state.lights.camera)) tv \(light(model.state.lights.tv)) "
                     + "box \(light(model.state.lights.box)) text \(light(model.state.lights.text))")
-            Divider().overlay(.white.opacity(0.3))
+            Divider().overlay(Theme.dim.opacity(0.4))
             ForEach(Array(model.recentLog.enumerated()), id: \.offset) { _, line in
                 Text(line).lineLimit(1).truncationMode(.middle)
             }
         }
         .font(.system(size: 11, design: .monospaced))
         .foregroundStyle(.white)
-        .padding(10)
+        .padding(12)
         .frame(maxWidth: 420, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(.black.opacity(0.85)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.2)))
+        .inkCard(12, fill: Theme.ink)
         .onTapGesture { model.showingStats = false }
     }
 

@@ -17,67 +17,82 @@ struct CameraView: View {
                 picture(preview)
             } else {
                 VStack(spacing: 12) {
-                    ProgressView()
-                    Text(model.status ?? "Abriendo la cámara…").foregroundStyle(.white.opacity(0.6))
+                    ProgressView().tint(.white)
+                    Text(model.status ?? "Abriendo la cámara…").font(Theme.menu(14, heavy: false))
                 }
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .inkCard(12, fill: Theme.ink)
             }
-            sidebar.frame(width: 240)
+            sidebar.frame(width: 260)
         }
         .padding(12)
-        .background(Color.black.ignoresSafeArea())
-        .foregroundStyle(.white)
-        .font(.system(size: 14, design: .rounded))
+        .background(ThemeBackground())
+        .font(Theme.menu(14, heavy: false))
+        .foregroundStyle(Theme.ink)
     }
 
     /// What the camera screen needs at a glance: readability, zoom, and the confirm button. The
     /// rarely needed exposure and focus controls sit folded away under Ajustes.
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Cámara").font(.system(size: 18, weight: .bold, design: .rounded))
+                Text("Cámara").font(Theme.menu(18))
                 Spacer()
                 Button("Cerrar", systemImage: "xmark") {
                     edited = nil
                     model.showingCamera = false
                 }
                 .labelStyle(.iconOnly)
+                .font(.system(size: 16, weight: .bold))
             }
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Arrastra las esquinas a la pantalla de la tele.").foregroundStyle(.white.opacity(0.6))
-                    if let quality = model.preview?.quality {
-                        Text(String(format: "Texto: %.0f px", quality.textHeight))
-                        ForEach(quality.warnings, id: \.self) { warning in
-                            Text(warning).foregroundStyle(.orange)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Theme.ink)
+            VStack(alignment: .leading, spacing: 12) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Arrastra las esquinas a la pantalla de la tele.").foregroundStyle(Theme.faint)
+                        if let quality = model.preview?.quality {
+                            Text(String(format: "Texto: %.0f px", quality.textHeight)).font(Theme.menu(15))
+                            ForEach(quality.warnings, id: \.self) { warning in
+                                Text(warning).foregroundStyle(Theme.scarlet)
+                            }
                         }
+                        zoomButtons
+                        DisclosureGroup("Ajustes") { adjustments.padding(.top, 8) }
+                            .tint(Theme.ink)
                     }
-                    zoomButtons
-                    DisclosureGroup("Ajustes") { adjustments.padding(.top, 8) }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                Button {
+                    if let quad { model.confirm(quad) }
+                    edited = nil
+                } label: {
+                    Text("Usar estas esquinas").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PillButtonStyle(lit: true))
+                .overlay(Capsule().stroke(Theme.ink, lineWidth: 2))
+                .opacity(quad == nil ? 0.5 : 1)
+                .disabled(quad == nil)
             }
-            Button {
-                if let quad { model.confirm(quad) }
-                edited = nil
-            } label: {
-                Text("Usar estas esquinas").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.yellow)
-            .foregroundStyle(.black)
-            .disabled(quad == nil)
+            .padding(12)
         }
+        .inkCard(12)
     }
 
     private var zoomButtons: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             ForEach(model.zoomOptions) { option in
-                Button(option.name) {
+                Button {
                     edited = nil
                     model.useZoom(option)
+                } label: {
+                    Text(option.name).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
-                .tint(option.matches(lensID: model.lensID, zoom: model.controls.zoom) ? .yellow : .white)
+                .buttonStyle(
+                    PillButtonStyle(lit: option.matches(lensID: model.lensID, zoom: model.controls.zoom), padding: 6))
             }
         }
     }
@@ -89,11 +104,15 @@ struct CameraView: View {
                 Text(String(format: "Exposición %+.1f", model.controls.exposureBias))
                 Slider(
                     value: Binding(get: { model.controls.exposureBias }, set: { model.setExposureBias($0) }),
-                    in: max(model.controls.minBias, -3)...min(model.controls.maxBias, 3))
+                    in: max(model.controls.minBias, -3)...min(model.controls.maxBias, 3)
+                )
+                .tint(Theme.navy)
             }
             Toggle(
                 "Bloquear enfoque",
-                isOn: Binding(get: { model.controls.focusLocked }, set: { model.setFocusLocked($0) }))
+                isOn: Binding(get: { model.controls.focusLocked }, set: { model.setFocusLocked($0) })
+            )
+            .tint(Theme.green)
         }
     }
 
@@ -112,7 +131,7 @@ struct CameraView: View {
                         path.addLines(corners.map { CGPoint(x: $0.x * fit, y: $0.y * fit) })
                         path.closeSubpath()
                     }
-                    .stroke(.green, lineWidth: 2)
+                    .stroke(Theme.green, lineWidth: 2)
                     ForEach(0..<4, id: \.self) { index in
                         handle(index, quad: quad, fit: fit)
                     }
@@ -120,15 +139,15 @@ struct CameraView: View {
             }
         }
         .aspectRatio(1 / aspect, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .inkCard(12, fill: Theme.ink)
     }
 
     /// A corner to drag; the touch target is larger than the dot, for fingers.
     private func handle(_ index: Int, quad: Quad, fit: Double) -> some View {
         let point = [quad.topLeft, quad.topRight, quad.bottomRight, quad.bottomLeft][index]
         return Circle()
-            .fill(.green)
-            .overlay(Circle().stroke(.white, lineWidth: 2))
+            .fill(Theme.green)
+            .overlay(Circle().stroke(Theme.ink, lineWidth: 2))
             .frame(width: 18, height: 18)
             .frame(width: 44, height: 44)
             .contentShape(Circle())
