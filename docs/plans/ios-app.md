@@ -58,7 +58,9 @@ Apps/iOS/
 `PhoneCamera` mirrors `LiveCamera` for the rest of the pipeline: frames arrive upright, and interruptions report as suspended or resumed. It adds:
 
 - **Zoom buttons** 0.5×, 1×, 2×, and 4×, as in the Camera app. Each picks the most magnifying physical lens that doesn't overshoot, measured by field of view, and zooms the rest of the way (`PhoneZoom`): 2× is the main camera at 2, and 4× is a 3× telephoto at 1.33, or the main camera at 4 when the telephoto is 5×. A phone without an ultra-wide has no 0.5×. A fixed physical lens, rather than the virtual multi-camera, so the phone never switches lenses on its own, which would look like the phone moving.
-- **Exposure bias** on top of metering at the dialogue box, and **focus lock**.
+- **Focus and metering at the dialogue box**, with **exposure bias** on top and **focus lock** (not restored at launch, where it would lock before the camera has focused).
+- **4K capture**, so 2× and 4× crop real detail. The first phone captures (Nov 8) came out 5–20× softer than the Mac fixtures by the box detector's edge measure (text edges 0.000–0.006 against 0.016–0.056): 1080p enlarged to 2×, with no focus point. Corners saved at another frame size or rotation aren't reused.
+- **Guardar captura** (in Datos) saves the camera frame and corrected screen to `captures/` and logs the box detector's measurements against its thresholds, for looking into a missed line.
 - **15 frames a second** instead of 30, since the engine samples at most 4 a second. That costs no accuracy and saves power.
 - **Portrait or landscape**, as the phone is stood. Frames are turned upright for how the screen is turned (`PhoneLens.captureRotation`), not for the phone's tilt, so the picture always matches the screen and stays put when the phone lies flat. Turning the phone reopens the camera screen, like a zoom change, and corners saved in the other orientation aren't reused. Portrait costs detail: the TV spans about 1,080 pixels of the picture instead of 1,920, so the text is about half as tall and 2× or 4× matter more.
 

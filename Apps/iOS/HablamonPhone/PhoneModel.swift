@@ -77,8 +77,8 @@ final class PhoneModel {
         static let zoom = "camera.zoom"
         static let exposureBias = "camera.exposureBias"
         static let focusLocked = "camera.focusLocked"
-        /// The camera rotation the saved corners were placed in.
-        static let calibratedRotation = "camera.calibratedRotation"
+        /// The frame size and rotation the saved corners were placed in, such as "3840×2160 0°".
+        static let calibratedFrame = "camera.calibratedFrame"
     }
 
     /// Messages from the camera and engine, applied in order on the main actor.
@@ -190,17 +190,18 @@ final class PhoneModel {
         self.engine = engine
         self.camera = camera
         self.previewer = previewer
-        // Corners placed with the screen turned the other way don't fit this picture.
-        if calibration.value != nil, defaults.object(forKey: Saved.calibratedRotation) != nil,
-            defaults.double(forKey: Saved.calibratedRotation) != cameraRotation
-        {
-            note("saved corners are for camera rotation \(Int(defaults.double(forKey: Saved.calibratedRotation)))°")
+        // Corners placed in another orientation or at another resolution don't fit this picture.
+        let saved = defaults.string(forKey: Saved.calibratedFrame)
+        if calibration.value != nil, saved != frameDescription {
+            note("saved corners are for \(saved ?? "an older camera setup"), not \(frameDescription)")
             engine.signal(.screenMismatch, at: Date())
         }
         watchScreenOrientation()
         if defaults.object(forKey: Saved.zoom) != nil { camera.setZoom(defaults.double(forKey: Saved.zoom)) }
         camera.setExposureBias(defaults.double(forKey: Saved.exposureBias))
-        if defaults.bool(forKey: Saved.focusLocked) { camera.setFocusLocked(true) }
+        // Focus lock isn't restored: locking now, before the camera has focused, would lock it
+        // blurred. Lock again from Ajustes once the text is sharp.
+        defaults.removeObject(forKey: Saved.focusLocked)
         refreshControls()
         transcript = try? TranscriptWriter(
             sessionsDirectory: store.sessionsDirectory,
@@ -223,6 +224,12 @@ final class PhoneModel {
                     engine.tick(Date())
                 }
             })
+    }
+
+    /// The camera's frame size and rotation, which saved corners are only valid for.
+    private var frameDescription: String {
+        let size = camera?.frameSize.map { "\($0.width)×\($0.height)" } ?? "?"
+        return "\(size) \(Int(cameraRotation))°"
     }
 
     private static var windowScene: UIWindowScene? {
@@ -360,7 +367,7 @@ final class PhoneModel {
         case .log(let line):
             note(line)
         case .meter(let point):
-            camera?.meterExposure(at: CGPoint(x: point.x, y: point.y))
+            camera?.focusAndMeter(at: CGPoint(x: point.x, y: point.y))
         }
     }
 
@@ -569,10 +576,10 @@ final class PhoneModel {
         do {
             try store.save(calibration, for: .iphone)
             try store.save(reference: reference, for: .iphone)
-            UserDefaults.standard.set(cameraRotation, forKey: Saved.calibratedRotation)
+            UserDefaults.standard.set(frameDescription, forKey: Saved.calibratedFrame)
             note(
                 "calibrated \(quad) at \(controls.zoom)× on \(calibration.deviceName ?? "?"), "
-                    + "rotation \(Int(cameraRotation))°")
+                    + frameDescription)
         } catch {
             note("calibration.json: \(error)")
         }

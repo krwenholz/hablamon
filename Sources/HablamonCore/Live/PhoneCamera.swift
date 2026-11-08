@@ -2,6 +2,7 @@
     @preconcurrency import AVFoundation
     import CoreImage
     import Foundation
+    import HablamonModels
 
     /// Captures from one of the iPhone's own back cameras, for running Hablamon on the phone itself.
     /// It reports frames and camera events like `LiveCamera` does on the Mac, but here the app
@@ -165,21 +166,33 @@
             }
         }
 
-        /// Meters exposure on this point of the upright frame (0–1, top-left origin): the dialogue box.
-        public func meterExposure(at point: CGPoint) {
+        /// Focuses and meters exposure on this point of the upright frame (0–1, top-left origin): the
+        /// dialogue box. Without a focus point the camera may focus on whatever is nearest, and the
+        /// box's text comes out too soft for the box detector. A locked focus stays locked.
+        public func focusAndMeter(at point: CGPoint) {
             queue.async { [self] in
                 let sensor = PhoneLens.sensorPoint(x: Double(point.x), y: Double(point.y), rotation: rotation)
-                guard let device, device.isExposurePointOfInterestSupported,
-                    device.isExposureModeSupported(.continuousAutoExposure),
-                    (try? device.lockForConfiguration()) != nil
-                else {
-                    onLog?("exposure point not supported")
+                let target = CGPoint(x: sensor.x, y: sensor.y)
+                guard let device, (try? device.lockForConfiguration()) != nil else {
+                    onLog?("couldn't focus and meter")
                     return
                 }
-                device.exposurePointOfInterest = CGPoint(x: sensor.x, y: sensor.y)
-                device.exposureMode = .continuousAutoExposure
+                var done: [String] = []
+                if device.isExposurePointOfInterestSupported, device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposurePointOfInterest = target
+                    device.exposureMode = .continuousAutoExposure
+                    done.append("metering")
+                }
+                if device.focusMode != .locked, device.isFocusPointOfInterestSupported,
+                    device.isFocusModeSupported(.continuousAutoFocus)
+                {
+                    device.focusPointOfInterest = target
+                    device.focusMode = .continuousAutoFocus
+                    done.append("focusing")
+                }
                 device.unlockForConfiguration()
-                onLog?(String(format: "metering exposure at %.2f, %.2f", point.x, point.y))
+                let what = done.isEmpty ? "neither focus nor exposure point supported" : done.joined(separator: " and ")
+                onLog?(String(format: "%@ at %.2f, %.2f", what, point.x, point.y))
             }
         }
 
@@ -198,7 +211,9 @@
             session.beginConfiguration()
             do {
                 for input in session.inputs { session.removeInput(input) }
-                if session.canSetSessionPreset(.hd1920x1080) { session.sessionPreset = .hd1920x1080 }
+                // 4K, so zooming to 2× or 4× crops real detail rather than enlarging a 1080p picture;
+                // the box detector needs the text's edges sharp. Frames are still sampled at most 4 a second.
+                session.sessionPreset = Self.presets.first { session.canSetSessionPreset($0.preset) }?.preset ?? .high
                 let input = try AVCaptureDeviceInput(device: device)
                 guard session.canAddInput(input) else { throw Failure.cannotAddInput }
                 session.addInput(input)
@@ -232,7 +247,24 @@
                 device.unlockForConfiguration()
             }
             applyRotation(rotation)
-            onLog?("phone camera \(device.localizedName) (\(device.deviceType.rawValue))")
+            onLog?(
+                "phone camera \(device.localizedName) (\(device.deviceType.rawValue)), \(session.sessionPreset.rawValue), "
+                    + "focus \(device.focusMode == .locked ? "locked" : "auto")")
+        }
+
+        private static let presets: [(preset: AVCaptureSession.Preset, width: Int, height: Int)] = [
+            (.hd4K3840x2160, 3840, 2160), (.hd1920x1080, 1920, 1080),
+        ]
+
+        /// The size of upright frames at the current preset and rotation, which calibrated corners
+        /// (in camera pixels) are only valid for.
+        public var frameSize: PixelSize? {
+            queue.sync {
+                guard let size = Self.presets.first(where: { $0.preset == session.sessionPreset }) else { return nil }
+                let sideways = Int(rotation.rounded()) % 180 != 0
+                let (width, height) = sideways ? (size.height, size.width) : (size.width, size.height)
+                return PixelSize(width: width, height: height)
+            }
         }
 
         /// Turns frames upright for how the screen is now turned (`PhoneLens.captureRotation`).
