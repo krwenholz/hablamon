@@ -3,20 +3,24 @@ import HablamonModels
 import SwiftUI
 
 /// The play screen: the line being read in the game's own dialogue box, large enough to follow from
-/// the sofa, its English below, and a few controls. Tap the line to hear it again.
+/// the sofa, its English below, and a few controls. Tap the line to hear it again. The buttons sit
+/// in a row in landscape and in a grid below the box in portrait.
 struct PlayView: View {
     @Bindable var model: PhoneModel
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 14) {
-                card
-                controls
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            if model.showingStats {
-                StatsPanel(model: model).padding(12)
+        GeometryReader { geometry in
+            let portrait = geometry.size.height > geometry.size.width
+            ZStack(alignment: .topTrailing) {
+                VStack(spacing: 14) {
+                    card
+                    if portrait { portraitControls } else { landscapeControls }
+                }
+                .padding(.horizontal, portrait ? 12 : 16)
+                .padding(.vertical, 8)
+                if model.showingStats {
+                    StatsPanel(model: model).padding(12)
+                }
             }
         }
         .background(ThemeBackground())
@@ -84,25 +88,44 @@ struct PlayView: View {
         .onTapGesture { model.repeatLast(slow: false) }
     }
 
-    private var controls: some View {
+    /// Speech controls on the left, the camera and numbers apart on the right.
+    private var landscapeControls: some View {
         HStack(spacing: 8) {
-            Button("Repetir", systemImage: "arrow.counterclockwise") { model.repeatLast(slow: false) }
-                .buttonStyle(PillButtonStyle())
-            Button("Lento", systemImage: "tortoise") { model.repeatLast(slow: true) }
-                .buttonStyle(PillButtonStyle())
-            Button(
-                model.paused ? "Reanudar" : "Pausa", systemImage: model.paused ? "play.fill" : "pause.fill"
-            ) { model.togglePause() }
-            .buttonStyle(PillButtonStyle(lit: model.paused))
-            Button(model.normalSpeed ? "1×" : "Lenta", systemImage: "speedometer") { model.toggleSpeed() }
-                .buttonStyle(PillButtonStyle())
+            speechButtons(padding: 14)
             Spacer(minLength: 0)
-            Button("Cámara", systemImage: "camera.viewfinder") { model.recalibrate() }
-                .buttonStyle(PillButtonStyle())
-            Button("Datos", systemImage: "chart.bar.xaxis") { model.showingStats.toggle() }
-                .buttonStyle(PillButtonStyle(lit: model.showingStats))
+            screenButtons(padding: 14)
         }
         .lineLimit(1)
+    }
+
+    /// Too narrow for one row of six: two rows of three.
+    private var portraitControls: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+            speechButtons(padding: 10)
+            screenButtons(padding: 10)
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+
+    @ViewBuilder private func speechButtons(padding: CGFloat) -> some View {
+        Button("Repetir", systemImage: "arrow.counterclockwise") { model.repeatLast(slow: false) }
+            .buttonStyle(PillButtonStyle(padding: padding))
+        Button("Lento", systemImage: "tortoise") { model.repeatLast(slow: true) }
+            .buttonStyle(PillButtonStyle(padding: padding))
+        Button(
+            model.paused ? "Reanudar" : "Pausa", systemImage: model.paused ? "play.fill" : "pause.fill"
+        ) { model.togglePause() }
+        .buttonStyle(PillButtonStyle(lit: model.paused, padding: padding))
+        Button(model.normalSpeed ? "1×" : "Lenta", systemImage: "speedometer") { model.toggleSpeed() }
+            .buttonStyle(PillButtonStyle(padding: padding))
+    }
+
+    @ViewBuilder private func screenButtons(padding: CGFloat) -> some View {
+        Button("Cámara", systemImage: "camera.viewfinder") { model.recalibrate() }
+            .buttonStyle(PillButtonStyle(padding: padding))
+        Button("Datos", systemImage: "chart.bar.xaxis") { model.showingStats.toggle() }
+            .buttonStyle(PillButtonStyle(lit: model.showingStats, padding: padding))
     }
 
     /// Nil for the narrator, whose lines have no name tab in the game either.

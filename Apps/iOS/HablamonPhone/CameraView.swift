@@ -12,24 +12,39 @@ struct CameraView: View {
     private var quad: Quad? { edited ?? model.preview?.proposal }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            if let preview = model.preview {
-                picture(preview)
-            } else {
+        GeometryReader { geometry in
+            // The picture beside the controls in landscape, above them in portrait; there it's tall,
+            // so it gets at most 55 % of the height and the controls the rest.
+            if geometry.size.height > geometry.size.width {
                 VStack(spacing: 12) {
-                    ProgressView().tint(.white)
-                    Text(model.status ?? "Abriendo la cámara…").font(Theme.menu(14, heavy: false))
+                    pictureOrPlaceholder.frame(maxHeight: geometry.size.height * 0.55)
+                    sidebar
                 }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .inkCard(12, fill: Theme.ink)
+            } else {
+                HStack(alignment: .top, spacing: 16) {
+                    pictureOrPlaceholder
+                    sidebar.frame(width: 260)
+                }
             }
-            sidebar.frame(width: 260)
         }
         .padding(12)
         .background(ThemeBackground())
         .font(Theme.menu(14, heavy: false))
         .foregroundStyle(Theme.ink)
+    }
+
+    @ViewBuilder private var pictureOrPlaceholder: some View {
+        if let preview = model.preview {
+            picture(preview).frame(maxWidth: .infinity)
+        } else {
+            VStack(spacing: 12) {
+                ProgressView().tint(.white)
+                Text(model.status ?? "Abriendo la cámara…").font(Theme.menu(14, heavy: false))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .inkCard(12, fill: Theme.ink)
+        }
     }
 
     /// What the camera screen needs at a glance: readability, zoom, and the confirm button. The
