@@ -62,7 +62,7 @@ Apps/iOS/
 - **15 frames a second** instead of 30, since the engine samples at most 4 a second. That costs no accuracy and saves power.
 - **Upright frames** whichever way the phone is held, via `AVCaptureDevice.RotationCoordinator`.
 
-The calibration screen shows the live picture with the proposed TV corners (drag to adjust), the text-height readout and warnings from `QualityGate`, and the camera controls. Changing lens or zoom reopens calibration, because the old corners no longer fit. Lens, zoom, bias, and focus lock are remembered.
+The calibration screen shows the live picture with the proposed TV corners (drag to adjust), the text-height readout and warnings from `QualityGate`, and the camera controls. Every launch opens on it, since the phone has likely moved since last time; confirming the corners goes to the play screen, and **Cámara** comes back to it. A replay in the simulator has no camera, so it goes straight to the play screen. Changing lens or zoom reopens calibration, because the old corners no longer fit. Lens, zoom, bias, and focus lock are remembered.
 
 ### Phase 2: pipeline on the phone (built)
 
@@ -75,7 +75,7 @@ Deliberately left out: key words, recap, speaker tagging, whole-screen translati
 ### Kyle's play test (the decision)
 
 1. `mise run phone` with the iPhone plugged in. The first time, follow the setup in the README (see Setup below).
-2. Mount the phone, open **Cámara**, try 1× and the telephoto from where you'd sit, and drag the corners if needed. Note the text height it reports, and whether exposure bias stops the box blowing out.
+2. Mount the phone. The app opens on the camera screen: try 1× and the telephoto from where you'd sit, and drag the corners if needed. Note the text height it reports, and whether exposure bias stops the box blowing out.
 3. Play for 30–60 minutes, plugged in.
 
 - [ ] Lines are read correctly and start quickly after the text finishes.

@@ -192,8 +192,9 @@ final class PhoneModel {
         transcript = try? TranscriptWriter(
             sessionsDirectory: store.sessionsDirectory,
             session: TranscriptWriter.sessionName(startingAt: sessionStart))
-        if calibration.value == nil || reference == nil { showingCamera = true }
-        previewer.isEnabled = showingCamera
+        // Every launch starts on the camera screen: the phone has likely been moved since last time,
+        // and the corners are quicker to check than a misread line is to notice.
+        showingCamera = true
 
         tasks.append(
             Task { [weak self] in
