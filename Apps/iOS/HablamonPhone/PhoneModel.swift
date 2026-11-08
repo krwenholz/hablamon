@@ -220,8 +220,18 @@ final class PhoneModel {
         }
     }
 
-    /// Downloads (the first time) and loads Kokoro; Apple speaks meanwhile.
+    /// Downloads (the first time) and loads Kokoro; Apple speaks meanwhile. A crash inside CoreML
+    /// can't be caught, so a marker records that loading started: if this build died while loading
+    /// last time, Apple speaks instead of the app crashing on every launch. A new build tries again.
     private func loadVoices(_ engine: KokoroSpeechEngine) {
+        let marker = store.root.appendingPathComponent("kokoro-loading")
+        let build = Self.buildStamp
+        if (try? String(contentsOf: marker, encoding: .utf8)) == build {
+            voiceStatus = .failed("the last launch crashed while loading the voices")
+            note("kokoro skipped: the last launch of this build crashed while loading it")
+            return
+        }
+        try? build.write(to: marker, atomically: true, encoding: .utf8)
         voiceStatus = .notLoaded
         engine.onStatus = { status in Task { @MainActor [weak self] in self?.voiceStatus = status } }
         engine.onLog = { line in Task { @MainActor [weak self] in self?.note(line) } }
@@ -232,7 +242,15 @@ final class PhoneModel {
             } catch {
                 await self?.note("kokoro voices failed to load: \(error)")
             }
+            try? FileManager.default.removeItem(at: marker)
         }
+    }
+
+    /// Changes with every install, so a fixed build gets to try Kokoro again.
+    private static var buildStamp: String {
+        let executable = Bundle.main.executableURL?.path ?? ""
+        let modified = (try? FileManager.default.attributesOfItem(atPath: executable))?[.modificationDate] as? Date
+        return "\(modified?.timeIntervalSince1970 ?? 0)"
     }
 
     private func voicesReady() {
