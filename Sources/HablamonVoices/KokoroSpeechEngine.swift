@@ -72,6 +72,10 @@
                 #if targetEnvironment(simulator)
                     // The simulator's CoreML has no GPU backend and can't build this model's plan otherwise.
                     configuration.computeUnits = .cpuOnly
+                #elseif os(iOS)
+                    // On an iPhone18,3 with iOS 27 the GPU path aborts inside MPSGraph a moment after loading;
+                    // the Neural Engine is where Kokoro is fast on a phone anyway.
+                    configuration.computeUnits = .cpuAndNeuralEngine
                 #else
                     configuration.computeUnits = .all
                 #endif
