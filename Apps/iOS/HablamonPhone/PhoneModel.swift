@@ -59,6 +59,7 @@ final class PhoneModel {
     @ObservationIgnored private var voiceEngine: SpeechEngineID = .apple
     @ObservationIgnored private var transcript: TranscriptWriter?
     @ObservationIgnored private var log: FileLog?
+    @ObservationIgnored private var crashReports: CrashReports?
     @ObservationIgnored private let sessionStart = Date()
     @ObservationIgnored private var camera: PhoneCamera?
     @ObservationIgnored private var engine: LiveEngine?
@@ -105,6 +106,11 @@ final class PhoneModel {
             directory: store.logsDirectory, name: TranscriptWriter.sessionName(startingAt: sessionStart))
         note("launched on \(Self.machine) iOS \(UIDevice.current.systemVersion); root \(store.root.path)")
         for issue in problems + [settings.issue, characters.issue].compactMap({ $0 }) { note("issue: \(issue)") }
+        let crashReports = CrashReports(directory: store.logsDirectory) { line in
+            Task { @MainActor [weak self] in self?.note(line) }
+        }
+        crashReports.start()
+        self.crashReports = crashReports
         if let kokoro { loadVoices(kokoro) }
     }
 
