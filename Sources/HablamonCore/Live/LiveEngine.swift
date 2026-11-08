@@ -105,6 +105,26 @@
             }
         }
 
+        /// The latest camera frame, its corrected screen, and the box detector's measurements on it,
+        /// so a frame where a line was missed or misread can be saved and looked into.
+        public struct Capture: @unchecked Sendable {
+            public let camera: CIImage
+            public let screen: CIImage?
+            public let features: BoxFeatures?
+            public let detection: BoxDetection
+        }
+
+        public func capture(_ completion: @escaping @Sendable (Capture?) -> Void) {
+            queue.async { [self] in
+                guard let image = lastImage else { return completion(nil) }
+                let screen = corrector?.correct(image)
+                let features = screen.flatMap {
+                    try? CorrectedFrame(image: $0, context: context, recognizer: recognizer).boxFeatures(profile)
+                }
+                completion(Capture(camera: image, screen: screen, features: features, detection: profile.detection))
+            }
+        }
+
         public func signal(_ signal: ConnectionMonitor.Signal, at date: Date) {
             queue.async { [self] in run(controller.handle(.camera(signal, date: date)), image: nil, at: date) }
         }

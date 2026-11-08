@@ -104,6 +104,14 @@ public struct BoxFeatures: Sendable, Equatable {
                 && textEdgeDensity > marginEdgeDensity)
     }
 
+    /// Each measurement against its threshold, for the log when looking into a missed box.
+    public func summary(_ detection: BoxDetection) -> String {
+        String(
+            format: "text edges %.3f (needs ≥ %.3f), margin edges %.3f (≤ %.3f), name tag %.2f (≥ %.2f): %@",
+            textEdgeDensity, detection.minTextEdgeDensity, marginEdgeDensity, detection.maxMarginEdgeDensity,
+            tagFraction, detection.minTagFraction, isBoxVisible(detection) ? "box seen" : "no box")
+    }
+
     /// Whether the box has a speaker name tag; without one, the line is narration.
     public func hasNameTag(_ detection: BoxDetection) -> Bool {
         tagFraction >= detection.minTagFraction

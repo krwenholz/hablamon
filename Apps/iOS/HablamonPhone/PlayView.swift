@@ -169,6 +169,10 @@ struct StatsPanel: View {
             ForEach(Array(model.recentLog.enumerated()), id: \.offset) { _, line in
                 Text(line).lineLimit(1).truncationMode(.middle)
             }
+            // For a line that was missed or misread: press it while the box is on screen.
+            Button("Guardar captura", systemImage: "camera.metering.center.weighted") { model.saveCapture() }
+                .buttonStyle(PillButtonStyle(lit: true, padding: 10))
+                .padding(.top, 6)
         }
         .font(.system(size: 11, design: .monospaced))
         .foregroundStyle(.white)

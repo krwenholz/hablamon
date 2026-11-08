@@ -66,6 +66,13 @@ import Testing
         #expect(features(body: scenery, tag: blueTag).isBoxVisible(detection))
     }
 
+    @Test func summarySaysWhichMeasurementFailed() {
+        let summary = features(body: scenery).summary(detection)
+        #expect(summary.contains("margin edges 0.") && summary.contains("(≤ 0.012)"))
+        #expect(summary.hasSuffix("no box"))
+        #expect(features(body: panel).summary(detection).hasSuffix("box seen"))
+    }
+
     @Test func detectsTheNameTag() {
         #expect(features(body: panel, tag: blueTag).hasNameTag(detection))
         // Bluish white from overexposure is not tag blue.

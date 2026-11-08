@@ -524,6 +524,43 @@ final class PhoneModel {
         lensID = UserDefaults.standard.string(forKey: Saved.lens) ?? lenses.first { $0.magnification == 1 }?.id
     }
 
+    /// Saves what the camera sees now (the frame, the corrected screen) to captures/ beside the
+    /// logs, and logs the box detector's measurements on it, for looking into a missed or wrong line.
+    func saveCapture() {
+        guard let engine else {
+            note("capture: no camera running")
+            return
+        }
+        let directory = store.root.appendingPathComponent("captures", isDirectory: true)
+        let stamp = TranscriptWriter.sessionName(startingAt: Date())
+        let setup =
+            "\(lenses.first { $0.id == lensID }?.name ?? "?") lens at \(controls.zoom)×, rotation \(Int(cameraRotation))°"
+        engine.capture { capture in
+            guard let capture else { return }
+            let context = CIContext()
+            let space = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+            var written: [String] = []
+            do {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                if let jpeg = context.jpegRepresentation(of: capture.camera, colorSpace: space) {
+                    try jpeg.write(to: directory.appendingPathComponent("\(stamp)-camera.jpg"))
+                    written.append("\(stamp)-camera.jpg")
+                }
+                if let screen = capture.screen,
+                    let png = context.pngRepresentation(of: screen, format: .RGBA8, colorSpace: space)
+                {
+                    try png.write(to: directory.appendingPathComponent("\(stamp)-screen.png"))
+                    written.append("\(stamp)-screen.png")
+                }
+            } catch {
+                written.append("failed: \(error)")
+            }
+            let box = capture.features?.summary(capture.detection) ?? "no corrected screen (no corners yet)"
+            let line = "capture \(written.joined(separator: ", ")); \(setup); \(box)"
+            Task { @MainActor [weak self] in self?.note(line) }
+        }
+    }
+
     private func saveCalibration(_ quad: Quad, reference: GrayImage) {
         let calibration = Calibration(
             deviceID: lensID ?? "unknown", deviceName: lenses.first { $0.id == lensID }?.name, screenQuad: quad,
