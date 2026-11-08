@@ -42,14 +42,15 @@ Apps/iOS/
 | **Decision** | Kyle's play test (below) | Worth carrying on? | Waiting |
 | 3. Shared app layer | `HablamonUI` library with the app model and the panels, used by both shells; the phone's stand-in model goes away | One app, two screens | Planned |
 | 4. Phone companion UI | Key words, recap, speaker tagging, whole-screen translation, settings, Files export | Feature parity where it makes sense | Planned |
-| 5. Hardening | Thermal back-off, iPad layout, app icon, TestFlight if paid | Usable every day | Planned |
+| 5. Hardening | Thermal back-off, iPad layout, TestFlight if paid | Usable every day | Planned |
 
 ### Phase 0: groundwork (built)
 
 - `Package.swift`: platforms `.macOS(.v15), .iOS(.v18)`; `HablamonKit` library product; speech-swift's `AudioCommon` (the model downloader Kokoro uses) on iOS too. Qwen3TTS stays Mac-only.
 - Mac-only code is gated: `LiveCamera` (Continuity Camera, Center Stage) is `#if os(macOS)`. `AppSupportStore` uses the app's Documents folder on iOS, since `homeDirectoryForCurrentUser` doesn't exist there. Documents is shown in the Files app (On My iPhone › Hablamon), so logs and transcripts can be shared from the phone.
 - `Apps/iOS/Hablamon.xcodeproj` with a shared `HablamonPhone` scheme. **Run builds Release**: the pipeline does pixel work in Swift, and an unoptimized Debug build would make the phone look slower and hotter than it is.
-- Signing: `DEVELOPMENT_TEAM` comes from `Apps/iOS/Local.xcconfig` (gitignored). `scripts/phone.sh` (`mise run phone`) reads the team from the Apple Development certificate in the keychain, writes that file, then builds, installs, and launches on the connected phone with `xcodebuild` and `xcrun devicectl`.
+- Signing: `DEVELOPMENT_TEAM` comes from `Apps/iOS/Local.xcconfig` (gitignored). `scripts/phone.sh` (`mise run phone`) finds the team (see Setup), writes that file, then builds, installs, and launches on the connected phone with `xcodebuild` and `xcrun devicectl`.
+- App icon: `Apps/iOS/HablamonPhone/Assets.xcassets`, rendered by `scripts/build-icon.sh` from the Mac's `Assets/AppIcon.svg`, cropped to the body so iOS can round the corners itself.
 - CI: a second job builds the iPhone app for a generic iOS device without signing, so a change to shared code can't silently break the phone.
 
 ### Phase 1: camera bench (built)
@@ -105,7 +106,6 @@ Move what both apps need into a `HablamonUI` library target in the package:
 
 - **Thermal back-off:** at `.serious`, sample less often and stop the free-speech whole-frame OCR; at `.critical`, pause and say why.
 - iPad layout, if the iPad turns out to be the better screen.
-- App icon from `Assets/`.
 - If the 7-day free signing gets tiresome: the paid program, then TestFlight uploads from CI.
 
 ## Setup
