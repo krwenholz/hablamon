@@ -41,6 +41,9 @@ struct PhoneTranslation: ViewModifier {
                         let english = try await session.translate(source).targetText
                         model.state.apply(.translated(source: source, english: english))
                         model.translationProblem = false
+                    } catch is CancellationError {
+                        // A newer line restarted the task; it translates this one too.
+                        return
                     } catch {
                         model.translationProblem = true
                         model.note("translation failed: \(error)")
