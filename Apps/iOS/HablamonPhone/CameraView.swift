@@ -3,7 +3,7 @@ import HablamonModels
 import SwiftUI
 
 /// The camera screen: the live picture with the proposed TV corners (drag to adjust), how readable
-/// the text will be, and the lens, zoom, exposure, and focus controls.
+/// the text will be, and the zoom buttons, with exposure and focus under Ajustes.
 struct CameraView: View {
     var model: PhoneModel
     /// Corners in camera pixels once the player starts dragging; until then, the proposal.
@@ -22,10 +22,7 @@ struct CameraView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            ScrollView {
-                sidebar.frame(width: 240)
-            }
-            .frame(width: 240)
+            sidebar.frame(width: 240)
         }
         .padding(12)
         .background(Color.black.ignoresSafeArea())
@@ -33,10 +30,12 @@ struct CameraView: View {
         .font(.system(size: 14, design: .rounded))
     }
 
+    /// What the camera screen needs at a glance: readability, zoom, and the confirm button. The
+    /// rarely needed exposure and focus controls sit folded away under Ajustes.
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Calibración").font(.system(size: 18, weight: .bold, design: .rounded))
+                Text("Cámara").font(.system(size: 18, weight: .bold, design: .rounded))
                 Spacer()
                 Button("Cerrar", systemImage: "xmark") {
                     edited = nil
@@ -44,11 +43,17 @@ struct CameraView: View {
                 }
                 .labelStyle(.iconOnly)
             }
-            Text("Arrastra las esquinas a la pantalla de la tele.").foregroundStyle(.white.opacity(0.6))
-            if let quality = model.preview?.quality {
-                Text(String(format: "Texto: %.0f px", quality.textHeight))
-                ForEach(quality.warnings, id: \.self) { warning in
-                    Text(warning).foregroundStyle(.orange)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Arrastra las esquinas a la pantalla de la tele.").foregroundStyle(.white.opacity(0.6))
+                    if let quality = model.preview?.quality {
+                        Text(String(format: "Texto: %.0f px", quality.textHeight))
+                        ForEach(quality.warnings, id: \.self) { warning in
+                            Text(warning).foregroundStyle(.orange)
+                        }
+                    }
+                    zoomButtons
+                    DisclosureGroup("Ajustes") { adjustments.padding(.top, 8) }
                 }
             }
             Button {
@@ -61,34 +66,24 @@ struct CameraView: View {
             .tint(.yellow)
             .foregroundStyle(.black)
             .disabled(quad == nil)
+        }
+    }
 
-            Divider().overlay(.white.opacity(0.3))
-
-            if model.lenses.count > 1 {
-                Text("Lente")
-                HStack {
-                    ForEach(model.lenses) { lens in
-                        Button(lens.name) {
-                            edited = nil
-                            model.useLens(lens.id)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(lens.id == model.lensID ? .yellow : .white)
-                    }
+    private var zoomButtons: some View {
+        HStack(spacing: 8) {
+            ForEach(model.zoomOptions) { option in
+                Button(option.name) {
+                    edited = nil
+                    model.useZoom(option)
                 }
+                .buttonStyle(.bordered)
+                .tint(option.matches(lensID: model.lensID, zoom: model.controls.zoom) ? .yellow : .white)
             }
-            if model.controls.maxZoom > 1 {
-                Text(String(format: "Zoom %.1f×", model.controls.zoom))
-                Slider(
-                    value: Binding(get: { model.controls.zoom }, set: { model.setZoom($0) }),
-                    in: 1...model.controls.maxZoom,
-                    onEditingChanged: { editing in
-                        if !editing {
-                            edited = nil
-                            model.pictureChanged()
-                        }
-                    })
-            }
+        }
+    }
+
+    private var adjustments: some View {
+        VStack(alignment: .leading, spacing: 12) {
             if model.controls.maxBias > model.controls.minBias {
                 // Darker keeps the bright dialogue box from blowing out; ±3 stops is plenty.
                 Text(String(format: "Exposición %+.1f", model.controls.exposureBias))

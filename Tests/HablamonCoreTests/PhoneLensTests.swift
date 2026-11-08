@@ -58,3 +58,67 @@ import Testing
         #expect(other.x == 1 && other.y == 0)
     }
 }
+
+@Suite struct PhoneZoomTests {
+    // Magnifications as `PhoneCamera.lenses()` works them out from fields of view, slightly off.
+    let ultraWide = PhoneLens(id: "ultra", magnification: 0.52)
+    let wide = PhoneLens(id: "wide", magnification: 1)
+    let threeX = PhoneLens(id: "tele3", magnification: 3.02)
+    let fourX = PhoneLens(id: "tele4", magnification: 4.03)
+    let fiveX = PhoneLens(id: "tele5", magnification: 5.01)
+
+    @Test func halfIsTheUltraWideUnzoomed() {
+        let zoom = PhoneZoom.choose(0.5, from: [ultraWide, wide, threeX])
+        #expect(zoom?.lensID == "ultra")
+        #expect(zoom?.zoom == 1)
+        #expect(zoom?.name == "0.5×")
+    }
+
+    @Test func oneAndTwoAreTheWide() {
+        let lenses = [ultraWide, wide, threeX]
+        #expect(PhoneZoom.choose(1, from: lenses) == PhoneZoom(magnification: 1, lensID: "wide", zoom: 1))
+        #expect(PhoneZoom.choose(2, from: lenses) == PhoneZoom(magnification: 2, lensID: "wide", zoom: 2))
+    }
+
+    @Test func fourUsesAThreeXTelephotoZoomedIn() {
+        let zoom = PhoneZoom.choose(4, from: [ultraWide, wide, threeX])
+        #expect(zoom?.lensID == "tele3")
+        #expect(abs((zoom?.zoom ?? 0) - 4 / 3.02) < 0.001)
+    }
+
+    @Test func fourUsesAFourXTelephotoUnzoomed() {
+        // 4.03 is the 4× lens measured a little long, not a lens that overshoots.
+        let zoom = PhoneZoom.choose(4, from: [ultraWide, wide, fourX])
+        #expect(zoom?.lensID == "tele4")
+        #expect(zoom?.zoom == 1)
+    }
+
+    @Test func fourZoomsTheWideWhenTheTelephotoOvershoots() {
+        let zoom = PhoneZoom.choose(4, from: [ultraWide, wide, fiveX])
+        #expect(zoom?.lensID == "wide")
+        #expect(zoom?.zoom == 4)
+    }
+
+    @Test func noUltraWideMeansNoHalf() {
+        #expect(PhoneZoom.choose(0.5, from: [wide, threeX]) == nil)
+        #expect(PhoneZoom.options(for: [wide, threeX]).map(\.name) == ["1×", "2×", "4×"])
+    }
+
+    @Test func everyButtonOnAProPhone() {
+        let options = PhoneZoom.options(for: [ultraWide, wide, fiveX])
+        #expect(options.map(\.name) == ["0.5×", "1×", "2×", "4×"])
+        #expect(options.map(\.lensID) == ["ultra", "wide", "wide", "wide"])
+    }
+
+    @Test func noLensesMeansNoButtons() {
+        #expect(PhoneZoom.options(for: []).isEmpty)
+    }
+
+    @Test func matchesTheCameraSetting() {
+        let two = PhoneZoom(magnification: 2, lensID: "wide", zoom: 2)
+        #expect(two.matches(lensID: "wide", zoom: 2.01))
+        #expect(!two.matches(lensID: "wide", zoom: 1))
+        #expect(!two.matches(lensID: "tele3", zoom: 2))
+        #expect(!two.matches(lensID: nil, zoom: 2))
+    }
+}

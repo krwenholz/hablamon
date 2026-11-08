@@ -431,33 +431,35 @@ final class PhoneModel {
         showingCamera = false
     }
 
-    func useLens(_ id: String) {
-        guard id != lensID, let camera else { return }
-        do {
-            try camera.useLens(id)
-        } catch {
-            note("lens switch failed: \(error)")
-            return
-        }
-        let defaults = UserDefaults.standard
-        defaults.set(id, forKey: Saved.lens)
-        defaults.removeObject(forKey: Saved.zoom)
-        defaults.set(false, forKey: Saved.focusLocked)
-        // Each lens has its own exposure; carry the bias over.
-        camera.setExposureBias(defaults.double(forKey: Saved.exposureBias))
-        refreshControls()
-        pictureChanged()
-    }
+    /// The zoom buttons this phone's lenses allow.
+    var zoomOptions: [PhoneZoom] { PhoneZoom.options(for: lenses) }
 
-    func setZoom(_ zoom: Double) {
-        camera?.setZoom(zoom)
-        controls.zoom = zoom
-        UserDefaults.standard.set(zoom, forKey: Saved.zoom)
+    /// Switches to a zoom button's lens and zoom factor.
+    func useZoom(_ option: PhoneZoom) {
+        guard let camera, !option.matches(lensID: lensID, zoom: controls.zoom) else { return }
+        let defaults = UserDefaults.standard
+        if option.lensID != lensID {
+            do {
+                try camera.useLens(option.lensID)
+            } catch {
+                note("lens switch failed: \(error)")
+                return
+            }
+            defaults.set(option.lensID, forKey: Saved.lens)
+            defaults.set(false, forKey: Saved.focusLocked)
+            // Each lens has its own exposure; carry the bias over.
+            camera.setExposureBias(defaults.double(forKey: Saved.exposureBias))
+        }
+        camera.setZoom(option.zoom)
+        defaults.set(option.zoom, forKey: Saved.zoom)
+        refreshControls()
+        note("zoom \(option.name): lens \(option.lensID) at \(option.zoom)×")
+        pictureChanged()
     }
 
     /// The old corners don't fit after a lens or zoom change: look for the TV again, and keep the
     /// camera screen open so the new corners can be checked.
-    func pictureChanged() {
+    private func pictureChanged() {
         engine?.signal(.screenMismatch, at: Date())
         recalibrate()
     }

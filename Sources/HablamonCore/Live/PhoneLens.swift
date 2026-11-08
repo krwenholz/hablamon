@@ -48,3 +48,53 @@ public struct PhoneLens: Equatable, Sendable, Identifiable {
         }
     }
 }
+
+/// One of the camera screen's zoom buttons, as the physical lens and zoom factor that give it.
+public struct PhoneZoom: Equatable, Sendable, Identifiable {
+    /// Magnification relative to the main camera, as on the button.
+    public var magnification: Double
+    public var lensID: String
+    /// The lens's own zoom factor (1 = none).
+    public var zoom: Double
+
+    public var id: Double { magnification }
+
+    /// The buttons, as the Camera app offers them.
+    public static let magnifications: [Double] = [0.5, 1, 2, 4]
+
+    /// Magnifications worked out from fields of view are a little off (an ultra-wide comes out
+    /// near 0.52), so a lens this close to a button still counts as fitting it.
+    static let tolerance = 1.1
+
+    public init(magnification: Double, lensID: String, zoom: Double) {
+        self.magnification = magnification
+        self.lensID = lensID
+        self.zoom = zoom
+    }
+
+    /// "0.5×", "1×", "2×", "4×".
+    public var name: String {
+        magnification < 1 ? "0.5×" : "\(Int(magnification.rounded()))×"
+    }
+
+    /// The buttons this phone can offer; without an ultra-wide there's no 0.5×.
+    public static func options(for lenses: [PhoneLens]) -> [PhoneZoom] {
+        magnifications.compactMap { choose($0, from: lenses) }
+    }
+
+    /// The most magnifying lens that doesn't overshoot `magnification`, zoomed the rest of the
+    /// way, since an optical lens is sharper than digital zoom on a wider one. Nil when every lens
+    /// overshoots.
+    public static func choose(_ magnification: Double, from lenses: [PhoneLens]) -> PhoneZoom? {
+        let fitting = lenses.filter { $0.magnification > 0 && $0.magnification <= magnification * tolerance }
+        guard let lens = fitting.max(by: { $0.magnification < $1.magnification }) else { return nil }
+        // A physical lens can't zoom out past its own field of view.
+        return PhoneZoom(
+            magnification: magnification, lensID: lens.id, zoom: max(1, magnification / lens.magnification))
+    }
+
+    /// Whether the camera is set to this button now.
+    public func matches(lensID: String?, zoom: Double) -> Bool {
+        lensID == self.lensID && abs(zoom - self.zoom) < 0.05
+    }
+}

@@ -57,12 +57,12 @@ Apps/iOS/
 
 `PhoneCamera` mirrors `LiveCamera` for the rest of the pipeline: frames arrive upright, and interruptions report as suspended or resumed. It adds:
 
-- **Lens choice** between the physical back cameras (0.5×, 1×, and the telephoto, labelled by field of view). A fixed physical lens, rather than the virtual multi-camera, so the phone never switches lenses on its own, which would look like the phone moving.
-- **Zoom**, **exposure bias** on top of metering at the dialogue box, and **focus lock**.
+- **Zoom buttons** 0.5×, 1×, 2×, and 4×, as in the Camera app. Each picks the most magnifying physical lens that doesn't overshoot, measured by field of view, and zooms the rest of the way (`PhoneZoom`): 2× is the main camera at 2, and 4× is a 3× telephoto at 1.33, or the main camera at 4 when the telephoto is 5×. A phone without an ultra-wide has no 0.5×. A fixed physical lens, rather than the virtual multi-camera, so the phone never switches lenses on its own, which would look like the phone moving.
+- **Exposure bias** on top of metering at the dialogue box, and **focus lock**.
 - **15 frames a second** instead of 30, since the engine samples at most 4 a second. That costs no accuracy and saves power.
 - **Upright frames** whichever way the phone is held, via `AVCaptureDevice.RotationCoordinator`.
 
-The calibration screen shows the live picture with the proposed TV corners (drag to adjust), the text-height readout and warnings from `QualityGate`, and the camera controls. Every launch opens on it, since the phone has likely moved since last time; confirming the corners goes to the play screen, and **Cámara** comes back to it. A replay in the simulator has no camera, so it goes straight to the play screen. Changing lens or zoom reopens calibration, because the old corners no longer fit. Lens, zoom, bias, and focus lock are remembered.
+The calibration screen shows the live picture with the proposed TV corners (drag to adjust), the text-height readout and warnings from `QualityGate`, the zoom buttons, and the confirm button; exposure bias and focus lock are folded away under **Ajustes**, since Kyle found the first version's sliders and lens picker too busy. Every launch opens on it, since the phone has likely moved since last time; confirming the corners goes to the play screen, and **Cámara** comes back to it. A replay in the simulator has no camera, so it goes straight to the play screen. Changing the zoom reopens calibration, because the old corners no longer fit. Lens, zoom, bias, and focus lock are remembered.
 
 ### Phase 2: pipeline on the phone (built)
 
@@ -75,7 +75,7 @@ Deliberately left out: key words, recap, speaker tagging, whole-screen translati
 ### Kyle's play test (the decision)
 
 1. `mise run phone` with the iPhone plugged in. The first time, follow the setup in the README (see Setup below).
-2. Mount the phone. The app opens on the camera screen: try 1× and the telephoto from where you'd sit, and drag the corners if needed. Note the text height it reports, and whether exposure bias stops the box blowing out.
+2. Mount the phone. The app opens on the camera screen: try 1×, 2×, and 4× from where you'd sit, and drag the corners if needed. Note the text height it reports, and whether exposure bias stops the box blowing out.
 3. Play for 30–60 minutes, plugged in.
 
 - [ ] Lines are read correctly and start quickly after the text finishes.
