@@ -123,20 +123,83 @@ struct SlantedTab: Shape {
     }
 }
 
+/// The app's few animations share these, so they all feel alike: short ease-outs, and a spring with
+/// no overshoot. With Reduce Motion on, nothing moves or scales; things fade or simply change.
+enum Motion {
+    /// Colour and text swaps on pills and buttons.
+    static let quick = Animation.easeOut(duration: 0.15)
+    /// Something appearing: a new line, its English, the Datos panel, the camera screen.
+    static let appear = Animation.easeOut(duration: appearDuration)
+    static let appearDuration = 0.25
+    /// A pressed button settling back.
+    static let press = Animation.spring(duration: 0.2, bounce: 0)
+    static let pressedScale: CGFloat = 0.96
+    /// How far a new line drifts up as it fades in, in points.
+    static let rise: CGFloat = 4
+
+    /// A panel growing slightly out of its corner, or just fading with Reduce Motion on.
+    static func panel(from corner: UnitPoint, reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.95, anchor: corner))
+    }
+}
+
+extension View {
+    /// Fades the view in whenever `trigger` changes, drifting up from `rise` points below. Only
+    /// opacity and offset animate, so the text inside and the layout change at once.
+    func fadesIn(on trigger: some Equatable & Sendable, rise: CGFloat = 0) -> some View {
+        modifier(FadeIn(trigger: trigger, rise: rise))
+    }
+}
+
+private struct FadeIn<Trigger: Equatable & Sendable>: ViewModifier {
+    var trigger: Trigger
+    var rise: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let rise = reduceMotion ? 0 : rise
+        content.keyframeAnimator(initialValue: 1.0, trigger: trigger) { view, shown in
+            view.opacity(shown).offset(y: (1 - shown) * rise)
+        } keyframes: { _ in
+            MoveKeyframe(0)
+            LinearKeyframe(1, duration: Motion.appearDuration, timingCurve: .easeOut)
+        }
+    }
+}
+
 /// A button drawn as one of the game's dark menu pills; `lit` turns it yellow, for a state that's on.
 struct PillButtonStyle: ButtonStyle {
     var lit = false
     var padding: CGFloat = 14
 
     func makeBody(configuration: Configuration) -> some View {
+        PillButton(configuration: configuration, lit: lit, padding: padding)
+    }
+}
+
+/// A view rather than the style's body, so it can read Reduce Motion.
+private struct PillButton: View {
+    var configuration: ButtonStyleConfiguration
+    var lit: Bool
+    var padding: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let pressed = configuration.isPressed
         configuration.label
             .font(Theme.menu(14))
             .foregroundStyle(lit ? Theme.ink : .white)
             .padding(.horizontal, padding)
             .padding(.vertical, 8)
             .background(Capsule().fill(lit ? Theme.yellow : Theme.ink))
-            .opacity(configuration.isPressed ? 0.7 : 1)
+            // A new label can change the pill's width, so Reduce Motion swaps it at once.
+            .animation(reduceMotion ? nil : Motion.quick, value: lit)
+            .opacity(pressed ? 0.7 : 1)
+            .scaleEffect(pressed && !reduceMotion ? Motion.pressedScale : 1)
+            .animation(Motion.press, value: pressed)
             .contentShape(Capsule())
+            // On the way down only, so a tap is one tick.
+            .sensoryFeedback(.impact(weight: .light), trigger: pressed) { _, isPressed in isPressed }
     }
 }
 

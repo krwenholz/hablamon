@@ -7,6 +7,7 @@ import SwiftUI
 /// in a row in landscape and in a grid below the box in portrait.
 struct PlayView: View {
     @Bindable var model: PhoneModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geometry in
@@ -20,13 +21,24 @@ struct PlayView: View {
                 .padding(.vertical, 8)
                 if model.showingStats {
                     StatsPanel(model: model).padding(12)
+                        .transition(Motion.panel(from: .topTrailing, reduceMotion: reduceMotion))
                 }
             }
+            .animation(Motion.appear, value: model.showingStats)
         }
         .background(ThemeBackground())
-        .fullScreenCover(isPresented: $model.showingCamera) {
-            CameraView(model: model)
+        .accessibilityHidden(model.showingCamera)
+        // Laid over the play screen and cross-faded, rather than a full-screen cover sliding up:
+        // both screens share the background, so only their contents change.
+        .overlay {
+            if model.showingCamera {
+                CameraView(model: model)
+                    .contentShape(Rectangle())
+                    .compositingGroup()
+                    .transition(.opacity)
+            }
         }
+        .animation(Motion.appear, value: model.showingCamera)
     }
 
     /// The dialogue box with the speaker's tab on its top edge and the state pills opposite.
@@ -39,9 +51,11 @@ struct PlayView: View {
             HStack(spacing: 8) {
                 Spacer()
                 Text("● " + HablamonCore.text(model.state.pill, english: false))
+                    .contentTransition(.opacity)
                     .foregroundStyle(Theme.ink)
                     .padding(.horizontal, 12).padding(.vertical, 5)
                     .background(Capsule().fill(Theme.color(model.state.pill)))
+                    .animation(reduceMotion ? nil : Motion.quick, value: model.state.pill)
                 Text(model.voiceSummary)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12).padding(.vertical, 5)
@@ -68,8 +82,10 @@ struct PlayView: View {
                     .foregroundStyle(Theme.navy.opacity(model.currentTranslation == nil ? 0.35 : 0.85))
                     .minimumScaleFactor(0.6)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .fadesIn(on: model.currentTranslation)
             }
         }
+        .fadesIn(on: model.state.lineCount, rise: Motion.rise)
         .padding(.leading, 40)
         .padding(.trailing, 28)
         .padding(.top, 28)
