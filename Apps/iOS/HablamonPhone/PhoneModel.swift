@@ -174,7 +174,9 @@ final class PhoneModel {
         camera.onSignal = { signal, date in engine.signal(signal, at: date) }
         camera.onLog = { continuation.yield(.log($0)) }
         do {
-            try camera.start(lensID: defaults.string(forKey: Saved.lens) ?? calibration.value?.deviceID)
+            try camera.start(
+                lensID: defaults.string(forKey: Saved.lens) ?? calibration.value?.deviceID,
+                rotation: Self.screenRotation)
         } catch {
             status = "\(error)"
             note("camera failed: \(error)")
@@ -207,6 +209,13 @@ final class PhoneModel {
                     engine.tick(Date())
                 }
             })
+    }
+
+    /// The capture rotation that matches the screen: the back camera's sensor is upright when the
+    /// screen is landscape right (0°), and upside down for landscape left (180°).
+    private static var screenRotation: Double {
+        let scene = UIApplication.shared.connectedScenes.first { $0 is UIWindowScene } as? UIWindowScene
+        return scene?.effectiveGeometry.interfaceOrientation == .landscapeLeft ? 180 : 0
     }
 
     /// Speech plays even with the ring switch on silent, and is spoken audio for AirPods' sake.

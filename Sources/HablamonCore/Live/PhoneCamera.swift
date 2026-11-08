@@ -100,11 +100,15 @@
             }
         }
 
-        /// Starts on the lens with this ID, or the main camera.
-        public func start(lensID: String?) throws {
+        /// Starts on the lens with this ID, or the main camera. `rotation` turns frames upright for
+        /// the screen's landscape orientation (0° or 180°) until the phone itself says otherwise.
+        public func start(lensID: String?, rotation: Double) throws {
             guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else { throw Failure.notAuthorized }
             let device = try Self.camera(lensID)
-            try queue.sync { try configure(device) }
+            try queue.sync {
+                self.rotation = rotation
+                try configure(device)
+            }
             watchInterruptions()
             queue.async { [session] in session.startRunning() }
         }
@@ -237,16 +241,20 @@
             onLog?("phone camera \(device.localizedName) (\(device.deviceType.rawValue))")
         }
 
-        /// Keeps frames upright for however the phone is held.
+        /// Keeps frames upright when the phone turns between the two landscape orientations.
         private func followRotation(of device: AVCaptureDevice) {
             let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
             self.coordinator = coordinator
-            applyRotation(Double(coordinator.videoRotationAngleForHorizonLevelCapture))
+            applyRotation(
+                PhoneLens.landscapeRotation(
+                    horizonAngle: Double(coordinator.videoRotationAngleForHorizonLevelCapture), current: rotation))
             rotationObservation = coordinator.observe(\.videoRotationAngleForHorizonLevelCapture, options: [.new]) {
                 [weak self] coordinator, _ in
                 guard let self else { return }
                 let angle = Double(coordinator.videoRotationAngleForHorizonLevelCapture)
-                queue.async { self.applyRotation(angle) }
+                queue.async {
+                    self.applyRotation(PhoneLens.landscapeRotation(horizonAngle: angle, current: self.rotation))
+                }
             }
         }
 

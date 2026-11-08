@@ -28,6 +28,18 @@ import Testing
         #expect(PhoneLens.magnification(fieldOfView: 0, mainFieldOfView: 70) == 1)
     }
 
+    @Test func landscapeRotationFollowsLandscape() {
+        #expect(PhoneLens.landscapeRotation(horizonAngle: 180, current: 0) == 180)
+        #expect(PhoneLens.landscapeRotation(horizonAngle: 0, current: 180) == 0)
+        #expect(PhoneLens.landscapeRotation(horizonAngle: 360, current: 180) == 0)
+    }
+
+    @Test func landscapeRotationIgnoresPortrait() {
+        // Lying flat, iOS says portrait; the frames stay as they were.
+        #expect(PhoneLens.landscapeRotation(horizonAngle: 90, current: 0) == 0)
+        #expect(PhoneLens.landscapeRotation(horizonAngle: 270, current: 180) == 180)
+    }
+
     @Test func sensorPointUnrotated() {
         let point = PhoneLens.sensorPoint(x: 0.2, y: 0.7, rotation: 0)
         #expect(point.x == 0.2 && point.y == 0.7)

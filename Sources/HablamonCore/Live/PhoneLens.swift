@@ -24,6 +24,18 @@ public struct PhoneLens: Equatable, Sendable, Identifiable {
         return tan(mainFieldOfView / 2 * .pi / 180) / tan(fieldOfView / 2 * .pi / 180)
     }
 
+    /// The rotation that turns frames upright in a landscape-only app: the horizon-level angle iOS
+    /// reports when the phone is held landscape (0° or 180°), otherwise `current`. iOS reports
+    /// portrait (90° or 270°) when the phone lies flat or tips up, which would turn the picture
+    /// sideways on a landscape screen.
+    public static func landscapeRotation(horizonAngle: Double, current: Double) -> Double {
+        switch Int((horizonAngle.truncatingRemainder(dividingBy: 360) + 360).rounded()) % 360 {
+        case 0: 0
+        case 180: 180
+        default: current
+        }
+    }
+
     /// A point in the upright frame (0–1, top-left origin) as the camera's point of interest, which
     /// is in the sensor's own landscape orientation. `rotation` is the clockwise angle in degrees
     /// that turns the sensor's picture upright (0, 90, 180, or 270).
