@@ -17,12 +17,13 @@ public struct FreeSpeech: Equatable, Sendable {
     }
 
     /// The blocks on a frame that are someone speaking. `brightness` gives the mean luminance (0–1)
-    /// of the frame under a box. Only full sentences count, never the top band (quest banners), and
-    /// either low and centered (subtitles) or on a light background (bubbles); dark notifications on
-    /// the right and menu labels don't qualify.
+    /// of the frame under a box. Only full sentences count, never the top band (quest banners) or
+    /// the upper right (notifications such as "¡La Pokédex se ha actualizado!"), and either low and
+    /// centered (subtitles) or on a light background (bubbles); dark notifications on the right and
+    /// menu labels don't qualify.
     public static func find(in blocks: [TextBlock], brightness: (NormalizedRect) -> Double) -> [FreeSpeech] {
         blocks.compactMap { block in
-            guard isSentence(block.text), block.box.y >= 0.15 else { return nil }
+            guard isSentence(block.text), block.box.y >= 0.15, !isNotification(block.box) else { return nil }
             let center = block.box.x + block.box.width / 2
             let light = brightness(block.box)
             let kind: Kind
@@ -37,6 +38,12 @@ public struct FreeSpeech: Equatable, Sendable {
             }
             return FreeSpeech(text: block.text, speaker: name(above: block, in: blocks), kind: kind)
         }
+    }
+
+    /// The game's notification cards start about 73 % across the upper right (nearer 70 % with
+    /// corners on the TV's bezel); speech bubbles there start further left.
+    static func isNotification(_ box: NormalizedRect) -> Bool {
+        box.x >= 0.68 && box.y + box.height <= 0.5
     }
 
     static func isSentence(_ text: String) -> Bool {

@@ -34,6 +34,15 @@ import Testing
         #expect(FreeSpeech.find(in: blocks, brightness: { $0.x > 0.7 ? 0.4 : 0.55 }).isEmpty)
     }
 
+    @Test func lightNotificationsInTheUpperRightAreNotBubbles() {
+        // As read on the phone: light cards that would otherwise pass as speech bubbles.
+        let blocks = [
+            block(0, "¡¡La Pokédex se ha actualizado!", x: 0.71, y: 0.18, width: 0.22),
+            block(1, "¡Hay una clase de Arte disponible!", x: 0.72, y: 0.26, width: 0.21),
+        ]
+        #expect(FreeSpeech.find(in: blocks, brightness: { _ in 0.8 }).isEmpty)
+    }
+
     @Test func aWhiteDialogueBoxIsLeftToTheDialogueReader() {
         let box = block(0, "Menuda estampa se ve desde aquí arriba, ¿eh?", x: 0.29, y: 0.76, width: 0.40)
         #expect(FreeSpeech.find(in: [box], brightness: { _ in 0.86 }).isEmpty)
