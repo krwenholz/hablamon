@@ -253,10 +253,9 @@ final class PhoneModel {
     /// Turns the picture with the screen. The phone has moved, so the old corners no longer fit:
     /// the camera screen opens to check new ones, as after a zoom change.
     private func watchScreenOrientation() {
-        orientationObservation = Self.windowScene?.observe(\.effectiveGeometry, options: [.new]) {
-            scene, _ in
-            let orientation = scene.effectiveGeometry.interfaceOrientation
-            Task { @MainActor [weak self] in self?.screenTurned(to: Self.rotation(for: orientation)) }
+        // The scene belongs to the main actor, so its orientation is read there, not in the callback.
+        orientationObservation = Self.windowScene?.observe(\.effectiveGeometry, options: [.new]) { _, _ in
+            Task { @MainActor [weak self] in self?.screenTurned(to: Self.screenRotation) }
         }
     }
 
