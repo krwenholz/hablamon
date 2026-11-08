@@ -106,6 +106,17 @@ import Testing
         translation.translated(id: 1, english: "Pokémon")
         #expect(translation.isComplete)
     }
+
+    @Test func unavailableTranslationStopsWaitingButKeepsTerms() {
+        var translation = ScreenTranslation(
+            blocks: [block(0, "Arañazo"), block(1, "¿Qué hará Sprigatito?")], terms: terms)
+        translation.translationUnavailable()
+        #expect(translation.pending.isEmpty)
+        #expect(translation.isComplete)
+        #expect(translation.untranslated.map(\.id) == [1])
+        #expect(translation.english(for: 0) == "Scratch")
+        #expect(translation.english(for: 1) == nil)
+    }
 }
 
 @Suite struct TranslateKeyTests {

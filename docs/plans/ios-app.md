@@ -41,7 +41,7 @@ Apps/iOS/
 | 2. Pipeline on the phone | `LiveEngine`, Kokoro voices, translation, transcript, and a heat and battery log on a bare-bones screen | Accurate, quick, and cool enough over an hour? | Built |
 | **Decision** | Kyle's play test (below) | Worth carrying on? | Waiting |
 | 3. Shared app layer | `HablamonUI` library with the app model and the panels, used by both shells; the phone's stand-in model goes away | One app, two screens | Planned |
-| 4. Phone companion UI | Key words, recap, speaker tagging, whole-screen translation, settings, Files export | Feature parity where it makes sense | Planned |
+| 4. Phone companion UI | Key words, recap, speaker tagging, settings, Files export | Feature parity where it makes sense | Planned |
 | 5. Hardening | Thermal back-off, iPad layout, TestFlight if paid | Usable every day | Planned |
 
 ### Phase 0: groundwork (built)
@@ -70,9 +70,11 @@ The calibration screen shows the live picture with the proposed TV corners (drag
 
 `PhoneModel` is a cut-down stand-in for the Mac's `AppModel`. It runs `LiveEngine` on `PhoneCamera` frames and applies its events to `CompanionState`. It speaks through `Narrator` with Kokoro (Apple voices while Kokoro downloads, about 312 MB the first time), translates with Apple's Translation framework, and writes the same transcript and log files.
 
-The screen: the current line, large, with the spoken part highlighted, in the game's cream dialogue box with the speaker's navy tab; English below; dark pills (Repetir, Lento, Pausa, Lenta, Cámara, Datos) in a row in landscape, or two rows of three under the box in portrait. It wears the Mac app's theme (striped orange background, heavy ink outlines with hard shadows, Gill Sans and Avenir Next) from `PhoneTheme.swift`, a copy of the Mac's `Theme.swift` and `HeroBox` pieces until phase 3 shares them. Motion is quiet and shared there too: buttons press down with a light tick, new lines and their English fade in, Datos and the camera screen fade in and out, and Reduce Motion turns movement into plain fades. **Datos** shows the bench numbers: thermal state, battery, lines spoken, and the last log lines (Kokoro first-audio and generation times, slow samples, bezel checks). The log records thermal state and battery every minute, so a long session can be read afterwards.
+The screen: the current line, large, with the spoken part highlighted, in the game's cream dialogue box with the speaker's navy tab; English below; dark pills (Repetir, Lento, Pausa, Lenta, Traducir, Cámara, Datos) in a row in landscape, or under the box in portrait as a row of the four speech controls over a row of three for the screen. It wears the Mac app's theme (striped orange background, heavy ink outlines with hard shadows, Gill Sans and Avenir Next) from `PhoneTheme.swift`, a copy of the Mac's `Theme.swift` and `HeroBox` pieces until phase 3 shares them. Motion is quiet and shared there too: buttons press down with a light tick, new lines and their English fade in, Datos and the camera screen fade in and out, and Reduce Motion turns movement into plain fades. **Datos** shows the bench numbers: thermal state, battery, lines spoken, and the last log lines (Kokoro first-audio and generation times, slow samples, bezel checks). The log records thermal state and battery every minute, so a long session can be read afterwards.
 
-Deliberately left out: key words, recap, speaker tagging, whole-screen translation, settings UI. Phase 3 brings them over shared rather than copied.
+**Traducir** is the Mac's whole-screen translation (T): it snapshots the corrected TV picture (`LiveEngine.snapshot`, or the replay's latest corrected frame in the simulator), reads every block with `ScreenReader`, fills in official names from `GameTerms` at once, and machine-translates the rest. The English sits on paper labels over the picture, full screen; tap to close. When Translation can't run (the simulator, or no language pack), the blocks without a game term stay in Spanish on grey-edged labels and the status line says so, rather than waiting. Speech carries on underneath, as on the Mac.
+
+Deliberately left out: key words, recap, speaker tagging, settings UI. Phase 3 brings them over shared rather than copied.
 
 ### Kyle's play test (the decision)
 
@@ -93,14 +95,14 @@ If it's worth it, phase 3 starts. If not, the phone code stays as an experiment 
 Move what both apps need into a `HablamonUI` library target in the package:
 
 - `AppModel` minus AppKit: replay, live session, speech, translation, words, speakers. Platform bits go behind small protocols: `CameraFeed` (`LiveCamera` and `PhoneCamera` already expose the same `onFrame`/`onSignal`/`onLog` shape), cues (`NSSound` / `AudioServices`), and "bring the window forward".
-- The panels that don't depend on window size: `HeroBox`, `ConversationPanel`, `WordsPanel`, `SpeakersPanel`, `CalibrationPanel`, `Theme`, `TranslationDriver`. The phone's `PhoneTheme.swift` copy goes away.
+- The panels that don't depend on window size: `HeroBox`, `ConversationPanel`, `WordsPanel`, `SpeakersPanel`, `CalibrationPanel`, `Theme`, `TranslationDriver`, `ScreenTranslationView`. The phone's copies (`PhoneTheme.swift`, and its `ScreenTranslationView` and `FrameBox`) go away.
 - The Mac shell keeps the window, menu bar, keys, and launch options. The phone shell keeps the layout, camera controls, and lifecycle. `PhoneModel` goes away.
 - Done when the Mac app looks and behaves the same (snapshot with `--replay … --snapshot`), `mise run verify` passes, and the phone runs on the shared model.
 
 ### Phase 4: phone companion UI (planned)
 
 - Landscape layout for a phone at arm's length: line, English, and key words; recap and words in a sheet; tap a line to repeat it.
-- Speaker tagging from a sheet; whole-screen translation (T on the Mac) from a button.
+- Speaker tagging from a sheet.
 - Settings screen for speed and engine, instead of editing `settings.json` (which is still in Files for hand edits).
 - Share or export the transcript.
 

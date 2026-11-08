@@ -1,6 +1,7 @@
 import AVFoundation
 import AudioToolbox
 import CoreGraphics
+import CoreImage
 import Foundation
 import HablamonCore
 import HablamonModels
@@ -50,6 +51,14 @@ final class PhoneModel {
     /// The last translation failed, so the English slot says so instead of waiting.
     var translationProblem = false
     @ObservationIgnored var translationReady = false
+    /// The whole-screen translation: the snapshot, and its text as it's read and translated.
+    var screenOpen = false
+    var screenReading = false
+    var screenImage: CGImage?
+    var screenTranslation: ScreenTranslation?
+    /// The replay's latest corrected frame, standing in for `LiveEngine.snapshot` in the simulator.
+    @ObservationIgnored let frameBox = FrameBox()
+    @ObservationIgnored private let gameTerms = try? GameTerms.bundled()
 
     @ObservationIgnored let store: AppSupportStore
     @ObservationIgnored let settings: Settings
@@ -466,6 +475,50 @@ final class PhoneModel {
         return state.translation(of: current.text) ?? (translationProblem ? "Traducción no disponible" : nil)
     }
 
+    // MARK: Whole-screen translation
+
+    /// Snapshots the TV and reads every piece of text on it, as T does on the Mac.
+    func openScreen() {
+        screenOpen = true
+        screenReading = true
+        note("screen translation requested")
+        if let engine {
+            engine.snapshot { image in Task { @MainActor [weak self] in self?.readScreen(image) } }
+        } else {
+            readScreen(frameBox.latest)
+        }
+    }
+
+    func closeScreen() {
+        screenOpen = false
+        screenReading = false
+        screenImage = nil
+        screenTranslation = nil
+    }
+
+    private func readScreen(_ frame: CIImage?) {
+        guard screenOpen else { return }
+        guard let frame else {
+            screenReading = false
+            note("screen translation: no frame yet")
+            return
+        }
+        let terms = gameTerms
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let started = Date()
+            let image = CIContext().createCGImage(frame, from: frame.extent)
+            let blocks = image.flatMap { try? ScreenReader().read($0) } ?? []
+            let elapsed = Date().timeIntervalSince(started)
+            await MainActor.run { [weak self] in
+                guard let self, self.screenOpen else { return }
+                self.screenImage = image
+                self.screenTranslation = terms.map { ScreenTranslation(blocks: blocks, terms: $0) }
+                self.screenReading = false
+                self.note(String(format: "screen translation: %d blocks read in %.2f s", blocks.count, elapsed))
+            }
+        }
+    }
+
     // MARK: Camera
 
     func recalibrate() {
@@ -671,12 +724,14 @@ final class PhoneModel {
 
             let (stream, continuation) = AsyncStream.makeStream(of: Message.self)
             let characters = characters
+            let frameBox = frameBox
             Task.detached(priority: .utility) {
                 do {
                     try await Replay.run(
                         video: video, calibration: calibration, profile: profile, characters: characters,
                         realTime: true,
                         onFrame: { found, _ in continuation.yield(.engine(.frame(screenFound: found))) },
+                        onCorrected: { image in frameBox.latest = image },
                         onEvent: { event, _ in continuation.yield(.engine(.pipeline(event))) })
                     continuation.yield(.log("replay finished"))
                 } catch {

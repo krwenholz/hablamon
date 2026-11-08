@@ -74,7 +74,7 @@ mise run phone
 
 It builds, installs, and opens Hablamon on the phone. The first time, the phone won't open it until you trust the developer in Settings › General › VPN & Device Management, and the voices download over Wi-Fi (312 MB). The first build takes about five minutes; after a change, rebuilds take seconds.
 
-The phone can stand landscape or portrait; landscape sees the TV in more detail. On the phone, the app opens on the camera screen (also under **Cámara**), and again whenever you turn it: the picture with the TV's corners and the zoom buttons, with exposure and focus lock under Ajustes; **Datos** shows heat, battery, and the latest log lines. Logs and transcripts are in Files › On My iPhone › Hablamon. With a free Apple ID the app stops opening after 7 days; `mise run phone` again renews it.
+The phone can stand landscape or portrait; landscape sees the TV in more detail. On the phone, the app opens on the camera screen (also under **Cámara**), and again whenever you turn it: the picture with the TV's corners and the zoom buttons, with exposure and focus lock under Ajustes; **Traducir** shows the whole TV picture with English over every menu, move, and description, like **T** on the Mac (tap to close); **Datos** shows heat, battery, and the latest log lines. Logs and transcripts are in Files › On My iPhone › Hablamon. With a free Apple ID the app stops opening after 7 days; `mise run phone` again renews it.
 
 ## Use the Mac's camera instead
 

@@ -104,24 +104,29 @@ struct PlayView: View {
         .onTapGesture { model.repeatLast(slow: false) }
     }
 
-    /// Speech controls on the left, the camera and numbers apart on the right.
+    /// Speech controls on the left, the screen's on the right.
     private var landscapeControls: some View {
         HStack(spacing: 8) {
-            speechButtons(padding: 14)
-            Spacer(minLength: 0)
-            screenButtons(padding: 14)
-        }
-        .lineLimit(1)
-    }
-
-    /// Too narrow for one row of six: two rows of three.
-    private var portraitControls: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
             speechButtons(padding: 10)
+            Spacer(minLength: 0)
             screenButtons(padding: 10)
         }
         .lineLimit(1)
-        .minimumScaleFactor(0.8)
+        .minimumScaleFactor(0.7)
+    }
+
+    /// Too narrow for one row of seven: the four speech controls, then the three for the screen.
+    private var portraitControls: some View {
+        VStack(spacing: 8) {
+            LazyVGrid(columns: columns(4), spacing: 8) { speechButtons(padding: 8) }
+            LazyVGrid(columns: columns(3), spacing: 8) { screenButtons(padding: 10) }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+    }
+
+    private func columns(_ count: Int) -> [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 6), count: count)
     }
 
     @ViewBuilder private func speechButtons(padding: CGFloat) -> some View {
@@ -138,6 +143,8 @@ struct PlayView: View {
     }
 
     @ViewBuilder private func screenButtons(padding: CGFloat) -> some View {
+        Button("Traducir", systemImage: "character.bubble") { model.openScreen() }
+            .buttonStyle(PillButtonStyle(padding: padding))
         Button("Cámara", systemImage: "camera.viewfinder") { model.recalibrate() }
             .buttonStyle(PillButtonStyle(padding: padding))
         Button("Datos", systemImage: "chart.bar.xaxis") { model.showingStats.toggle() }
