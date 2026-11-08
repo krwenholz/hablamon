@@ -27,6 +27,8 @@
 
         private let queue = DispatchQueue(label: "hablamon.live", qos: .utility)
         private let profile: GameProfile
+        /// Look for the box on the panel as shown when it isn't where the profile has it (`CorrectedFrame`).
+        private let alignsToPanel: Bool
         private let onMessage: @Sendable (Message) -> Void
         private let start: Date
         private let context = CIContext()
@@ -56,9 +58,11 @@
 
         public init(
             profile: GameProfile, characters: CharacterTable, calibration quad: Quad?, reference: GrayImage?,
-            settings: Settings, startingAt date: Date, onMessage: @escaping @Sendable (Message) -> Void
+            settings: Settings, startingAt date: Date, alignsToPanel: Bool = false,
+            onMessage: @escaping @Sendable (Message) -> Void
         ) {
             self.profile = profile
+            self.alignsToPanel = alignsToPanel
             self.onMessage = onMessage
             self.start = date
             controller = LiveController(
@@ -119,7 +123,9 @@
                 guard let image = lastImage else { return completion(nil) }
                 let screen = corrector?.correct(image)
                 let features = screen.flatMap {
-                    try? CorrectedFrame(image: $0, context: context, recognizer: recognizer).boxFeatures(profile)
+                    try? CorrectedFrame(
+                        image: $0, context: context, recognizer: recognizer, alignsToPanel: alignsToPanel
+                    ).boxFeatures(profile)
                 }
                 completion(Capture(camera: image, screen: screen, features: features, detection: profile.detection))
             }
@@ -196,7 +202,8 @@
                     let flat = corrector.correct(image)
                     onMessage(.frame(screenFound: flat != nil))
                     guard let flat else { continue }
-                    let frame = CorrectedFrame(image: flat, context: context, recognizer: recognizer)
+                    let frame = CorrectedFrame(
+                        image: flat, context: context, recognizer: recognizer, alignsToPanel: alignsToPanel)
                     let started = ContinuousClock.now
                     do {
                         for event in try pipeline.process(frame, at: time) {
@@ -283,8 +290,10 @@
             let quality = proposal.map { quad -> QualityReport in
                 var body: RGBAImage?
                 if let flat = ScreenCorrector(quad: quad, size: profile.frameSize).correct(image) {
-                    body = try? CorrectedFrame(image: flat, context: context, recognizer: recognizer)
-                        .rgba(profile.regions.bodyText, profile)
+                    body = try? CorrectedFrame(
+                        image: flat, context: context, recognizer: recognizer, alignsToPanel: alignsToPanel
+                    )
+                    .rgba(profile.regions.bodyText, profile)
                 }
                 return QualityGate.report(quad: quad, profile: profile, bodyCrop: body)
             }

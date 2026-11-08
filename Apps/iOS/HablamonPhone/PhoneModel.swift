@@ -178,6 +178,9 @@ final class PhoneModel {
         let engine = LiveEngine(
             profile: profile, characters: characters, calibration: calibration.value?.screenQuad,
             reference: reference, settings: settings, startingAt: Date(),
+            // Proposed corners often sit on the TV's bezel, which moves the box from where the
+            // profile has it; the engine finds it on the panel instead.
+            alignsToPanel: true,
             onMessage: { continuation.yield(.engine($0)) })
         let previewer = PreviewRenderer { image, scale in continuation.yield(.previewFrame(image, scale: scale)) }
         let camera = PhoneCamera()
