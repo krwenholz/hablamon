@@ -44,31 +44,18 @@ public struct BoxFeatures: Sendable, Equatable {
     public var marginEdgeDensity: Double
     /// Fraction of the name-tag region that is saturated tag blue.
     public var tagFraction: Double
-    /// Fraction of the located panel's rows with no edges (`PanelLocator`), or nil when no panel
-    /// was found. A dialogue panel is mostly blank rows around its text lines; scenery isn't.
-    public var panelBlankFraction: Double?
 
-    /// A located panel at least this blank, with text on its lines, is the box even when its
-    /// margins don't line up with the profile's, as with corners placed on the TV's bezel.
-    public static let minPanelBlankFraction = 0.35
-
-    public init(
-        textEdgeDensity: Double, marginEdgeDensity: Double, tagFraction: Double, panelBlankFraction: Double? = nil
-    ) {
+    public init(textEdgeDensity: Double, marginEdgeDensity: Double, tagFraction: Double) {
         self.textEdgeDensity = textEdgeDensity
         self.marginEdgeDensity = marginEdgeDensity
         self.tagFraction = tagFraction
-        self.panelBlankFraction = panelBlankFraction
     }
 
     /// - Parameters:
     ///   - body: the `bodyText` crop.
     ///   - textRows: rows of `body` covered by `textLines`.
     ///   - nameTag: the `nameTag` crop.
-    public init(
-        body: RGBAImage, textRows: Range<Int>, nameTag: RGBAImage, detection: BoxDetection,
-        panelBlankFraction: Double? = nil
-    ) {
+    public init(body: RGBAImage, textRows: Range<Int>, nameTag: RGBAImage, detection: BoxDetection) {
         var textEdges = 0
         var textPixels = 0
         var marginEdges = 0
@@ -95,8 +82,7 @@ public struct BoxFeatures: Sendable, Equatable {
         self.init(
             textEdgeDensity: Double(textEdges) / Double(max(1, textPixels)),
             marginEdgeDensity: Double(marginEdges) / Double(max(1, marginPixels)),
-            tagFraction: Double(tagPixels) / Double(nameTag.width * nameTag.height),
-            panelBlankFraction: panelBlankFraction
+            tagFraction: Double(tagPixels) / Double(nameTag.width * nameTag.height)
         )
     }
 
@@ -116,8 +102,6 @@ public struct BoxFeatures: Sendable, Equatable {
             || (marginEdgeDensity <= detection.maxMarginEdgeDensity
                 && textEdgeDensity >= detection.minTextEdgeDensity
                 && textEdgeDensity > marginEdgeDensity)
-            || ((panelBlankFraction ?? 0) >= Self.minPanelBlankFraction
-                && textEdgeDensity >= detection.minTextEdgeDensity)
     }
 
     /// Each measurement against its threshold, for the log when looking into a missed box.

@@ -178,9 +178,9 @@ final class PhoneModel {
         let engine = LiveEngine(
             profile: profile, characters: characters, calibration: calibration.value?.screenQuad,
             reference: reference, settings: settings, startingAt: Date(),
-            // Proposed corners often sit on the TV's bezel, which moves the box from where the
-            // profile has it; the engine finds it on the panel instead.
-            alignsToPanel: true,
+            // The phone's picture is softer and its corners rougher than the Mac's, and the box
+            // detector's thresholds missed most boxes; reading the screen's text needs neither.
+            reading: .screenText,
             onMessage: { continuation.yield(.engine($0)) })
         let previewer = PreviewRenderer { image, scale in continuation.yield(.previewFrame(image, scale: scale)) }
         let camera = PhoneCamera()
@@ -617,8 +617,7 @@ final class PhoneModel {
             } catch {
                 written.append("failed: \(error)")
             }
-            let box = capture.features?.summary(capture.detection) ?? "no corrected screen (no corners yet)"
-            let line = "capture \(written.joined(separator: ", ")); \(setup); \(box)"
+            let line = "capture \(written.joined(separator: ", ")); \(setup); \(capture.summary)"
             Task { @MainActor [weak self] in self?.note(line) }
         }
     }

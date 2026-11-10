@@ -25,10 +25,22 @@
             case log(String)
         }
 
+        /// How lines are found on the TV.
+        public enum Reading: Sendable {
+            /// Detect the white dialogue box, wait for its text to settle, then read it; speech
+            /// elsewhere (bubbles, subtitles) is read from the whole screen every `freeSpeechInterval`.
+            /// Exact corners, as the Mac's hand-checked ones, suit it.
+            case dialogueBox
+            /// Read all the text on the screen at each sample and speak a line once two reads agree,
+            /// the dialogue box included, whatever its colours. No box detection, settle detector, or
+            /// separate check for bubbles; it copes with corners off the picture's edge and soft or
+            /// tinted pictures, as from the phone's own camera.
+            case screenText
+        }
+
         private let queue = DispatchQueue(label: "hablamon.live", qos: .utility)
         private let profile: GameProfile
-        /// Look for the box on the panel as shown when it isn't where the profile has it (`CorrectedFrame`).
-        private let alignsToPanel: Bool
+        private let reading: Reading
         private let onMessage: @Sendable (Message) -> Void
         private let start: Date
         private let context = CIContext()
@@ -49,6 +61,8 @@
         private var freeTracker = FreeSpeechTracker()
         private var lastFreeCheck: Double?
         private var freeBusy = false
+        /// With `.screenText`, when a dialogue line was last on screen, for dialogue started/ended.
+        private var lastDialogueSeen: Double?
         private let voices = VoiceSelector()
         private let busy = NSLock()
         private var inFlight = false
@@ -58,11 +72,11 @@
 
         public init(
             profile: GameProfile, characters: CharacterTable, calibration quad: Quad?, reference: GrayImage?,
-            settings: Settings, startingAt date: Date, alignsToPanel: Bool = false,
+            settings: Settings, startingAt date: Date, reading: Reading = .dialogueBox,
             onMessage: @escaping @Sendable (Message) -> Void
         ) {
             self.profile = profile
-            self.alignsToPanel = alignsToPanel
+            self.reading = reading
             self.onMessage = onMessage
             self.start = date
             controller = LiveController(
@@ -109,25 +123,35 @@
             }
         }
 
-        /// The latest camera frame, its corrected screen, and the box detector's measurements on it,
-        /// so a frame where a line was missed or misread can be saved and looked into.
+        /// The latest camera frame, its corrected screen, and what the reader makes of it (the box
+        /// detector's measurements, or the speech read off the screen), so a frame where a line was
+        /// missed or misread can be saved and looked into.
         public struct Capture: @unchecked Sendable {
             public let camera: CIImage
             public let screen: CIImage?
-            public let features: BoxFeatures?
-            public let detection: BoxDetection
+            public let summary: String
         }
 
         public func capture(_ completion: @escaping @Sendable (Capture?) -> Void) {
             queue.async { [self] in
                 guard let image = lastImage else { return completion(nil) }
-                let screen = corrector?.correct(image)
-                let features = screen.flatMap {
-                    try? CorrectedFrame(
-                        image: $0, context: context, recognizer: recognizer, alignsToPanel: alignsToPanel
-                    ).boxFeatures(profile)
+                guard let screen = corrector?.correct(image) else {
+                    return completion(
+                        Capture(camera: image, screen: nil, summary: "no corrected screen (no corners yet)"))
                 }
-                completion(Capture(camera: image, screen: screen, features: features, detection: profile.detection))
+                let summary: String
+                switch reading {
+                case .dialogueBox:
+                    let frame = CorrectedFrame(image: screen, context: context, recognizer: recognizer)
+                    summary = (try? frame.boxFeatures(profile).summary(profile.detection)) ?? "box unreadable"
+                case .screenText:
+                    let found = (try? reader.freeSpeech(in: screen, context: context, dialogue: true)) ?? []
+                    summary =
+                        found.isEmpty
+                        ? "no speech on screen"
+                        : found.map { "\($0.kind) \($0.speaker ?? "-"): \($0.text)" }.joined(separator: " | ")
+                }
+                completion(Capture(camera: image, screen: screen, summary: summary))
             }
         }
 
@@ -187,10 +211,10 @@
             }
             lastImage = image
             let time = date.timeIntervalSince(start)
-            run(
-                controller.handle(.frame(time: time, date: date, inDialogue: pipeline.wantsFastSampling)), image: image,
-                at: date)
-            checkFreeSpeechIfDue(image, time: time)
+            // Reading the screen samples at the idle rate throughout: each sample is one whole read.
+            let fast = reading == .dialogueBox && pipeline.wantsFastSampling
+            run(controller.handle(.frame(time: time, date: date, inDialogue: fast)), image: image, at: date)
+            if reading == .dialogueBox { checkFreeSpeechIfDue(image, time: time) }
             sendPreviewIfDue(image, at: date)
         }
 
@@ -202,8 +226,12 @@
                     let flat = corrector.correct(image)
                     onMessage(.frame(screenFound: flat != nil))
                     guard let flat else { continue }
+                    if reading == .screenText {
+                        readScreen(flat, time: time)
+                        continue
+                    }
                     let frame = CorrectedFrame(
-                        image: flat, context: context, recognizer: recognizer, alignsToPanel: alignsToPanel)
+                        image: flat, context: context, recognizer: recognizer)
                     let started = ContinuousClock.now
                     do {
                         for event in try pipeline.process(frame, at: time) {
@@ -260,17 +288,51 @@
                     freeBusy = false
                     // A dialogue box may have appeared meanwhile; it has the line then.
                     guard !pipeline.wantsFastSampling else { return }
+                    for line in freeTracker.observe(found, at: time) { speak(line, at: time) }
+                }
+            }
+        }
+
+        /// One whole read of the screen, off the live queue; a sample arriving while the last read
+        /// is still running is skipped. A new dialogue line interrupts the one before.
+        private func readScreen(_ flat: CIImage, time: Double) {
+            guard !freeBusy else { return }
+            freeBusy = true
+            freeQueue.async { [self] in
+                let started = ContinuousClock.now
+                let found = (try? reader.freeSpeech(in: flat, context: context, dialogue: true)) ?? []
+                let elapsed = (ContinuousClock.now - started) / .seconds(1)
+                queue.async { [self] in
+                    freeBusy = false
+                    if elapsed > 0.5 { onMessage(.log(String(format: "slow read: %.2f s", elapsed))) }
+                    if found.contains(where: { $0.kind == .dialogue }) {
+                        if lastDialogueSeen == nil { onMessage(.pipeline(.dialogueStarted)) }
+                        lastDialogueSeen = time
+                    } else if let seen = lastDialogueSeen, time - seen > FreeSpeechTracker.forgetAfter {
+                        lastDialogueSeen = nil
+                        onMessage(.pipeline(.dialogueEnded))
+                    }
                     for line in freeTracker.observe(found, at: time) {
-                        let speaker: ResolvedSpeaker = line.speaker.map { .unknown(tag: $0) } ?? .narrator
-                        onMessage(
-                            .pipeline(
-                                .speak(
-                                    SpokenPage(
-                                        time: time, speaker: speaker, speakerRaw: line.speaker, text: line.text,
-                                        confidence: OCRConfidence(mean: 1, min: 1), voice: voices.plan(for: speaker)))))
+                        if line.kind == .dialogue {
+                            onMessage(.pipeline(.pageChanged))
+                            // A glance away or a bump hides a line for a few seconds; when it comes
+                            // back, it was already said.
+                            freeTracker.alreadySaid(line.text)
+                        }
+                        speak(line, at: time)
                     }
                 }
             }
+        }
+
+        private func speak(_ line: FreeSpeech, at time: Double) {
+            let speaker: ResolvedSpeaker = line.speaker.map { .unknown(tag: $0) } ?? .narrator
+            onMessage(
+                .pipeline(
+                    .speak(
+                        SpokenPage(
+                            time: time, speaker: speaker, speakerRaw: line.speaker, text: line.text,
+                            confidence: OCRConfidence(mean: 1, min: 1), voice: voices.plan(for: speaker)))))
         }
 
         /// Waits for any whole-frame read in progress, for tests.
@@ -291,7 +353,7 @@
                 var body: RGBAImage?
                 if let flat = ScreenCorrector(quad: quad, size: profile.frameSize).correct(image) {
                     body = try? CorrectedFrame(
-                        image: flat, context: context, recognizer: recognizer, alignsToPanel: alignsToPanel
+                        image: flat, context: context, recognizer: recognizer
                     )
                     .rgba(profile.regions.bodyText, profile)
                 }

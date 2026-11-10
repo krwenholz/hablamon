@@ -43,6 +43,33 @@ import Testing
         #expect(FreeSpeech.find(in: blocks, brightness: { _ in 0.8 }).isEmpty)
     }
 
+    @Test func dialogueModeReadsTheBoxWhateverItsColours() {
+        // Mencía's green-on-black call box: no white panel to detect, just text.
+        let found = FreeSpeech.find(
+            in: [
+                block(0, "Mencía", x: 0.33, y: 0.64, width: 0.08, height: 0.04),
+                block(1, "¡Hola, Miguel! Soy yo, ¿quién si no?", x: 0.29, y: 0.70, width: 0.30),
+            ], dialogue: true, brightness: { _ in 0.1 })
+        #expect(found == [FreeSpeech(text: "¡Hola, Miguel! Soy yo, ¿quién si no?", speaker: "Mencía", kind: .dialogue)])
+    }
+
+    @Test func aShortExclamationIsDialogue() {
+        let found = FreeSpeech.find(
+            in: [block(0, "¿Cómo? ¡¿Dónde?!", x: 0.29, y: 0.72, width: 0.12)], dialogue: true, brightness: { _ in 0.9 })
+        #expect(found.map(\.kind) == [.dialogue])
+    }
+
+    @Test func aLineStillTypingOutIsNotDialogueYet() {
+        let typing = block(
+            0, "¿Qué tal te va con los gimnasios? ¿Bien? ¿Cuál tienes en el pu", x: 0.29, y: 0.70, width: 0.4)
+        #expect(FreeSpeech.find(in: [typing], dialogue: true, brightness: { _ in 0.9 }).isEmpty)
+    }
+
+    @Test func dialogueModeStillSkipsNotifications() {
+        let card = block(0, "¡Hay una clase de Arte disponible!", x: 0.72, y: 0.26, width: 0.21)
+        #expect(FreeSpeech.find(in: [card], dialogue: true, brightness: { _ in 0.8 }).isEmpty)
+    }
+
     @Test func aWhiteDialogueBoxIsLeftToTheDialogueReader() {
         let box = block(0, "Menuda estampa se ve desde aquí arriba, ¿eh?", x: 0.29, y: 0.76, width: 0.40)
         #expect(FreeSpeech.find(in: [box], brightness: { _ in 0.86 }).isEmpty)
@@ -75,6 +102,18 @@ import Testing
         #expect(tracker.observe([], at: 7).isEmpty)
         #expect(tracker.observe([line], at: 8).isEmpty)
         #expect(tracker.observe([line], at: 9.5) == [line], "after it went away, it can be said again")
+    }
+
+    @Test func waitsUntilALineStopsTypingOut() {
+        var tracker = FreeSpeechTracker()
+        func line(_ text: String) -> FreeSpeech { FreeSpeech(text: text, speaker: "Mencía", kind: .dialogue) }
+        let full = line("Antes de afrontar un gimnasio, siempre visitaba la arena de combate local.")
+        #expect(
+            tracker.observe([line("Antes de afrontar un gimnasio, siempre visitaba la arena de combate.")], at: 0)
+                .isEmpty)
+        #expect(tracker.observe([full], at: 0.5).isEmpty, "still growing")
+        #expect(tracker.observe([full], at: 1) == [full], "two reads agree")
+        #expect(tracker.observe([full], at: 1.5).isEmpty)
     }
 
     @Test func smallOCRJitterCountsAsTheSameLine() {

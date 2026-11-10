@@ -48,11 +48,13 @@
             return (0.299 * Double(pixel[0]) + 0.587 * Double(pixel[1]) + 0.114 * Double(pixel[2])) / 255
         }
 
-        /// Speech shown without a dialogue box on a flattened frame.
-        public func freeSpeech(in image: CIImage, context: CIContext) throws -> [FreeSpeech] {
+        /// Speech on a flattened frame: without a dialogue box, or with `dialogue` the box's lines too.
+        public func freeSpeech(in image: CIImage, context: CIContext, dialogue: Bool = false) throws -> [FreeSpeech] {
             guard let picture = context.createCGImage(image, from: image.extent) else { return [] }
             let blocks = try read(picture)
-            return FreeSpeech.find(in: blocks) { Self.brightness(of: $0, in: image, context: context) }
+            return FreeSpeech.find(in: blocks, dialogue: dialogue) {
+                Self.brightness(of: $0, in: image, context: context)
+            }
         }
     }
 #endif

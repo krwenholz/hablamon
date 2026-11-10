@@ -5,7 +5,7 @@ Real captures from Kyle's setup. Don't fabricate these; tests skip when they're 
 | Folder | What | In git? |
 | --- | --- | --- |
 | `photos/` | Phone photos or screenshots of the TV, from different placements and angles. Include name-tag lines, not just anonymous NPC text. | Yes |
-| `phone-captures/` | Corrected screens (1280×720) saved by the iPhone app's **Guardar captura**: exactly what the box detector sees on the phone, including corners placed on the TV's bezel. | Yes |
+| `phone-captures/` | Corrected screens (1280×720) saved by the iPhone app's **Guardar captura**: exactly what the phone's reader sees, including corners placed on the TV's bezel. | Yes |
 | `videos/` | iPhone recordings of normal play, landscape, with the whole TV in frame (`far.mp4` is an older portrait clip). | No; `mise run fixtures` downloads them (pinned by SHA-256 in `scripts/fetch-fixtures.sh`) |
 
 ## Naming

@@ -52,95 +52,35 @@
         let context: CIContext
         let recognizer: VisionTextRecognizer
         private var bodyCache: RGBAImage?
-        /// Whether a box missed where the profile has it is looked for on the panel as shown.
-        let alignsToPanel: Bool
-        /// The regions this frame is read with, once `boxFeatures` has chosen them.
-        private var chosen: GameProfile?
 
         /// `image` must already be corrected to the profile's frame size, with its origin at zero.
-        /// `alignsToPanel` suits corners that don't sit exactly on the picture's edge, as the phone's
-        /// often do; with exact corners, as in the Mac's fixtures, switching regions between frames
-        /// confuses the settle detector, so it's off by default.
-        public init(image: CIImage, context: CIContext, recognizer: VisionTextRecognizer, alignsToPanel: Bool = false) {
+        public init(image: CIImage, context: CIContext, recognizer: VisionTextRecognizer) {
             self.image = image
             self.context = context
             self.recognizer = recognizer
-            self.alignsToPanel = alignsToPanel
         }
 
-        /// Measures the box where the profile has it. When that finds no box, measures it again
-        /// on the dialogue panel as this frame shows it (`PanelLocator`): corners placed on the TV's
-        /// bezel, or a TV that overscans, move the box from where the profile expects it. Frames
-        /// read fine with the profile's regions are read exactly as before.
         public func boxFeatures(_ profile: GameProfile) throws -> BoxFeatures {
-            chosen = profile
-            let fixed = try features(profile)
-            guard alignsToPanel, !fixed.isBoxVisible(profile.detection), let panel = try locatePanel(profile) else {
-                return fixed
-            }
-            var moved = profile
-            moved.regions = panel.regions
-            bodyCache = nil
-            let aligned = try features(moved, panelBlankFraction: panel.blankFraction)
-            guard aligned.isBoxVisible(profile.detection) else {
-                bodyCache = nil
-                return fixed
-            }
-            chosen = moved
-            return aligned
-        }
-
-        public func settleCrop(_ profile: GameProfile) throws -> GrayImage {
-            try body(chosen ?? profile).gray.downscaled(width: 160, height: 40)
-        }
-
-        public func readBody(_ profile: GameProfile) throws -> [RecognizedLine] {
-            let profile = chosen ?? profile
-            return try recognizer.recognize(try cgImage(profile.regions.bodyText, profile, scale: 2))
-        }
-
-        public func readNameTag(_ profile: GameProfile) throws -> [RecognizedLine] {
-            let profile = chosen ?? profile
-            return try recognizer.recognize(try cgImage(profile.regions.nameTag, profile, scale: 3))
-        }
-
-        private func features(_ profile: GameProfile, panelBlankFraction: Double? = nil) throws -> BoxFeatures {
             let regions = profile.regions
             let top = regions.textLines.y - regions.bodyText.y
             return BoxFeatures(
                 body: try body(profile),
                 textRows: top..<(top + regions.textLines.height),
                 nameTag: try rgba(regions.nameTag, profile),
-                detection: profile.detection,
-                panelBlankFraction: panelBlankFraction
+                detection: profile.detection
             )
         }
 
-        /// The profile's regions moved onto the dialogue panel this frame shows, and how much of
-        /// the panel is blank rows; nil when no panel-sized band is near where the box should be.
-        func locatePanel(_ profile: GameProfile) throws -> (regions: ProfileRegions, blankFraction: Double)? {
-            let box = profile.regions.dialogueBox
-            let top = max(0, box.y - box.height / 2)
-            let band = PixelRect(
-                x: box.x + box.width / 5, y: top, width: box.width * 3 / 5, height: profile.frameSize.height - top)
-            let image = try rgba(band, profile)
-            let medians = (0..<image.height).map { y in
-                let row = (0..<image.width).map { image.luminance(x: $0, y: y) }.sorted()
-                return row[row.count / 2]
-            }
-            guard let panel = PanelLocator.locate(rowMedians: medians, firstRow: band.y, expected: box) else {
-                return nil
-            }
-            let rows = (panel.top - band.y + 1)..<(panel.top - band.y + panel.height)
-            let blank = rows.filter { y in
-                let edges = (0..<image.width).filter { x in
-                    abs(image.luminance(x: x, y: y) - image.luminance(x: x, y: y - 1)) > profile.detection.edgeStep
-                }
-                return Double(edges.count) / Double(image.width) < PanelLocator.blankRowEdges
-            }
-            let regions = profile.regions.aligned(
-                boxTop: panel.top, boxHeight: panel.height, frameHeight: profile.frameSize.height)
-            return (regions, Double(blank.count) / Double(max(1, rows.count)))
+        public func settleCrop(_ profile: GameProfile) throws -> GrayImage {
+            try body(profile).gray.downscaled(width: 160, height: 40)
+        }
+
+        public func readBody(_ profile: GameProfile) throws -> [RecognizedLine] {
+            try recognizer.recognize(try cgImage(profile.regions.bodyText, profile, scale: 2))
+        }
+
+        public func readNameTag(_ profile: GameProfile) throws -> [RecognizedLine] {
+            try recognizer.recognize(try cgImage(profile.regions.nameTag, profile, scale: 3))
         }
 
         private func body(_ profile: GameProfile) throws -> RGBAImage {
