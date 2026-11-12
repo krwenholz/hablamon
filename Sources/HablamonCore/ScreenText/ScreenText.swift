@@ -40,7 +40,10 @@ public enum ScreenText {
         let gap = next.box.y - (last.box.y + last.box.height)
         let height = max(last.box.height, next.box.height)
         let overlap = min(last.box.x + last.box.width, next.box.x + next.box.width) - max(last.box.x, next.box.x)
-        guard gap < height * 0.6, gap > -height * 0.5, overlap > 0 else { return false }
+        // Lines on a tilted picture get tall boxes that overlap the next line's, so a line counts as
+        // below by where it starts, which also keeps side-by-side labels on one row apart.
+        let below = next.box.y - last.box.y > height * 0.3
+        guard gap < height * 0.6, below, overlap > 0 else { return false }
         // A line starting in lowercase continues the sentence above, however short (speech bubbles).
         if next.text.first(where: \.isLetter)?.isLowercase == true { return true }
         return last.box.width >= minimumWrappingWidth && abs(next.box.x - last.box.x) < height * 1.5

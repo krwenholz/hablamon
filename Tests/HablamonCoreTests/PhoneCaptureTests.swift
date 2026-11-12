@@ -22,6 +22,8 @@
                 ("hola-miguel_far_bezel-corners-call.png", "¿quién si no?", "Mencía"),
                 ("antes-de-afrontar_far_bezel-corners-bright-floor.png", "arena de combate local.", "Mencía"),
                 ("aja-te-queria-ver_far_bezel-corners.png", "¡A ti te quería yo ver!", "Mencía"),
+                // Hand-dragged corners left the picture tilted; both lines must still be one line.
+                ("dominante-especias_far_tilted-corners.png", "Te has fijado", "Damián"),
             ] as [(String, String, String?)])
         func readsTheLineAndSpeaker(_ name: String, _ ending: String, _ speaker: String?) throws {
             let url = Self.directory.appendingPathComponent(name)
@@ -30,7 +32,7 @@
             print("[phone] \(name): \(found.map { "\($0.kind) \($0.speaker ?? "-"): \($0.text)" })")
             let lines = found.filter { $0.kind == .dialogue }
             #expect(lines.count == 1)
-            #expect(lines.first?.text.hasSuffix(ending) == true)
+            #expect(lines.first.map { $0.text.hasSuffix(ending) || $0.text.hasPrefix(ending) } == true)
             #expect(lines.first?.speaker == speaker)
         }
     }
