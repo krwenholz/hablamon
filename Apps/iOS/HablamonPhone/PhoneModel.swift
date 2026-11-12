@@ -218,9 +218,9 @@ final class PhoneModel {
         transcript = try? TranscriptWriter(
             sessionsDirectory: store.sessionsDirectory,
             session: TranscriptWriter.sessionName(startingAt: sessionStart))
-        // Every launch starts on the camera screen: the phone has likely been moved since last time,
-        // and the corners are quicker to check than a misread line is to notice.
-        showingCamera = true
+        // No camera screen at launch: the engine checks the saved corners against the picture and
+        // finds the TV again by itself when they don't fit. It asks for the camera screen
+        // (`.recalibrating`) only on a first run or when it can't find the TV.
 
         tasks.append(
             Task { [weak self] in
@@ -262,8 +262,8 @@ final class PhoneModel {
         }
     }
 
-    /// Turns the picture with the screen. The phone has moved, so the old corners no longer fit:
-    /// the camera screen opens to check new ones, as after a zoom change.
+    /// Turns the picture with the screen. The phone has moved, so the old corners no longer fit and
+    /// the engine finds the TV again, as after a zoom change.
     private func watchScreenOrientation() {
         // The scene belongs to the main actor, so its orientation is read there, not in the callback.
         orientationObservation = Self.windowScene?.observe(\.effectiveGeometry, options: [.new]) { _, _ in
@@ -557,11 +557,10 @@ final class PhoneModel {
         pictureChanged()
     }
 
-    /// The old corners don't fit after a lens or zoom change: look for the TV again, and keep the
-    /// camera screen open so the new corners can be checked.
+    /// The old corners don't fit after a lens, zoom, or orientation change: the engine looks for the
+    /// TV again by itself, and asks for the camera screen only if it can't find it.
     private func pictureChanged() {
         engine?.signal(.screenMismatch, at: Date())
-        recalibrate()
     }
 
     func setExposureBias(_ bias: Double) {
